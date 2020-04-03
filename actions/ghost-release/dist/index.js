@@ -2934,7 +2934,7 @@ releaseUtils.releases
         draft: true,
         preRelease: false,
         tagName: ghostPackageInfo.version,
-        releaseName: ghostPackageInfo.version + '+banana',
+        releaseName: ghostPackageInfo.version + '+draft',
         userAgent: 'ghost-release',
         uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases`,
         github: {
