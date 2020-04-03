@@ -1,0 +1,5 @@
+name: 'Ghost Release'
+description: 'Release a new version of Ghost'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
