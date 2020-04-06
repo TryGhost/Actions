@@ -9,32 +9,31 @@ const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json')));
 const zipName = `Ghost-${ghostPackageInfo.version}.zip`;
 
-function getPreviousVersion(tags) {
-    const sameMajorReleaseTags = [], otherReleaseTags = [];
-
-    tags.forEach((release) => {
-        let lastVersion = release.tag_name || release.name;
-
-        // only compare to versions smaller than the new one
-        if (semver.gt(ghostPackageInfo.version, lastVersion)) {
-            // check if the majors are the same
-            if (semver.major(lastVersion) === semver.major(ghostPackageInfo.version)) {
-                sameMajorReleaseTags.push(lastVersion);
-            } else {
-                otherReleaseTags.push(lastVersion);
-            }
-        }
-    });
-
-    return (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
-}
-
 releaseUtils.releases
     .get({
         userAgent: 'ghost-release',
         uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases`
     })
-    .then(getPreviousVersion)
+    .then((tags) => {
+        const sameMajorReleaseTags = [], otherReleaseTags = [];
+
+        tags.forEach((release) => {
+            let lastVersion = release.tag_name || release.name;
+
+            // only compare to versions smaller than the new one
+            if (semver.gt(ghostPackageInfo.version, lastVersion)) {
+                // check if the majors are the same
+                if (semver.major(lastVersion) === semver.major(ghostPackageInfo.version)) {
+                    sameMajorReleaseTags.push(lastVersion);
+                } else {
+                    otherReleaseTags.push(lastVersion);
+                }
+            }
+        });
+
+        let previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
+        return Promise.resolve(previousVersion);
+    })
     .then((previousVersion) => {
         const changelog = new releaseUtils.Changelog({
             changelogPath: path.join(basePath, 'changelog.md'),
