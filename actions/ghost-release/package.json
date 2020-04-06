@@ -20,6 +20,7 @@
     "eslint-plugin-ghost": "1.1.0"
   },
   "dependencies": {
+    "@sentry/cli": "^1.52.1",
     "@tryghost/release-utils": "^0.5.0",
     "semver": "^7.1.3"
   }

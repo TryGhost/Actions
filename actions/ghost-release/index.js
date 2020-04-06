@@ -2,12 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
 const releaseUtils = require('@tryghost/release-utils');
+const SentryCli = require('@sentry/cli');
 
 const ORGNAME = 'TryGhost';
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
-
 const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json')));
-const zipName = `Ghost-${ghostPackageInfo.version}.zip`;
+const ghostVersion = ghostPackageInfo.version;
+const zipName = `Ghost-${ghostVersion}.zip`;
+
+const sentryCli = new SentryCli();
 
 releaseUtils.releases
     .get({
@@ -21,9 +24,9 @@ releaseUtils.releases
             let lastVersion = release.tag_name || release.name;
 
             // only compare to versions smaller than the new one
-            if (semver.gt(ghostPackageInfo.version, lastVersion)) {
+            if (semver.gt(ghostVersion, lastVersion)) {
                 // check if the majors are the same
-                if (semver.major(lastVersion) === semver.major(ghostPackageInfo.version)) {
+                if (semver.major(lastVersion) === semver.major(ghostVersion)) {
                     sameMajorReleaseTags.push(lastVersion);
                 } else {
                     otherReleaseTags.push(lastVersion);
@@ -54,13 +57,12 @@ releaseUtils.releases
             .sort()
             .clean();
 
-        console.log('changelog.md generated');
         return Promise.resolve();
     })
     .then(() => releaseUtils.gist.create({
         userAgent: 'ghost-release',
-        gistName: 'changelog-' + ghostPackageInfo.version + '.md',
-        gistDescription: 'Changelog ' + ghostPackageInfo.version,
+        gistName: 'changelog-' + ghostVersion + '.md',
+        gistDescription: 'Changelog ' + ghostVersion,
         changelogPath: path.join(basePath, 'changelog.md'),
         github: {
             token: process.env.RELEASE_TOKEN
@@ -74,8 +76,8 @@ releaseUtils.releases
     .then(response => releaseUtils.releases.create({
         draft: true,
         preRelease: false,
-        tagName: ghostPackageInfo.version,
-        releaseName: ghostPackageInfo.version + '+draft',
+        tagName: ghostVersion,
+        releaseName: ghostVersion + '+draft',
         userAgent: 'ghost-release',
         uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases`,
         github: {
@@ -96,6 +98,8 @@ releaseUtils.releases
         uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
         userAgent: 'ghost-release'
     }))
+    .then(() => sentryCli.releases.new(ghostVersion))
+    .then(() => sentryCli.releases.finalize(ghostVersion))
     .catch((err) => {
         console.error(err);
         process.exit(1);
