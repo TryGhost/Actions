@@ -41,7 +41,7 @@ releaseUtils.releases
     .then(() => {
         const changelog = new releaseUtils.Changelog({
             changelogPath: path.join(basePath, 'changelog.md'),
-            folder: process.cwd()
+            folder: basePath
         });
 
         changelog
