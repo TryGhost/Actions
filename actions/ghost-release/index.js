@@ -11,6 +11,7 @@ const ghostVersion = ghostPackageInfo.version;
 const zipName = `Ghost-${ghostVersion}.zip`;
 
 const sentryCli = new SentryCli();
+let previousVersion;
 
 releaseUtils.releases
     .get({
@@ -34,10 +35,10 @@ releaseUtils.releases
             }
         });
 
-        let previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
-        return Promise.resolve(previousVersion);
+        previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
+        return Promise.resolve();
     })
-    .then((previousVersion) => {
+    .then(() => {
         const changelog = new releaseUtils.Changelog({
             changelogPath: path.join(basePath, 'changelog.md'),
             folder: process.cwd()
@@ -59,21 +60,7 @@ releaseUtils.releases
 
         return Promise.resolve();
     })
-    .then(() => releaseUtils.gist.create({
-        userAgent: 'ghost-release',
-        gistName: 'changelog-' + ghostVersion + '.md',
-        gistDescription: 'Changelog ' + ghostVersion,
-        changelogPath: path.join(basePath, 'changelog.md'),
-        github: {
-            token: process.env.RELEASE_TOKEN
-        },
-        isPublic: true
-    }))
-    .then((response) => {
-        console.log(`Gist generated: ${response.gistUrl}`);
-        return Promise.resolve(response);
-    })
-    .then(response => releaseUtils.releases.create({
+    .then(() => releaseUtils.releases.create({
         draft: true,
         preRelease: false,
         tagName: ghostVersion,
@@ -84,7 +71,7 @@ releaseUtils.releases
             token: process.env.RELEASE_TOKEN
         },
         changelogPath: [{changelogPath: path.join(basePath, 'changelog.md')}],
-        gistUrl: response.gistUrl
+        extraText: `See the changelogs for [Ghost](https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}) and [Ghost-Admin](https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}) for the details of every change in this release.`
     }))
     .then((response) => {
         console.log(`Release draft generated: ${response.releaseUrl}`);

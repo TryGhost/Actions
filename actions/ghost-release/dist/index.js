@@ -2943,6 +2943,7 @@ const ghostVersion = ghostPackageInfo.version;
 const zipName = `Ghost-${ghostVersion}.zip`;
 
 const sentryCli = new SentryCli();
+let previousVersion;
 
 releaseUtils.releases
     .get({
@@ -2966,10 +2967,10 @@ releaseUtils.releases
             }
         });
 
-        let previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
-        return Promise.resolve(previousVersion);
+        previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
+        return Promise.resolve();
     })
-    .then((previousVersion) => {
+    .then(() => {
         const changelog = new releaseUtils.Changelog({
             changelogPath: path.join(basePath, 'changelog.md'),
             folder: process.cwd()
@@ -2991,21 +2992,7 @@ releaseUtils.releases
 
         return Promise.resolve();
     })
-    .then(() => releaseUtils.gist.create({
-        userAgent: 'ghost-release',
-        gistName: 'changelog-' + ghostVersion + '.md',
-        gistDescription: 'Changelog ' + ghostVersion,
-        changelogPath: path.join(basePath, 'changelog.md'),
-        github: {
-            token: process.env.RELEASE_TOKEN
-        },
-        isPublic: true
-    }))
-    .then((response) => {
-        console.log(`Gist generated: ${response.gistUrl}`);
-        return Promise.resolve(response);
-    })
-    .then(response => releaseUtils.releases.create({
+    .then(() => releaseUtils.releases.create({
         draft: true,
         preRelease: false,
         tagName: ghostVersion,
@@ -3016,7 +3003,7 @@ releaseUtils.releases
             token: process.env.RELEASE_TOKEN
         },
         changelogPath: [{changelogPath: path.join(basePath, 'changelog.md')}],
-        gistUrl: response.gistUrl
+        extraText: `See the changelogs for [Ghost](https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}) and [Ghost-Admin](https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}) for the details of every change in this release.`
     }))
     .then((response) => {
         console.log(`Release draft generated: ${response.releaseUrl}`);
@@ -56065,11 +56052,61 @@ module.exports = {
   gtr: __webpack_require__(531),
   ltr: __webpack_require__(323),
   intersects: __webpack_require__(259),
+  simplifyRange: __webpack_require__(877),
 }
 
 
 /***/ }),
-/* 877 */,
+/* 877 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+// given a set of versions and a range, create a "simplified" range
+// that includes the same versions that the original range does
+// If the original range is shorter than the simplified one, return that.
+const satisfies = __webpack_require__(310)
+const compare = __webpack_require__(874)
+module.exports = (versions, range, options) => {
+  const set = []
+  let min = null
+  let prev = null
+  const v = versions.sort((a, b) => compare(a, b, options))
+  for (const version of v) {
+    const included = satisfies(version, range, options)
+    if (included) {
+      prev = version
+      if (!min)
+        min = version
+    } else {
+      if (prev) {
+        set.push([min, prev])
+      }
+      prev = null
+      min = null
+    }
+  }
+  if (min)
+    set.push([min, null])
+
+  const ranges = []
+  for (const [min, max] of set) {
+    if (min === max)
+      ranges.push(min)
+    else if (!max && min === v[0])
+      ranges.push('*')
+    else if (!max)
+      ranges.push(`>=${min}`)
+    else if (min === v[0])
+      ranges.push(`<=${max}`)
+    else
+      ranges.push(`${min} - ${max}`)
+  }
+  const simplified = ranges.join(' || ')
+  const original = typeof range.raw === 'string' ? range.raw : String(range)
+  return simplified.length < original.length ? simplified : range
+}
+
+
+/***/ }),
 /* 878 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -62929,6 +62966,11 @@ module.exports.create = (options = {}) => {
     if (options.gistUrl) {
         body.push('');
         body.push('You can see the [full change log](' + options.gistUrl + ') for the details of every change included in this release.');
+    }
+
+    if (options.extraText) {
+        body.push('');
+        body.push(options.extraText);
     }
 
     const auth = 'token ' + options.github.token;
