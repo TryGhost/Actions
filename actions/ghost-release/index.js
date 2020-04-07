@@ -7,6 +7,7 @@ const SentryCli = require('@sentry/cli');
 const ORGNAME = 'TryGhost';
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json')));
+const changelogPath = path.join(basePath, '.dist', 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 const zipName = `Ghost-${ghostVersion}.zip`;
 
@@ -40,7 +41,7 @@ releaseUtils.releases
     })
     .then(() => {
         const changelog = new releaseUtils.Changelog({
-            changelogPath: path.join(basePath, 'changelog.md'),
+            changelogPath: changelogPath,
             folder: basePath
         });
 
@@ -70,7 +71,7 @@ releaseUtils.releases
         github: {
             token: process.env.RELEASE_TOKEN
         },
-        changelogPath: [{changelogPath: path.join(basePath, 'changelog.md')}],
+        changelogPath: [{changelogPath: changelogPath}],
         extraText: `See the changelogs for [Ghost](https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}) and [Ghost-Admin](https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}) for the details of every change in this release.`
     }))
     .then((response) => {
