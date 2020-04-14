@@ -22,6 +22,6 @@
   "dependencies": {
     "@sentry/cli": "^1.52.1",
     "@tryghost/release-utils": "0.6.0",
-    "semver": "7.3.0"
+    "semver": "7.3.1"
   }
 }
