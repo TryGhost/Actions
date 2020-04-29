@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
 const releaseUtils = require('@tryghost/release-utils');
-const SentryCli = require('@sentry/cli');
 
 const ORGNAME = 'TryGhost';
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -11,7 +10,6 @@ const changelogPath = path.join(basePath, '.dist', 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 const zipName = `Ghost-${ghostVersion}.zip`;
 
-const sentryCli = new SentryCli();
 let previousVersion;
 
 releaseUtils.releases
@@ -86,8 +84,6 @@ releaseUtils.releases
         uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
         userAgent: 'ghost-release'
     }))
-    .then(() => sentryCli.releases.new(ghostVersion))
-    .then(() => sentryCli.releases.finalize(ghostVersion))
     .catch((err) => {
         console.error(err);
         process.exit(1);

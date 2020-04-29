@@ -744,81 +744,7 @@ module.exports = function generate_comment(it, $keyword, $ruleType) {
 /***/ }),
 /* 29 */,
 /* 30 */,
-/* 31 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-const pkgInfo = __webpack_require__(439);
-const helper = __webpack_require__(308);
-const Releases = __webpack_require__(798);
-
-/**
- * Interface to and wrapper around the `sentry-cli` executable.
- *
- * Commands are grouped into namespaces. See the respective namespaces for more
- * documentation. To use this wrapper, simply create an instance and call methods:
- *
- * @example
- * const cli = new SentryCli();
- * console.log(cli.getVersion());
- *
- * @example
- * const cli = new SentryCli('path/to/custom/sentry.properties');
- * console.log(cli.getVersion());
- */
-class SentryCli {
-  /**
-   * Creates a new `SentryCli` instance.
-   *
-   * If the `configFile` parameter is specified, configuration located in the default
-   * location and the value specified in the `SENTRY_PROPERTIES` environment variable is
-   * overridden.
-   *
-   * @param {string} [configFile] Relative or absolute path to the configuration file.
-   * @param {Object} [options] More options to pass to the CLI
-   */
-  constructor(configFile, options) {
-    if (typeof configFile === 'string') {
-      this.configFile = configFile;
-    }
-    this.options = options || { silent: false };
-
-    this.releases = new Releases(Object.assign({}, this.options, { configFile }));
-  }
-
-  /**
-   * Returns the version of the installed `sentry-cli` binary.
-   * @returns {string}
-   */
-  static getVersion() {
-    return pkgInfo.version;
-  }
-
-  /**
-   * Returns an absolute path to the `sentry-cli` binary.
-   * @returns {string}
-   */
-  static getPath() {
-    return helper.getPath();
-  }
-
-  /**
-   * See {helper.execute} docs.
-   * @param {string[]} args Command line arguments passed to `sentry-cli`.
-   * @param {boolean} live We inherit stdio to display `sentry-cli` output directly.
-   * @returns {Promise.<string>} A promise that resolves to the standard output.
-   */
-  execute(args, live) {
-    return helper.execute(args, live, this.options.silent, this.configFile);
-  }
-}
-
-module.exports = SentryCli;
-
-
-/***/ }),
+/* 31 */,
 /* 32 */,
 /* 33 */
 /***/ (function(module) {
@@ -2934,7 +2860,6 @@ const fs = __webpack_require__(747);
 const path = __webpack_require__(622);
 const semver = __webpack_require__(876);
 const releaseUtils = __webpack_require__(83);
-const SentryCli = __webpack_require__(31);
 
 const ORGNAME = 'TryGhost';
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -2943,7 +2868,6 @@ const changelogPath = path.join(basePath, '.dist', 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 const zipName = `Ghost-${ghostVersion}.zip`;
 
-const sentryCli = new SentryCli();
 let previousVersion;
 
 releaseUtils.releases
@@ -3018,8 +2942,6 @@ releaseUtils.releases
         uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
         userAgent: 'ghost-release'
     }))
-    .then(() => sentryCli.releases.new(ghostVersion))
-    .then(() => sentryCli.releases.finalize(ghostVersion))
     .catch((err) => {
         console.error(err);
         process.exit(1);
@@ -14014,176 +13936,7 @@ module.exports = require("async_hooks");
 /* 305 */,
 /* 306 */,
 /* 307 */,
-/* 308 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-const os = __webpack_require__(87);
-const path = __webpack_require__(622);
-const childProcess = __webpack_require__(129);
-
-/**
- * Absolute path to the sentry-cli binary (platform dependant).
- * @type {string}
- */
-// istanbul ignore next
-let binaryPath = __webpack_require__.ab + "sentry-cli";
-/**
- * Overrides the default binary path with a mock value, useful for testing.
- *
- * @param {string} mockPath The new path to the mock sentry-cli binary
- */
-function mockBinaryPath(mockPath) {
-  binaryPath = mockPath;
-}
-
-/**
- * The javascript type of a command line option.
- * @typedef {'array'|'string'|'boolean'|'inverted-boolean'} OptionType
- */
-
-/**
- * Schema definition of a command line option.
- * @typedef {object} OptionSchema
- * @prop {string} param The flag of the command line option including dashes.
- * @prop {OptionType} type The value type of the command line option.
- */
-
-/**
- * Schema definition for a command.
- * @typedef {Object.<string, OptionSchema>} OptionsSchema
- */
-
-/**
- * Serializes command line options into an arguments array.
- *
- * @param {OptionsSchema} schema An options schema required by the command.
- * @param {object} options An options object according to the schema.
- * @returns {string[]} An arguments array that can be passed via command line.
- */
-function serializeOptions(schema, options) {
-  return Object.keys(schema).reduce((newOptions, option) => {
-    const paramValue = options[option];
-    if (paramValue === undefined) {
-      return newOptions;
-    }
-
-    const paramType = schema[option].type;
-    const paramName = schema[option].param;
-
-    if (paramType === 'array') {
-      if (!Array.isArray(paramValue)) {
-        throw new Error(`${option} should be an array`);
-      }
-
-      return newOptions.concat(
-        paramValue.reduce((acc, value) => acc.concat([paramName, String(value)]), [])
-      );
-    }
-
-    if (paramType === 'boolean') {
-      if (typeof paramValue !== 'boolean') {
-        throw new Error(`${option} should be a bool`);
-      }
-
-      const invertedParamName = schema[option].invertedParam;
-
-      if (paramValue && paramName !== undefined) {
-        return newOptions.concat([paramName]);
-      }
-
-      if (!paramValue && invertedParamName !== undefined) {
-        return newOptions.concat([invertedParamName]);
-      }
-
-      return newOptions;
-    }
-
-    return newOptions.concat(paramName, paramValue);
-  }, []);
-}
-
-/**
- * Serializes the command and its options into an arguments array.
- *
- * @param {string} command The literal name of the command.
- * @param {OptionsSchema} [schema] An options schema required by the command.
- * @param {object} [options] An options object according to the schema.
- * @returns {string[]} An arguments array that can be passed via command line.
- */
-function prepareCommand(command, schema, options) {
-  return command.concat(serializeOptions(schema || {}, options || {}));
-}
-
-/**
- * Returns the absolute path to the `sentry-cli` binary.
- * @returns {string}
- */
-function getPath() {
-  return __webpack_require__.ab + "sentry-cli";
-}
-
-/**
- * Runs `sentry-cli` with the given command line arguments.
- *
- * Use {@link prepareCommand} to specify the command and add arguments for command-
- * specific options. For top-level options, use {@link serializeOptions} directly.
- *
- * The returned promise resolves with the standard output of the command invocation
- * including all newlines. In order to parse this output, be sure to trim the output
- * first.
- *
- * If the command failed to execute, the Promise rejects with the error returned by the
- * CLI. This error includes a `code` property with the process exit status.
- *
- * @example
- * const output = await execute(['--version']);
- * expect(output.trim()).toBe('sentry-cli x.y.z');
- *
- * @param {string[]} args Command line arguments passed to `sentry-cli`.
- * @param {boolean} live We inherit stdio to display `sentry-cli` output directly.
- * @param {boolean} silent Disable stdout for silents build (CI/Webpack Stats, ...)
- * @param {string} [configFile] Relative or absolute path to the configuration file.
- * @returns {Promise.<string>} A promise that resolves to the standard output.
- */
-function execute(args, live, silent, configFile) {
-  const env = Object.assign({}, process.env);
-  if (configFile) {
-    env.SENTRY_PROPERTIES = configFile;
-  }
-  return new Promise((resolve, reject) => {
-    if (live === true) {
-      const pid = childProcess.spawn(getPath(), args, {
-        env,
-        stdio: ['inherit', silent ? 'pipe' : 'inherit', 'inherit'],
-      });
-      pid.on('exit', () => {
-        resolve();
-      });
-    } else {
-      childProcess.execFile(getPath(), args, { env }, (err, stdout) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(stdout);
-        }
-      });
-    }
-  });
-}
-
-module.exports = {
-  mockBinaryPath,
-  serializeOptions,
-  prepareCommand,
-  getPath,
-  execute,
-};
-
-
-/***/ }),
+/* 308 */,
 /* 309 */,
 /* 310 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
@@ -18962,12 +18715,7 @@ function dumpException(ex)
 /* 436 */,
 /* 437 */,
 /* 438 */,
-/* 439 */
-/***/ (function(module) {
-
-module.exports = {"name":"@sentry/cli","version":"1.52.1","description":"A command line utility to work with Sentry. https://docs.sentry.io/hosted/learn/cli/","scripts":{"install":"node scripts/install.js","fix:eslint":"eslint --fix \"bin/*\" js","fix:prettier":"prettier --write \"bin/*\" \"scripts/*.js\" \"js/**/*.js\"","fix":"npm-run-all fix:eslint fix:prettier","test:jest":"jest","test:eslint":"eslint bin scripts js","test:prettier":"prettier-check \"bin/*\" \"scripts/*.js\" \"js/**/*.js\"","test":"npm-run-all test:jest test:eslint test:prettier","test:watch":"jest --watch --notify"},"repository":{"type":"git","url":"https://github.com/getsentry/sentry-cli"},"keywords":["sentry","sentry-cli","cli"],"bugs":{"url":"https://github.com/getsentry/sentry-cli/issues"},"main":"js/index.js","bin":{"sentry-cli":"bin/sentry-cli"},"dependencies":{"fs-copy-file-sync":"^1.1.1","https-proxy-agent":"^4.0.0","mkdirp":"^0.5.4","node-fetch":"^2.1.2","progress":"2.0.0","proxy-from-env":"^1.0.0"},"homepage":"https://docs.sentry.io/hosted/learn/cli/","license":"BSD-3-Clause","devDependencies":{"eslint":"^4.19.1","eslint-config-airbnb-base":"^12.1.0","eslint-config-prettier":"^2.9.0","eslint-plugin-import":"^2.12.0","jest":"^21.2.1","npm-run-all":"^4.1.3","prettier":"^1.13.4","prettier-check":"^2.0.0"},"engines":{"node":">= 8"},"jest":{"collectCoverage":true,"testEnvironment":"node"}};
-
-/***/ }),
+/* 439 */,
 /* 440 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -51657,181 +51405,7 @@ function createConnectionSSL (port, host, options) {
 /* 795 */,
 /* 796 */,
 /* 797 */,
-/* 798 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-const helper = __webpack_require__(308);
-
-/**
- * Default arguments for the `--ignore` option.
- * @type {string[]}
- */
-const DEFAULT_IGNORE = ['node_modules'];
-
-/**
- * Schema for the `upload-sourcemaps` command.
- * @type {OptionsSchema}
- */
-const SOURCEMAPS_SCHEMA = __webpack_require__(938);
-
-/**
- * Manages releases and release artifacts on Sentry.
- * @namespace SentryReleases
- */
-class Releases {
-  /**
-   * Creates a new `Releases` instance.
-   *
-   * @param {Object} [options] More options to pass to the CLI
-   */
-  constructor(options) {
-    this.options = options || {};
-    if (typeof this.options.configFile === 'string') {
-      this.configFile = this.options.configFile;
-    }
-    delete this.options.configFile;
-  }
-
-  /**
-   * Registers a new release with sentry.
-   *
-   * The given release name should be unique and deterministic. It can later be used to
-   * upload artifacts, such as source maps.
-   *
-   * @param {string} release Unique name of the new release.
-   * @returns {Promise} A promise that resolves when the release has been created.
-   * @memberof SentryReleases
-   */
-  new(release) {
-    return this.execute(['releases', 'new', release], null);
-  }
-
-  /**
-   * Specifies the set of commits covered in this release.
-   *
-   * @param {string} release Unique name of the release
-   * @param {object} options A set of options to configure the commits to include
-   * @param {string} options.repo The full repo name as defined in Sentry
-   * @param {boolean} options.auto Automatically choose the associated commit (uses
-   * the current commit). Overrides other options.
-   * @param {string} options.commit The current (last) commit in the release.
-   * @param {string} options.previousCommit The commit before the beginning of this
-   * release (in other words, the last commit of the previous release). If omitted,
-   * this will default to the last commit of the previous release in Sentry. If there
-   * was no previous release, the last 10 commits will be used.
-   * @returns {Promise} A promise that resolves when the commits have been associated
-   * @memberof SentryReleases
-   */
-  setCommits(release, options) {
-    if (!options || (!options.auto && (!options.repo || !options.commit))) {
-      throw new Error('options.auto, or options.repo and options.commit must be specified');
-    }
-
-    let commitFlags = [];
-
-    if (options.auto) {
-      commitFlags = ['--auto'];
-    } else if (options.previousCommit) {
-      commitFlags = ['--commit', `${options.repo}@${options.previousCommit}..${options.commit}`];
-    } else {
-      commitFlags = ['--commit', `${options.repo}@${options.commit}`];
-    }
-
-    return this.execute(['releases', 'set-commits', release].concat(commitFlags));
-  }
-
-  /**
-   * Marks this release as complete. This should be called once all artifacts has been
-   * uploaded.
-   *
-   * @param {string} release Unique name of the release.
-   * @returns {Promise} A promise that resolves when the release has been finalized.
-   * @memberof SentryReleases
-   */
-  finalize(release) {
-    return this.execute(['releases', 'finalize', release], null);
-  }
-
-  /**
-   * Creates a unique, deterministic version identifier based on the project type and
-   * source files. This identifier can be used as release name.
-   *
-   * @returns {Promise.<string>} A promise that resolves to the version string.
-   * @memberof SentryReleases
-   */
-  proposeVersion() {
-    return this.execute(['releases', 'propose-version'], null).then(
-      version => version && version.trim()
-    );
-  }
-
-  /**
-   * Scans the given include folders for JavaScript source maps and uploads them to the
-   * specified release for processing.
-   *
-   * The options require an `include` array, which is a list of directories to scan.
-   * Additionally, it supports to ignore certain files, validate and preprocess source
-   * maps and define a URL prefix.
-   *
-   * @example
-   * await cli.releases.uploadSourceMaps(cli.releases.proposeVersion(), {
-   *   // required options:
-   *   include: ['build'],
-   *
-   *   // default options:
-   *   ignore: ['node_modules'],  // globs for files to ignore
-   *   ignoreFile: null,          // path to a file with ignore rules
-   *   rewrite: false,            // preprocess sourcemaps before uploading
-   *   sourceMapReference: true,  // add a source map reference to source files
-   *   stripPrefix: [],           // remove certain prefices from filenames
-   *   stripCommonPrefix: false,  // guess common prefices to remove from filenames
-   *   validate: false,           // validate source maps and cancel the upload on error
-   *   urlPrefix: '',             // add a prefix source map urls after stripping them
-   *   urlSuffix: '',             // add a suffix source map urls after stripping them
-   *   ext: ['js', 'map', 'jsbundle', 'bundle'],  // override file extensions to scan for
-   * });
-   *
-   * @param {string} release Unique name of the release.
-   * @param {object} options Options to configure the source map upload.
-   * @returns {Promise} A promise that resolves when the upload has completed successfully.
-   * @memberof SentryReleases
-   */
-  uploadSourceMaps(release, options) {
-    if (!options || !options.include) {
-      throw new Error('options.include must be a vaild path(s)');
-    }
-
-    const uploads = options.include.map(sourcemapPath => {
-      const newOptions = Object.assign({}, options);
-      if (!newOptions.ignoreFile && !newOptions.ignore) {
-        newOptions.ignore = DEFAULT_IGNORE;
-      }
-
-      const args = ['releases', 'files', release, 'upload-sourcemaps', sourcemapPath];
-      return this.execute(helper.prepareCommand(args, SOURCEMAPS_SCHEMA, newOptions), true);
-    });
-
-    return Promise.all(uploads);
-  }
-
-  /**
-   * See {helper.execute} docs.
-   * @param {string[]} args Command line arguments passed to `sentry-cli`.
-   * @param {boolean} live We inherit stdio to display `sentry-cli` output directly.
-   * @returns {Promise.<string>} A promise that resolves to the standard output.
-   */
-  execute(args, live) {
-    return helper.execute(args, live, this.options.silent, this.configFile);
-  }
-}
-
-module.exports = Releases;
-
-
-/***/ }),
+/* 798 */,
 /* 799 */,
 /* 800 */,
 /* 801 */,
@@ -59777,59 +59351,7 @@ module.exports = isString;
 /***/ }),
 /* 936 */,
 /* 937 */,
-/* 938 */
-/***/ (function(module) {
-
-module.exports = {
-  ignore: {
-    param: '--ignore',
-    type: 'array',
-  },
-  ignoreFile: {
-    param: '--ignore-file',
-    type: 'string',
-  },
-  dist: {
-    param: '--dist',
-    type: 'string',
-  },
-  rewrite: {
-    param: '--rewrite',
-    invertedParam: '--no-rewrite',
-    type: 'boolean',
-  },
-  sourceMapReference: {
-    invertedParam: '--no-sourcemap-reference',
-    type: 'boolean',
-  },
-  stripPrefix: {
-    param: '--strip-prefix',
-    type: 'array',
-  },
-  stripCommonPrefix: {
-    param: '--strip-common-prefix',
-    type: 'boolean',
-  },
-  validate: {
-    param: '--validate',
-    type: 'boolean',
-  },
-  urlPrefix: {
-    param: '--url-prefix',
-    type: 'string',
-  },
-  urlSuffix: {
-    param: '--url-suffix',
-    type: 'string',
-  },
-  ext: {
-    param: '--ext',
-    type: 'array',
-  },
-};
-
-
-/***/ }),
+/* 938 */,
 /* 939 */
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
