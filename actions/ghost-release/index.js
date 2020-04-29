@@ -72,10 +72,6 @@ releaseUtils.releases
         changelogPath: [{changelogPath: changelogPath}],
         extraText: `See the changelogs for [Ghost](https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}) and [Ghost-Admin](https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}) for the details of every change in this release.`
     }))
-    .then((response) => {
-        console.log(`Release draft generated: ${response.releaseUrl}`);
-        return Promise.resolve(response);
-    })
     .then(response => releaseUtils.releases.uploadZip({
         github: {
             token: process.env.RELEASE_TOKEN
@@ -85,6 +81,6 @@ releaseUtils.releases
         userAgent: 'ghost-release'
     }))
     .catch((err) => {
-        console.error(err);
+        console.error(err); // eslint-disable-line no-console
         process.exit(1);
     });
