@@ -63,7 +63,7 @@ releaseUtils.releases
         draft: true,
         preRelease: false,
         tagName: ghostVersion,
-        releaseName: ghostVersion + '+draft',
+        releaseName: ghostVersion,
         userAgent: 'ghost-release',
         uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases`,
         github: {
