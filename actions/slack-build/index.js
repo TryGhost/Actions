@@ -8,16 +8,16 @@ const statusInput = core.getInput('status', { required: true });
 
 const githubRepo = process.env.GITHUB_REPOSITORY;
 const githubSha = process.env.GITHUB_SHA;
-const githubRunId = process.env.GITHUB_RUN_ID;
 
 const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
 const commitActor = process.env.GITHUB_ACTOR;
-const commitBranch = process.env.GITHUB_REF.split('/')[0];
+const commitBranch = process.env.GITHUB_REF.split('/').slice(-1)[0];
 
 const linkifiedGithubRepo = `[${githubRepo}](https://github.com/${githubRepo})`;
+const linkifiedCommitUrl = `[${githubSha.substring(0, 10)}](${commitUrl})`;
 
 (async () => {
     await webhook.send({
-        text: `Build ${githubRunId}: ${commitUrl} of ${linkifiedGithubRepo}@${commitBranch} by ${commitActor} ${statusInput}`,
+        text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo}@${commitBranch} by ${commitActor}`,
     });
 })();
