@@ -892,8 +892,8 @@ const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
 const commitActor = process.env.GITHUB_ACTOR;
 const commitBranch = process.env.GITHUB_REF.split('/').slice(-1)[0];
 
-const linkifiedGithubRepo = `[${githubRepo}](https://github.com/${githubRepo})`;
-const linkifiedCommitUrl = `[${githubSha.substring(0, 10)}](${commitUrl})`;
+const linkifiedGithubRepo = `<https://github.com/${githubRepo}|${githubRepo}>`;
+const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
 
 (async () => {
     await webhook.send({
