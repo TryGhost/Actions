@@ -9,7 +9,8 @@
         "build": "ncc build"
     },
     "devDependencies": {
-        "@zeit/ncc": "0.22.3",
-        "@slack/webhook": "5.0.3"
+        "@actions/core": "1.2.4",
+        "@slack/webhook": "5.0.3",
+        "@zeit/ncc": "0.22.3"
     }
 }
