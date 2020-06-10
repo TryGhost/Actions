@@ -1,0 +1,15 @@
+{
+    "name": "action-slack-build",
+    "version": "0.0.1",
+    "main": "index.js",
+    "repository": "https://github.com/daniellockyer/action-slack-build",
+    "author": "Daniel Lockyer <hi@daniellockyer.com>",
+    "license": "MIT",
+    "scripts": {
+        "build": "ncc build"
+    },
+    "devDependencies": {
+        "@zeit/ncc": "0.22.3",
+        "@slack/webhook": "5.0.3"
+    }
+}
