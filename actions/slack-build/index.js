@@ -6,6 +6,14 @@ const webhook = new IncomingWebhook(url);
 
 const statusInput = core.getInput('status', { required: true });
 
+let statusColor = 'good';
+
+if (statusInput === 'cancelled') {
+    statusColor = 'warning';
+} else if (statusInput === 'failure') {
+    statusColor = 'danger';
+}
+
 const githubRepo = process.env.GITHUB_REPOSITORY;
 const githubSha = process.env.GITHUB_SHA;
 
@@ -18,6 +26,9 @@ const linkifiedCommitUrl = `[${githubSha.substring(0, 10)}](${commitUrl})`;
 
 (async () => {
     await webhook.send({
-        text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo}@${commitBranch} by ${commitActor}`,
+        attachments: [{
+            color: statusColor,
+            text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo}@${commitBranch} by ${commitActor}`,
+        }]
     });
 })();
