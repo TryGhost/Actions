@@ -2918,7 +2918,7 @@ releaseUtils.releases
         return Promise.resolve();
     })
     .then(() => releaseUtils.releases.create({
-        draft: true,
+        draft: false,
         preRelease: false,
         tagName: ghostVersion,
         releaseName: ghostVersion,
