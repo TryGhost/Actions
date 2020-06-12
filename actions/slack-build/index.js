@@ -19,7 +19,6 @@ const githubSha = process.env.GITHUB_SHA;
 
 const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
 const commitActor = process.env.GITHUB_ACTOR;
-const commitBranch = process.env.GITHUB_REF.split('/').slice(-1)[0];
 
 const linkifiedGithubRepo = `<https://github.com/${githubRepo}|${githubRepo}>`;
 const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
@@ -28,7 +27,7 @@ const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
     await webhook.send({
         attachments: [{
             color: statusColor,
-            text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo}@${commitBranch} by ${commitActor}`,
+            text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo} by ${commitActor}`,
         }]
     });
 })();
