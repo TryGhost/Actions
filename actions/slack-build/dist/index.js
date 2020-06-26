@@ -887,10 +887,9 @@ if (statusInput === 'cancelled') {
 
 const githubRepo = process.env.GITHUB_REPOSITORY;
 const githubSha = process.env.GITHUB_SHA;
+const githubActor = process.env.GITHUB_ACTOR;
 
 const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
-const commitActor = process.env.GITHUB_ACTOR;
-
 const linkifiedGithubRepo = `<https://github.com/${githubRepo}|${githubRepo}>`;
 const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
 
@@ -898,7 +897,7 @@ const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
     await webhook.send({
         attachments: [{
             color: statusColor,
-            text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo} by ${commitActor}`,
+            text: `Build ${statusInput} at ${linkifiedCommitUrl} of ${linkifiedGithubRepo} by ${githubActor}`,
         }]
     });
 })();
