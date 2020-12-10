@@ -2928,7 +2928,7 @@ releaseUtils.releases
             token: process.env.RELEASE_TOKEN
         },
         changelogPath: [{changelogPath: changelogPath}],
-        extraText: `See the changelogs for [Ghost](https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}) and [Ghost-Admin](https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}) for the details of every change in this release.`
+        extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion})\n* Ghost-Admin - https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}`
     }))
     .then(response => releaseUtils.releases.uploadZip({
         github: {
