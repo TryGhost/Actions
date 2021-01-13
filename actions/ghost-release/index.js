@@ -49,7 +49,7 @@ releaseUtils.releases
                 lastVersion: previousVersion
             })
             .write({
-                githubRepoPath: `https://github.com/${ORGNAME}/Ghost-Admin`,
+                githubRepoPath: `https://github.com/${ORGNAME}/Admin`,
                 lastVersion: previousVersion,
                 append: true,
                 folder: path.join(basePath, 'core', 'client')
@@ -70,7 +70,7 @@ releaseUtils.releases
             token: process.env.RELEASE_TOKEN
         },
         changelogPath: [{changelogPath: changelogPath}],
-        extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}\n* Ghost-Admin - https://github.com/tryghost/ghost-admin/compare/${previousVersion}...${ghostVersion}`
+        extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}\n* Ghost-Admin - https://github.com/tryghost/admin/compare/${previousVersion}...${ghostVersion}`
     }))
     .then(response => releaseUtils.releases.uploadZip({
         github: {
