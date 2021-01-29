@@ -2873,7 +2873,7 @@ let previousVersion;
 releaseUtils.releases
     .get({
         userAgent: 'ghost-release',
-        uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases`
+        uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases?per_page=100`
     })
     .then((tags) => {
         const sameMajorReleaseTags = [], otherReleaseTags = [];
