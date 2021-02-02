@@ -2861,21 +2861,19 @@ const path = __webpack_require__(622);
 const semver = __webpack_require__(876);
 const releaseUtils = __webpack_require__(83);
 
-const ORGNAME = 'TryGhost';
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json')));
 const changelogPath = path.join(basePath, '.dist', 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 const zipName = `Ghost-${ghostVersion}.zip`;
 
-let previousVersion;
+(async () => {
+    try {
+        const tags = await releaseUtils.releases.get({
+            userAgent: 'ghost-release',
+            uri: `https://api.github.com/repos/TryGhost/Ghost/releases?per_page=100`
+        });
 
-releaseUtils.releases
-    .get({
-        userAgent: 'ghost-release',
-        uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases?per_page=100`
-    })
-    .then((tags) => {
         const sameMajorReleaseTags = [], otherReleaseTags = [];
 
         tags.forEach((release) => {
@@ -2892,22 +2890,20 @@ releaseUtils.releases
             }
         });
 
-        previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
-        return Promise.resolve();
-    })
-    .then(() => {
+        const previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
+
         const changelog = new releaseUtils.Changelog({
-            changelogPath: changelogPath,
+            changelogPath,
             folder: basePath
         });
 
         changelog
             .write({
-                githubRepoPath: `https://github.com/${ORGNAME}/Ghost`,
+                githubRepoPath: `https://github.com/TryGhost/Ghost`,
                 lastVersion: previousVersion
             })
             .write({
-                githubRepoPath: `https://github.com/${ORGNAME}/Admin`,
+                githubRepoPath: `https://github.com/TryGhost/Admin`,
                 lastVersion: previousVersion,
                 append: true,
                 folder: path.join(basePath, 'core', 'client')
@@ -2915,33 +2911,33 @@ releaseUtils.releases
             .sort()
             .clean();
 
-        return Promise.resolve();
-    })
-    .then(() => releaseUtils.releases.create({
-        draft: false,
-        preRelease: false,
-        tagName: ghostVersion,
-        releaseName: ghostVersion,
-        userAgent: 'ghost-release',
-        uri: `https://api.github.com/repos/${ORGNAME}/Ghost/releases`,
-        github: {
-            token: process.env.RELEASE_TOKEN
-        },
-        changelogPath: [{changelogPath: changelogPath}],
-        extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}\n* Ghost-Admin - https://github.com/tryghost/admin/compare/${previousVersion}...${ghostVersion}`
-    }))
-    .then(response => releaseUtils.releases.uploadZip({
-        github: {
-            token: process.env.RELEASE_TOKEN
-        },
-        zipPath: path.join(basePath, '.dist', 'release', zipName),
-        uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
-        userAgent: 'ghost-release'
-    }))
-    .catch((err) => {
+        const response = await releaseUtils.releases.create({
+            draft: false,
+            preRelease: false,
+            tagName: ghostVersion,
+            releaseName: ghostVersion,
+            userAgent: 'ghost-release',
+            uri: `https://api.github.com/repos/TryGhost/Ghost/releases`,
+            github: {
+                token: process.env.RELEASE_TOKEN
+            },
+            changelogPath: [{changelogPath}],
+            extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}\n* Ghost-Admin - https://github.com/tryghost/admin/compare/${previousVersion}...${ghostVersion}`
+        });
+
+        await releaseUtils.releases.uploadZip({
+            github: {
+                token: process.env.RELEASE_TOKEN
+            },
+            zipPath: path.join(basePath, '.dist', 'release', zipName),
+            uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
+            userAgent: 'ghost-release'
+        });
+    } catch (err) {
         console.error(err); // eslint-disable-line no-console
         process.exit(1);
-    });
+    }
+})();
 
 
 /***/ }),
