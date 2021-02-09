@@ -20,7 +20,7 @@
     "eslint-plugin-ghost": "2.0.0"
   },
   "dependencies": {
-    "@tryghost/release-utils": "0.6.3",
+    "@tryghost/release-utils": "0.6.11",
     "semver": "7.3.2"
   }
 }
