@@ -21,6 +21,10 @@ const zipName = `Ghost-${ghostVersion}.zip`;
         tags.forEach((release) => {
             let lastVersion = release.tag_name || release.name;
 
+            if (release.prerelease) {
+                return;
+            }
+
             // only compare to versions smaller than the new one
             if (semver.gt(ghostVersion, lastVersion)) {
                 // check if the majors are the same
