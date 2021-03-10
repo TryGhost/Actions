@@ -57,10 +57,12 @@ const zipName = `Ghost-${ghostVersion}.zip`;
             .sort()
             .clean();
 
+        const tagName = (semver.major(ghostVersion) === 4) ? `v${ghostVersion}` : ghostVersion;
+
         const response = await releaseUtils.releases.create({
             draft: false,
             preRelease: false,
-            tagName: ghostVersion,
+            tagName: tagName,
             releaseName: ghostVersion,
             userAgent: 'ghost-release',
             uri: `https://api.github.com/repos/TryGhost/Ghost/releases`,
