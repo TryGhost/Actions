@@ -2929,12 +2929,13 @@ const zipName = `Ghost-${ghostVersion}.zip`;
             .sort()
             .clean();
 
-        const tagName = (semver.major(ghostVersion) === 4) ? `v${ghostVersion}` : ghostVersion;
+        const previousVersionTagged = (semver.major(previousVersion) >= 4) ? `v${previousVersion}` : previousVersion;
+        const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
 
         const response = await releaseUtils.releases.create({
             draft: false,
             preRelease: false,
-            tagName: tagName,
+            tagName: ghostVersionTagged,
             releaseName: ghostVersion,
             userAgent: 'ghost-release',
             uri: `https://api.github.com/repos/TryGhost/Ghost/releases`,
@@ -2942,7 +2943,7 @@ const zipName = `Ghost-${ghostVersion}.zip`;
                 token: process.env.RELEASE_TOKEN
             },
             changelogPath: [{changelogPath}],
-            extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersion}...${ghostVersion}\n* Ghost-Admin - https://github.com/tryghost/admin/compare/${previousVersion}...${ghostVersion}`
+            extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}\n* Ghost-Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}`
         });
 
         await releaseUtils.releases.uploadZip({
