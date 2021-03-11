@@ -19,7 +19,7 @@ const zipName = `Ghost-${ghostVersion}.zip`;
         const sameMajorReleaseTags = [], otherReleaseTags = [];
 
         tags.forEach((release) => {
-            let lastVersion = release.tag_name || release.name;
+            let lastVersion = release.name || release.tag_name;
 
             if (release.prerelease) {
                 return;
