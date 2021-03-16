@@ -2909,6 +2909,7 @@ const zipName = `Ghost-${ghostVersion}.zip`;
         });
 
         const previousVersion = (sameMajorReleaseTags.length !== 0) ? sameMajorReleaseTags[0] : otherReleaseTags[0];
+        const previousVersionTagged = (semver.major(previousVersion) >= 4) ? `v${previousVersion}` : previousVersion;
 
         const changelog = new releaseUtils.Changelog({
             changelogPath,
@@ -2918,18 +2919,17 @@ const zipName = `Ghost-${ghostVersion}.zip`;
         changelog
             .write({
                 githubRepoPath: `https://github.com/TryGhost/Ghost`,
-                lastVersion: previousVersion
+                lastVersion: previousVersionTagged
             })
             .write({
                 githubRepoPath: `https://github.com/TryGhost/Admin`,
-                lastVersion: previousVersion,
+                lastVersion: previousVersionTagged,
                 append: true,
                 folder: path.join(basePath, 'core', 'client')
             })
             .sort()
             .clean();
 
-        const previousVersionTagged = (semver.major(previousVersion) >= 4) ? `v${previousVersion}` : previousVersion;
         const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
 
         const response = await releaseUtils.releases.create({
