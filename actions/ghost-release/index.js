@@ -71,7 +71,7 @@ const zipName = `Ghost-${ghostVersion}.zip`;
                 token: process.env.RELEASE_TOKEN
             },
             changelogPath: [{changelogPath}],
-            extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}\n* Ghost-Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}`
+            extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}\n* Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}`
         });
 
         await releaseUtils.releases.uploadZip({
