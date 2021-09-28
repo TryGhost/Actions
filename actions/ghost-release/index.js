@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
@@ -16,7 +18,8 @@ const zipName = `Ghost-${ghostVersion}.zip`;
             uri: `https://api.github.com/repos/TryGhost/Ghost/releases?per_page=100`
         });
 
-        const sameMajorReleaseTags = [], otherReleaseTags = [];
+        const sameMajorReleaseTags = [];
+        const otherReleaseTags = [];
 
         tags.forEach((release) => {
             let lastVersion = release.name || release.tag_name;
