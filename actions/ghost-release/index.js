@@ -85,6 +85,26 @@ const zipName = `Ghost-${ghostVersion}.zip`;
             uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
             userAgent: 'ghost-release'
         });
+
+        const webhookUrl = process.env.RELEASE_NOTIFICATION_URL;
+
+        if (webhookUrl) {
+            const {IncomingWebhook} = require('@slack/webhook');
+            const webhook = new IncomingWebhook(webhookUrl);
+
+            const changelogContents = fs.readFileSync(changelogPath);
+
+            await webhook.send({
+                username: 'Ghost',
+                blocks: [{
+                    type: 'section',
+                    text: {
+                        type: 'mrkdwn',
+                        text: `👻 *Ghost ${ghostVersion} is loose!* - https://github.com/TryGhost/Ghost/releases/tag/${ghostVersionTagged}\n\n${changelogContents}`
+                    }
+                }]
+            });
+        }
     } catch (err) {
         console.error(err); // eslint-disable-line no-console
         process.exit(1);
