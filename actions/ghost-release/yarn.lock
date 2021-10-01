@@ -265,11 +265,28 @@
     "@types/node" ">=12.0.0"
     axios "^0.21.1"
 
-"@tryghost/release-utils@0.6.15":
-  version "0.6.15"
-  resolved "https://registry.yarnpkg.com/@tryghost/release-utils/-/release-utils-0.6.15.tgz#b62adb6f11ab89029f9dc853a60d6a04b7b32d22"
-  integrity sha512-+WZQKLfDDeL7mrv25ByJr1rk3lcOZChEowxfryqq9dIjPrBsWbBTbDfLWT26fyZ0Z/yN7UtlyGPaynWNba2QBQ==
+"@tryghost/errors@^0.2.16":
+  version "0.2.16"
+  resolved "https://registry.yarnpkg.com/@tryghost/errors/-/errors-0.2.16.tgz#5000255aff99b3e07aa343c7f625f1475e55c5cf"
+  integrity sha512-iTUv25q/SqQMCsxEX3dlf6pT3QWIkAVeQ7OIf9lY9fBGLZpvriplTV361u7fQYuUvUcCDYqb30s5j/cYHWuJWg==
   dependencies:
+    "@tryghost/ignition-errors" "^0.1.0"
+    lodash "^4.17.21"
+
+"@tryghost/ignition-errors@^0.1.0":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@tryghost/ignition-errors/-/ignition-errors-0.1.5.tgz#1ad5bc9e169df71360ecc8294571b41d212b0f00"
+  integrity sha512-Cx1nQdrz4NFzEqWxbS20sKfcrIdG0dzyd+7pTuc1ErWMFIe3/nO37Q8yxMSp66HkJ5KYj/tOH8r3pkQRc+whdQ==
+  dependencies:
+    lodash "^4.17.21"
+    uuid "^8.3.2"
+
+"@tryghost/release-utils@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@tryghost/release-utils/-/release-utils-0.7.0.tgz#558873e922ee33ba9c356762bd97f34ff84c209c"
+  integrity sha512-OGA7oQHRG8PhHnEkZwMFIzDtSNEBMvhKU0C5Sg02RdNy4+N6/Zm/XKRBYPbLN43cHFBMyUVfuSp9YpXCUWf7Gg==
+  dependencies:
+    "@tryghost/errors" "^0.2.16"
     bluebird "^3.7.2"
     emoji-regex "^9.2.2"
     execa "^4.1.0"
@@ -2219,6 +2236,11 @@ uuid@^3.3.2:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
+
+uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
 v8-compile-cache@^2.0.3:
   version "2.3.0"

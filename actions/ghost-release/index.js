@@ -92,7 +92,11 @@ const zipName = `Ghost-${ghostVersion}.zip`;
             const {IncomingWebhook} = require('@slack/webhook');
             const webhook = new IncomingWebhook(webhookUrl);
 
-            const changelogContents = fs.readFileSync(changelogPath);
+            const changelogContents = releaseUtils.utils.getFinalChangelog({
+                changelogPath
+            })
+                .filter(item => item !== undefined)
+                .join('\n');
 
             await webhook.send({
                 username: 'Ghost',
