@@ -96,6 +96,7 @@ const zipName = `Ghost-${ghostVersion}.zip`;
                 changelogPath
             })
                 .filter(item => item !== undefined)
+                .filter((item, pos, self) => self.indexOf(item) === pos)
                 .join('\n');
 
             await webhook.send({
