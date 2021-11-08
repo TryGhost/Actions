@@ -8500,6 +8500,22 @@ async function main() {
     issue = payload.issue;
 
     if (payload.action === 'opened') {
+        // If an issue is opened with a closeable label, we shouldn't
+        // bother to add `needs triage`
+        const CLOSABLE_LABELS = ['support-request', 'feature-request'];
+        const existingLabels = await helpers.listLabels();
+        let shouldIgnore = false;
+
+        for (const label of existingLabels) {
+            if (CLOSABLE_LABELS.includes(label.name)) {
+                shouldIgnore = true;
+            }
+        }
+
+        if (shouldIgnore) {
+            return;
+        }
+
         await helpers.addLabel('needs triage');
         return;
     }
@@ -8542,6 +8558,17 @@ async function main() {
 }
 
 const helpers = {
+    /**
+     * @returns {Promise<Array>}
+     */
+    listLabels: async function () {
+        const labels = await client.rest.issues.listLabels({
+            ...repo,
+            issue_number: issue.number
+        });
+        return labels;
+    },
+
     /**
      * @param {String} body
      */
