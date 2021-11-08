@@ -8273,6 +8273,28 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 4975:
+/***/ ((module) => {
+
+module.exports = {
+    SUPPORT_REQUEST: `Hey @{issue-author} :wave: We ask that you please do not use GitHub for help or support 😄. We use GitHub solely for bug-tracking and on-going feature development.
+
+Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org) is a great place to get community support, plus it helps create a central location for searching problems/solutions.
+
+FYI: Many projects have their own support guidelines and GitHub will highlight them for you as it did here, or the project owners will use issue templates to point you in the right direction. Reading the guidelines or issue templates before opening issues can save you and project maintainers valuable time.`,
+
+    FEATURE_REQUEST: `Hey @{issue-author} :wave: Friendly reminder: we don't track feature requests on GitHub.
+
+Please look for similar ideas to vote for on the [forum](https://forum.ghost.org/c/Ideas/l/votes) and if you can't anything similar then post your own idea.
+
+FYI: Many projects have their own support guidelines and GitHub will highlight them for you as it did here, or the project owners will use issue templates to point you in the right direction. Reading the guidelines or issue templates before opening issues can save you and project maintainers valuable time.`,
+
+    NEEDS_INFO: `TODO`
+};
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -8445,6 +8467,13 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 
+const comments = __nccwpck_require__(4975);
+
+// These are used enough that it's easier to keep them here
+let client;
+let repo;
+let issue;
+
 async function main() {
     const githubToken = core.getInput('github-token');
 
@@ -8452,8 +8481,8 @@ async function main() {
         throw new Error('github-token is missing');
     }
 
-    const client = github.getOctokit(githubToken);
-    const {payload, repo} = github.context;
+    client = github.getOctokit(githubToken);
+    const {payload} = github.context;
 
     // We only want to do something when a human labels an issue
     if (payload.sender.type === 'Bot') {
@@ -8467,7 +8496,8 @@ async function main() {
         return;
     }
 
-    const issue = payload.issue;
+    repo = github.context.repo;
+    issue = payload.issue;
 
     if (payload.action === 'opened') {
         await client.rest.issues.addLabels({
@@ -8478,8 +8508,87 @@ async function main() {
         return;
     }
 
-    core.info(JSON.stringify(payload));
+    if (payload.action === 'labeled') {
+        const label = payload.label;
+
+        switch (label.name) {
+            case 'support-request':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.SUPPORT_REQUEST);
+                await helpers.closeIssue();
+                break;
+            case 'feature-request':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.FEATURE_REQUEST);
+                await helpers.closeIssue();
+                break;
+            case 'needs info':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.NEEDS_INFO);
+                await helpers.closeIssue();
+                break;
+            case 'bug':
+            case 'p0':
+            case 'p1':
+            case 'p2':
+            case 'community project':
+            case 'good first issue':
+            case 'help wanted':
+                await helpers.removeNeedsTriageLabel();
+                break;
+            default:
+                core.info(`Encountered an unhandled label: ${label.name}`);
+                break;
+        }
+        return;
+    }
+
+    core.info(`Encountered an unhandled action - ${payload.action}`);
 }
+
+const helpers = {
+    /**
+     * @param {String} body
+     */
+    leaveComment: async function (body) {
+        if (issue.user) {
+            body = body.replace(/${issue-author}/, issue.user.login);
+        }
+
+        await client.rest.issues.createComment({
+            ...repo,
+            issue_number: issue.number,
+            body
+        });
+    },
+
+    closeIssue: async function () {
+        await client.rest.issues.update({
+            ...repo,
+            issue_number: issue.number,
+            state: 'closed'
+        });
+    },
+
+    /**
+     * @param {String} name
+     */
+    removeLabel: async function (name) {
+        await client.rest.issues.removeLabel({
+            ...repo,
+            issue_number: issue.number,
+            name
+        });
+    },
+
+    removeNeedsTriageLabel: async function () {
+        try {
+            await helpers.removeLabel('needs triage');
+        } catch (err) {
+            // It might not exist, that's ok for now.
+        }
+    }
+};
 
 (async () => {
     try {
