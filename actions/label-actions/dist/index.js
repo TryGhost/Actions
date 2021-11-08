@@ -8551,7 +8551,7 @@ const helpers = {
      */
     leaveComment: async function (body) {
         if (issue.user) {
-            body = body.replace(/${issue-author}/, issue.user.login);
+            body = body.replace(/{issue-author}/, issue.user.login);
         }
 
         await client.rest.issues.createComment({
