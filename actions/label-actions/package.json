@@ -23,5 +23,8 @@
     "should": "13.2.3",
     "sinon": "12.0.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.0"
+  }
 }
