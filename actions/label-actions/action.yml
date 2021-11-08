@@ -1,0 +1,11 @@
+name: 'Label Actions'
+description: 'Performs triaging actions when issues are opened, labeled or unlabeled'
+author: 'Ghost Foundation'
+inputs:
+  github-token:
+    description: 'GitHub access token'
+    default: '${{ github.token }}'
+    required: false
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
