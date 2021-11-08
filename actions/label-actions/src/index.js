@@ -59,7 +59,6 @@ async function main() {
             case 'needs info':
                 await helpers.removeNeedsTriageLabel();
                 await helpers.leaveComment(comments.NEEDS_INFO);
-                await helpers.closeIssue();
                 break;
             case 'bug':
             case 'p0':
