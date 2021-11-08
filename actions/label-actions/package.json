@@ -4,8 +4,9 @@
   "repository": "git@github.com:TryGhost/label-actions.git",
   "author": "Ghost Foundation",
   "license": "MIT",
-  "main": "app.js",
+  "main": "src/index.js",
   "scripts": {
+    "build": "ncc build src/index.js -o dist",
     "dev": "echo \"Implement me!\"",
     "test": "NODE_ENV=testing c8 --check-coverage mocha './test/**/*.test.js'",
     "lint": "eslint . --ext .js --cache",
@@ -13,11 +14,8 @@
     "preship": "yarn test",
     "ship": "STATUS=$(git status --porcelain); echo $STATUS; if [ -z \"$STATUS\" ]; then yarn version && git push --follow-tags; fi"
   },
-  "files": [
-    "app.js",
-    "lib"
-  ],
   "devDependencies": {
+    "@vercel/ncc": "0.31.1",
     "c8": "7.10.0",
     "eslint": "8.2.0",
     "eslint-plugin-ghost": "2.7.0",
