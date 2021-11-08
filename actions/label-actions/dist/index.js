@@ -8500,11 +8500,7 @@ async function main() {
     issue = payload.issue;
 
     if (payload.action === 'opened') {
-        await client.rest.issues.addLabels({
-            ...repo,
-            issue_number: issue.number,
-            labels: ['needs triage']
-        });
+        await helpers.addLabel('needs triage');
         return;
     }
 
@@ -8566,6 +8562,17 @@ const helpers = {
             ...repo,
             issue_number: issue.number,
             state: 'closed'
+        });
+    },
+
+    /**
+     * @param {String} name
+     */
+    addLabel: async function (name) {
+        await client.rest.issues.addLabels({
+            ...repo,
+            issue_number: issue.number,
+            labels: [name]
         });
     },
 
