@@ -11,5 +11,9 @@ Please look for similar ideas to vote for on the [forum](https://forum.ghost.org
 
 FYI: Many projects have their own support guidelines and GitHub will highlight them for you as it did here, or the project owners will use issue templates to point you in the right direction. Reading the guidelines or issue templates before opening issues can save you and project maintainers valuable time.`,
 
-    NEEDS_INFO: `TODO`
+    NEEDS_INFO: `TODO`,
+
+    NO_UPDATE: `TODO: THERE HAS BEEN NO UPDATE`,
+
+    PING_ASSIGNEE: `TODO: This issue is currently awaiting triage from @{issue-assignee}. We're in a busy time right now, but we'll update this issue ASAP.`
 };

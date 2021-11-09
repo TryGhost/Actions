@@ -21,7 +21,44 @@ async function main() {
     const {payload} = github.context;
     repo = github.context.repo;
 
-    // We can only handle issue-related events right now
+    if (payload.schedule) {
+        const openIssues = await helpers.listOpenLabeledIssues();
+
+        for (const openIssue of openIssues) {
+            issue = openIssue;
+            const needsTriageLabel = openIssue.labels.find(l => l.name === 'needs triage');
+            const needsInfoLabel = openIssue.labels.find(l => l.name === 'needs info');
+
+            // TODO: maybe improve on this by getting the actual date
+            // when it was labeled?
+            const issueLastUpdated = new Date(openIssue.updated_at);
+
+            //const updatedAtThresholdMs = 2 * 7 * 24 * 60 * 60 * 1000;
+            const updatedAtThresholdMs = 60 * 1000;
+
+            // If we're within `updatedAtThresholdMs`, we're ok so we should just
+            // return
+            if (Date.now() - issueLastUpdated.getTime() < updatedAtThresholdMs) {
+                continue;
+            }
+
+            if (needsInfoLabel) {
+                await helpers.leaveComment(comments.NO_UPDATE);
+                await helpers.closeIssue();
+                continue;
+            }
+
+            if (needsTriageLabel) {
+                const issueAssignee = openIssue.assignees && openIssue.assignees[0] || 'daniellockyer';
+                await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
+                continue;
+            }
+        }
+
+        return;
+    }
+
+    // Otherwise, we can only handle issue-related events right now
     if (!payload.issue) {
         core.info(`Ignoring event, detected a non-issue event: ${JSON.stringify(payload)}`);
         return;
@@ -102,6 +139,18 @@ const helpers = {
     /**
      * @returns {Promise<Array>}
      */
+    listOpenLabeledIssues: async function () {
+        const {data: issues} = await client.rest.issues.listForRepo({
+            ...repo,
+            state: 'open',
+            labels: 'needs triage,needs info'
+        });
+        return issues;
+    },
+
+    /**
+     * @returns {Promise<Array>}
+     */
     listLabels: async function () {
         const {data: labels} = await client.rest.issues.listLabelsOnIssue({
             ...repo,
@@ -113,9 +162,15 @@ const helpers = {
     /**
      * @param {String} body
      */
-    leaveComment: async function (body) {
+    leaveComment: async function (body, replacements = {}) {
         if (issue.user) {
             body = body.replace(/{issue-author}/, issue.user.login);
+        }
+
+        if (replacements) {
+            for (const r in replacements) {
+                body = body.replace(r, replacements[r]);
+            }
         }
 
         await client.rest.issues.createComment({
