@@ -96,7 +96,7 @@ const helpers = {
      * @returns {Promise<Array>}
      */
     listLabels: async function () {
-        const labels = await client.rest.issues.listLabels({
+        const {data: labels} = await client.rest.issues.listLabelsOnIssue({
             ...repo,
             issue_number: issue.number
         });
