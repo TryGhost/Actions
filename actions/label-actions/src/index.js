@@ -52,6 +52,8 @@ async function main() {
 
     if (payload.action === 'labeled') {
         const label = payload.label;
+        let existingLabels;
+        let existingNeedsTriageLabel;
 
         switch (label.name) {
         case 'support-request':
@@ -75,6 +77,15 @@ async function main() {
         case 'community project':
         case 'good first issue':
         case 'help wanted':
+            existingLabels = await helpers.listLabels();
+            existingNeedsTriageLabel = existingLabels.find(l => l.name === 'needs triage');
+
+            // check if the issue was opened with one of these labels BEFORE we added `needs triage`
+            // if so, we don't want to remove the `needs triage` label
+            if (existingNeedsTriageLabel && label.id < existingNeedsTriageLabel.id) {
+                return;
+            }
+
             await helpers.removeNeedsTriageLabel();
             break;
         default:
