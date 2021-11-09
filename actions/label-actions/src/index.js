@@ -38,16 +38,10 @@ async function main() {
     if (payload.action === 'opened') {
         // If an issue is opened with a closeable label, we shouldn't
         // bother to add `needs triage`
-        const CLOSABLE_LABELS = ['support-request', 'feature-request'];
+        const CLOSEABLE_LABELS = ['support-request', 'feature-request'];
         const existingLabels = await helpers.listLabels();
-        let shouldIgnore = false;
 
-        for (const label of existingLabels) {
-            if (CLOSABLE_LABELS.includes(label.name)) {
-                shouldIgnore = true;
-            }
-        }
-
+        const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
         if (shouldIgnore) {
             return;
         }
