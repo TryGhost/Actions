@@ -8485,20 +8485,20 @@ async function main() {
 
     client = github.getOctokit(githubToken);
     const {payload} = github.context;
+    repo = github.context.repo;
+
+    // We can only handle issue-related events right now
+    if (!payload.issue) {
+        core.info(`Ignoring event, detected a non-issue event: ${JSON.stringify(payload)}`);
+        return;
+    }
 
     // We only want to do something when a human labels an issue
-    if (payload.sender.type === 'Bot') {
+    if (payload.sender && payload.sender.type === 'Bot') {
         core.info('Ignoring event, detected a bot');
         return;
     }
 
-    // We can only handle issue-related events right now
-    if (!payload.issue) {
-        core.info('Ignoring event, detected a non-issue event');
-        return;
-    }
-
-    repo = github.context.repo;
     issue = payload.issue;
 
     if (payload.action === 'opened') {
