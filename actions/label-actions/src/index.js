@@ -140,12 +140,22 @@ const helpers = {
      * @returns {Promise<Array>}
      */
     listOpenLabeledIssues: async function () {
-        const {data: issues} = await client.rest.issues.listForRepo({
+        const {data: needsTriageIssues} = await client.rest.issues.listForRepo({
             ...repo,
             state: 'open',
-            labels: 'needs triage,needs info'
+            labels: 'needs triage'
         });
-        return issues;
+        const {data: needsInfoIssues} = await client.rest.issues.listForRepo({
+            ...repo,
+            state: 'open',
+            labels: 'needs info'
+        });
+
+        const combinedIssues = needsTriageIssues
+            .concat(needsInfoIssues)
+            .filter((thing, index, self) => index === self.findIndex(t => t.id === thing.id));
+
+        return combinedIssues;
     },
 
     /**
