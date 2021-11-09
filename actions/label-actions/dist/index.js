@@ -8464,6 +8464,8 @@ module.exports = require("zlib");
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
+/* eslint-disable max-lines, no-restricted-syntax */
+
 const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 
@@ -8524,32 +8526,32 @@ async function main() {
         const label = payload.label;
 
         switch (label.name) {
-            case 'support-request':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.SUPPORT_REQUEST);
-                await helpers.closeIssue();
-                break;
-            case 'feature-request':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.FEATURE_REQUEST);
-                await helpers.closeIssue();
-                break;
-            case 'needs info':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.NEEDS_INFO);
-                break;
-            case 'bug':
-            case 'p0':
-            case 'p1':
-            case 'p2':
-            case 'community project':
-            case 'good first issue':
-            case 'help wanted':
-                await helpers.removeNeedsTriageLabel();
-                break;
-            default:
-                core.info(`Encountered an unhandled label: ${label.name}`);
-                break;
+        case 'support-request':
+            await helpers.removeNeedsTriageLabel();
+            await helpers.leaveComment(comments.SUPPORT_REQUEST);
+            await helpers.closeIssue();
+            break;
+        case 'feature-request':
+            await helpers.removeNeedsTriageLabel();
+            await helpers.leaveComment(comments.FEATURE_REQUEST);
+            await helpers.closeIssue();
+            break;
+        case 'needs info':
+            await helpers.removeNeedsTriageLabel();
+            await helpers.leaveComment(comments.NEEDS_INFO);
+            break;
+        case 'bug':
+        case 'p0':
+        case 'p1':
+        case 'p2':
+        case 'community project':
+        case 'good first issue':
+        case 'help wanted':
+            await helpers.removeNeedsTriageLabel();
+            break;
+        default:
+            core.info(`Encountered an unhandled label: ${label.name}`);
+            break;
         }
         return;
     }
