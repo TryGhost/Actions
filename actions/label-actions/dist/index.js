@@ -8559,7 +8559,7 @@ async function main() {
 
     if (payload.action === 'labeled') {
         const label = payload.label;
-        let existingLabels;
+        let existingTimelineEvents;
         let existingNeedsTriageLabel;
 
         switch (label.name) {
@@ -8584,12 +8584,14 @@ async function main() {
         case 'community project':
         case 'good first issue':
         case 'help wanted':
-            existingLabels = await helpers.listLabels();
-            existingNeedsTriageLabel = existingLabels.find(l => l.name === 'needs triage');
+            existingTimelineEvents = await helpers.listTimelineEvents();
+            existingNeedsTriageLabel = existingTimelineEvents.find((l) => {
+                return l.event === 'labeled' && l.label && l.label.name === 'needs triage';
+            });
 
             // check if the issue was opened with one of these labels BEFORE we added `needs triage`
             // if so, we don't want to remove the `needs triage` label
-            if (existingNeedsTriageLabel && label.id < existingNeedsTriageLabel.id) {
+            if (existingNeedsTriageLabel && new Date(label.created_at) < new Date(existingNeedsTriageLabel.created_at)) {
                 return;
             }
 
@@ -8626,6 +8628,18 @@ const helpers = {
             .filter((thing, index, self) => index === self.findIndex(t => t.id === thing.id));
 
         return combinedIssues;
+    },
+
+    /**
+     * @returns {Promise<Array>}
+     */
+    listTimelineEvents: async function () {
+        const {data: events} = await client.rest.issues.listEventsForTimeline({
+            ...repo,
+            issue_number: issue.number,
+            per_page: 100
+        });
+        return events;
     },
 
     /**
