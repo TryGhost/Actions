@@ -75,7 +75,7 @@ async function main() {
     if (payload.action === 'opened') {
         // If an issue is opened with a closeable label, we shouldn't
         // bother to add `needs triage`
-        const CLOSEABLE_LABELS = ['support-request', 'feature-request'];
+        const CLOSEABLE_LABELS = ['support request', 'feature request'];
         const existingLabels = await helpers.listLabels();
 
         const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
@@ -93,12 +93,12 @@ async function main() {
         let existingNeedsTriageLabel;
 
         switch (label.name) {
-        case 'support-request':
+        case 'support request':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.SUPPORT_REQUEST);
             await helpers.closeIssue();
             break;
-        case 'feature-request':
+        case 'feature request':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.FEATURE_REQUEST);
             await helpers.closeIssue();
