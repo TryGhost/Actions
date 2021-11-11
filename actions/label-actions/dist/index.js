@@ -8519,7 +8519,7 @@ async function main() {
             }
 
             if (needsTriageLabel) {
-                const issueAssignee = openIssue.assignees && openIssue.assignees[0] || 'daniellockyer';
+                const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'daniellockyer';
                 await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
                 continue;
             }
