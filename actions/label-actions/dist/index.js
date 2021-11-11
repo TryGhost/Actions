@@ -8291,6 +8291,8 @@ FYI: Many projects have their own support guidelines and GitHub will highlight t
 
     NEEDS_INFO: `TODO`,
 
+    NEEDS_TEMPLATE: `TODO`,
+
     NO_UPDATE: `TODO: THERE HAS BEEN NO UPDATE`,
 
     PING_ASSIGNEE: `TODO: This issue is currently awaiting triage from @{issue-assignee}. We're in a busy time right now, but we'll update this issue ASAP.`
@@ -8571,6 +8573,10 @@ async function main() {
         case 'feature-request':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.FEATURE_REQUEST);
+            await helpers.closeIssue();
+            break;
+        case 'needs template':
+            await helpers.leaveComment(comments.NEEDS_TEMPLATE);
             await helpers.closeIssue();
             break;
         case 'needs info':

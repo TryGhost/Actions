@@ -103,6 +103,10 @@ async function main() {
             await helpers.leaveComment(comments.FEATURE_REQUEST);
             await helpers.closeIssue();
             break;
+        case 'needs template':
+            await helpers.leaveComment(comments.NEEDS_TEMPLATE);
+            await helpers.closeIssue();
+            break;
         case 'needs info':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.NEEDS_INFO);
