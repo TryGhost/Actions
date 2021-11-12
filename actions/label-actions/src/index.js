@@ -108,6 +108,11 @@ async function main() {
             await helpers.leaveComment(comments.NEEDS_TEMPLATE);
             await helpers.closeIssue();
             break;
+        case 'self hosting':
+            await helpers.removeNeedsTriageLabel();
+            await helpers.leaveComment(comments.SELF_HOSTING);
+            await helpers.closeIssue();
+            break;
         case 'needs info':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.NEEDS_INFO);

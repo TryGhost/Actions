@@ -25,5 +25,9 @@ Please reopen this issue using our [bug report template](https://github.com/{rep
 
 Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this for now, but let us know if you manage to dig up some more info and we'll reopen.`,
 
-    PING_ASSIGNEE: `This issue is currently awaiting triage from @{issue-assignee}. We're having a busy time right now, but we'll update this issue ASAP. If you have any more information to help us triage faster please leave us some comments. Thank you for understanding 🙂`
+    PING_ASSIGNEE: `This issue is currently awaiting triage from @{issue-assignee}. We're having a busy time right now, but we'll update this issue ASAP. If you have any more information to help us triage faster please leave us some comments. Thank you for understanding 🙂`,
+
+    SELF_HOSTING: `Hey @{issue-author} 👋
+
+We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`
 };
