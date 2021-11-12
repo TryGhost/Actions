@@ -8584,6 +8584,7 @@ async function main() {
             await helpers.closeIssue();
             break;
         case 'needs template':
+            await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.NEEDS_TEMPLATE);
             await helpers.closeIssue();
             break;
