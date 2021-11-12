@@ -195,6 +195,8 @@ const helpers = {
             body = body.replace(/{issue-author}/, issue.user.login);
         }
 
+        body = body.replace(/{repository-name}/, `${repo.owner}/${repo.repo}`);
+
         if (replacements) {
             for (const r in replacements) {
                 body = body.replace(r, replacements[r]);

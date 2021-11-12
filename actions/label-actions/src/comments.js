@@ -19,7 +19,7 @@ FYI: Many projects use issue templates to point you in the right direction. Read
 
 Looks like you've stumbled upon a bug, but we don't have enough information here to help.
 
-Please reopen this issue using our [bug report template](https://github.com/TryGhost/Ghost/issues/new?assignees=&labels=&template=bug_report.yml), including as much info as possible and we will do our best to help track it down.`,
+Please reopen this issue using our [bug report template](https://github.com/{repository-name}/issues/new?assignees=&labels=&template=bug_report.yml), including as much info as possible and we will do our best to help track it down.`,
 
     NO_UPDATE: `Hey @{issue-author} 👋
 
