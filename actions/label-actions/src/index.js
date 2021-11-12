@@ -5,6 +5,12 @@ const github = require('@actions/github');
 
 const comments = require('./comments');
 
+const CORE_TEAM_TRIAGERS = [
+    'ErisDS',
+    'daniellockyer',
+    'matthanley'
+];
+
 // These are used enough that it's easier to keep them here
 let client;
 let repo;
@@ -80,6 +86,11 @@ async function main() {
 
         const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
         if (shouldIgnore) {
+            return;
+        }
+
+        // Ignore labelled issues from Ghost core team triagers
+        if (CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
             return;
         }
 
