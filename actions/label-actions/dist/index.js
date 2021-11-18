@@ -8582,6 +8582,11 @@ async function main() {
         return;
     }
 
+    if (payload.action === 'closed') {
+        await helpers.removeNeedsTriageLabel();
+        return;
+    }
+
     if (payload.action === 'labeled') {
         const label = payload.label;
         let existingTimelineEvents;
