@@ -109,6 +109,10 @@ async function main() {
         let existingNeedsTriageLabel;
 
         switch (label.name) {
+        case 'invalid security report':
+            await helpers.removeNeedsTriageLabel();
+            await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
+            break;
         case 'support request':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.SUPPORT_REQUEST);

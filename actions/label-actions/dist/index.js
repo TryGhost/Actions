@@ -8305,6 +8305,10 @@ Our team needed some more info to get to the bottom of this, however we've not h
 
     PING_ASSIGNEE: `This issue is currently awaiting triage from @{issue-assignee}. We're having a busy time right now, but we'll update this issue ASAP. If you have any more information to help us triage faster please leave us some comments. Thank you for understanding 🙂`,
 
+    INVALID_SECURITY_REPORT: `If you'd like to report a security issue with Ghost, please follow the responsible disclosure process outlined in our [security policy](https://github.com/{repository-name}/security/policy). Most repositories have these and they are very clearly sign-posted.
+
+If you're trying to report a dependency with a known vulnerability, we appreciate your time however we have multiple tools & processes in place to notify us about these so we can assess them. The majority of the time, these are invalid reports as the vulnerability cannot be exploited via Ghost. We recommend reading this article about how [npm audit is mostly wrong](https://overreacted.io/npm-audit-broken-by-design/).`,
+
     SELF_HOSTING: `Hey @{issue-author} 👋
 
 We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`
@@ -8593,6 +8597,10 @@ async function main() {
         let existingNeedsTriageLabel;
 
         switch (label.name) {
+        case 'invalid security report':
+            await helpers.removeNeedsTriageLabel();
+            await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
+            break;
         case 'support request':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.SUPPORT_REQUEST);
