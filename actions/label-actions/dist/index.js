@@ -8305,9 +8305,9 @@ Our team needed some more info to get to the bottom of this, however we've not h
 
     PING_ASSIGNEE: `This issue is currently awaiting triage from @{issue-assignee}. We're having a busy time right now, but we'll update this issue ASAP. If you have any more information to help us triage faster please leave us some comments. Thank you for understanding 🙂`,
 
-    INVALID_SECURITY_REPORT: `If you'd like to report a security issue with Ghost, please follow the responsible disclosure process outlined in our [security policy](https://github.com/{repository-name}/security/policy). Most repositories have these and they are very clearly sign-posted.
+    INVALID_SECURITY_REPORT: `If you'd like to report a security issue with Ghost, please follow the responsible disclosure process outlined in our [security policy](https://github.com/{repository-name}/security/policy). Security issues are reported privately so that are able to properly manage disclosure and patching. Many repositories have these policies and they are very clearly sign-posted.
 
-If you're trying to report a dependency with a known vulnerability, we appreciate your time however we have multiple tools & processes in place to notify us about these so we can assess them. The majority of the time, these are invalid reports as the vulnerability cannot be exploited via Ghost. We recommend reading this article about how [npm audit is mostly wrong](https://overreacted.io/npm-audit-broken-by-design/).`,
+If you're trying to report a dependency with a known vulnerability, we appreciate your time however we already have automated systems in place to ensure these are surfaced and assessed in a timely manner. The majority of the time, these are invalid reports as the vulnerability cannot be exploited via Ghost. We recommend reading this article about how [npm audit is mostly wrong](https://overreacted.io/npm-audit-broken-by-design/).`,
 
     SELF_HOSTING: `Hey @{issue-author} 👋
 
