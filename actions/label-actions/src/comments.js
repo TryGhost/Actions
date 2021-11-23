@@ -31,6 +31,8 @@ Our team needed some more info to get to the bottom of this, however we've not h
 
 If you're trying to report a dependency with a known vulnerability, we appreciate your time however we already have automated systems in place to ensure these are surfaced and assessed in a timely manner. The majority of the time, these are invalid reports as the vulnerability cannot be exploited via Ghost. We recommend reading this article about how [npm audit is mostly wrong](https://overreacted.io/npm-audit-broken-by-design/).`,
 
+    GHOST_PRO: `Hi there! If you're having any issue with a Ghost(Pro) site, please drop us an email on support@ghost.org and we'll be more than happy to give you a hand directly 🙂`,
+
     SELF_HOSTING: `Hey @{issue-author} 👋
 
 We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`
