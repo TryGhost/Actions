@@ -117,6 +117,7 @@ async function main() {
         case 'invalid security report':
             await helpers.removeNeedsTriageLabel();
             await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
+            await helpers.closeIssue();
             break;
         case 'support request':
             await helpers.removeNeedsTriageLabel();
