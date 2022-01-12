@@ -20,7 +20,7 @@
     "eslint-plugin-ghost": "2.11.0"
   },
   "dependencies": {
-    "@slack/webhook": "6.0.0",
+    "@slack/webhook": "6.1.0",
     "@tryghost/release-utils": "0.7.0",
     "semver": "7.3.5"
   }
