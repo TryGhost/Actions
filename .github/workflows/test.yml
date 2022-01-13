@@ -1,9 +1,9 @@
 name: Test
 on:
-  pull_request:
-  push:
-    branches:
-      - main
+  workflow_call:
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,5 +19,16 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
+      - run: yarn global add lerna
+
       - run: yarn
       - run: yarn test
+
+      - uses: codecov/codecov-action@v2
+
+      - uses: daniellockyer/action-slack-build@master
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          status: ${{ job.status }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
