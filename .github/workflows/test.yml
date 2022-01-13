@@ -25,7 +25,13 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
 
+      - name: "Check if repository is a Lerna monorepo"
+        uses: andstor/file-existence-action@87d74d4732ddb824259d80c8a508c0124bf1c673
+        with:
+          files: "lerna.json"
+
       - run: yarn global add lerna
+        if: steps.check_files.outputs.files_exists == 'true'
 
       - run: yarn
       - run: yarn test
