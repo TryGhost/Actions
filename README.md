@@ -1,38 +1,6 @@
 # Actions
 
-## Install
-
-`npm install actions --save`
-
-or
-
-`yarn add actions`
-
-
-## Usage
-
-
-## Develop
-
-1. `git clone` this repo & `cd` into it as usual
-2. Run `yarn` to install top-level dependencies.
-
-
-## Run
-
-- `yarn dev`
-
-
-## Test
-
-- `yarn lint` run just eslint
-- `yarn test` run lint and tests
-
-
-## Publish
-
-- `yarn ship`
-
+This repository contains all of the GitHub Actions workflows that we re-use across our repositories.
 
 # Copyright & License 
 
