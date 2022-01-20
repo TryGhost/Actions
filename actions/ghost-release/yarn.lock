@@ -254,28 +254,20 @@
     "@types/node" ">=12.0.0"
     axios "^0.21.4"
 
-"@tryghost/errors@^0.2.16":
-  version "0.2.17"
-  resolved "https://registry.yarnpkg.com/@tryghost/errors/-/errors-0.2.17.tgz#9b89f3845256ace5650593f41cc86d64965b56ed"
-  integrity sha512-Mj+bedWOwfooNA8fQdp6gIcRvWcKhJ/hOyGzu6OLFDLgEosFEeuFgXE6SsAWkf9+9NTYX30w88qGIWZqOhEAmQ==
-  dependencies:
-    "@tryghost/ignition-errors" "^0.1.0"
-    lodash "^4.17.21"
-
-"@tryghost/ignition-errors@^0.1.0":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@tryghost/ignition-errors/-/ignition-errors-0.1.8.tgz#6d4c4d4e02d32403ca1e574eaa91b3c0d138d6f6"
-  integrity sha512-4KYU+kDXZyP7tmzyHiUkfDy9RWxKAtA/6xTGdxYHurE5ZlT++cDDfdUtF0v3308GGUzKlBzRc3jmLjDYpngcBQ==
+"@tryghost/errors@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@tryghost/errors/-/errors-1.2.1.tgz#1f2e618ec3a0617a6b9c5ac540a202fb46e32559"
+  integrity sha512-Ui8iU/ky2HC9+WqOFKDSJyZv0WonrklPugKgWR4QKJ4wIeMXd+uJMqpHLXcN8uMiPVw5Lj9yl8mHq5rjw5dgIQ==
   dependencies:
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@tryghost/release-utils@0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@tryghost/release-utils/-/release-utils-0.7.0.tgz#558873e922ee33ba9c356762bd97f34ff84c209c"
-  integrity sha512-OGA7oQHRG8PhHnEkZwMFIzDtSNEBMvhKU0C5Sg02RdNy4+N6/Zm/XKRBYPbLN43cHFBMyUVfuSp9YpXCUWf7Gg==
+"@tryghost/release-utils@0.7.10":
+  version "0.7.10"
+  resolved "https://registry.yarnpkg.com/@tryghost/release-utils/-/release-utils-0.7.10.tgz#d523a2ef2d16a6ec58c6fee25973ea2bf2e689d5"
+  integrity sha512-3bMiOs4xxjWi2xjbJ04vilODlsqfHeJMGbNsEdodcYcFxp2NPCPqwzZ1NLS5tRQE915slBUrZWuGyDc6VVeBRw==
   dependencies:
-    "@tryghost/errors" "^0.2.16"
+    "@tryghost/errors" "^1.2.1"
     bluebird "^3.7.2"
     emoji-regex "^9.2.2"
     execa "^4.1.0"
