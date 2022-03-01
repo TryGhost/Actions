@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@slack/webhook": "6.1.0",
-    "@tryghost/release-utils": "0.7.11",
+    "@tryghost/release-utils": "0.7.12",
     "semver": "7.3.5"
   }
 }
