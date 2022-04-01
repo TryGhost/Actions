@@ -9,7 +9,6 @@ const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json')));
 const changelogPath = path.join(basePath, '.dist', 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
-const zipName = `Ghost-${ghostVersion}.zip`;
 
 (async () => {
     try {
@@ -63,7 +62,7 @@ const zipName = `Ghost-${ghostVersion}.zip`;
 
         const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
 
-        const response = await releaseUtils.releases.create({
+        await releaseUtils.releases.create({
             draft: false,
             preRelease: false,
             tagName: ghostVersionTagged,
@@ -75,15 +74,6 @@ const zipName = `Ghost-${ghostVersion}.zip`;
             },
             changelogPath: [{changelogPath}],
             extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}\n* Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}\n\n🪄 Love open source? We're hiring [Node.js Engineers](https://careers.ghost.org/product-engineer-node-js) to work on Ghost full-time`
-        });
-
-        await releaseUtils.releases.uploadZip({
-            github: {
-                token: process.env.RELEASE_TOKEN
-            },
-            zipPath: path.join(basePath, '.dist', 'release', zipName),
-            uri: `${response.uploadUrl.substring(0, response.uploadUrl.indexOf('{'))}?name=${zipName}`,
-            userAgent: 'ghost-release'
         });
 
         const webhookUrl = process.env.RELEASE_NOTIFICATION_URL;
