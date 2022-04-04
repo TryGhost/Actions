@@ -15,7 +15,7 @@ jobs:
         env:
           FORCE_COLOR: 0
         with:
-          node-version: '14.17.0'
+          node-version: '16.14.2'
           cache: yarn
 
       - name: Set up Git
