@@ -62,4 +62,4 @@ jobs:
         with:
           name: ${{ env.canary_zip }}
           path: .dist/release/*
-          retention-days: 7
+          retention-days: 4
