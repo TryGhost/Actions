@@ -8529,8 +8529,8 @@ async function main() {
             // when it was labeled?
             const issueLastUpdated = new Date(openIssue.updated_at);
 
-            // Only run if the issue was last updated 2 weeks ago
-            const updatedAtThresholdMs = 2 * 7 * 24 * 60 * 60 * 1000;
+            // Only run if the issue was last updated 4 weeks ago
+            const updatedAtThresholdMs = 4 * 7 * 24 * 60 * 60 * 1000;
 
             // If we're within `updatedAtThresholdMs`, we're ok so we should just
             // return
