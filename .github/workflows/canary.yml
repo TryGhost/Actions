@@ -6,6 +6,7 @@ jobs:
   canary:
     runs-on: ubuntu-latest
     name: Canary
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,28 +25,13 @@ jobs:
           git config --global user.name "Ghost CI"
           git config --global user.email "ghost@example.com"
 
-      - run: |
-          echo "bump_type=premajor" >> $GITHUB_ENV
-          echo "canary_zip=ghost-canary-5" >> $GITHUB_ENV
-          echo "base_branch=5.0" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/5.0'
-
-      - run: |
+      - name: Set env variables
+        run: |
           echo "bump_type=preminor" >> $GITHUB_ENV
           echo "canary_zip=ghost-canary" >> $GITHUB_ENV
-          echo "base_branch=main" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/main'
 
       - run: yarn
-
       - run: yarn main
-        if: github.ref == 'refs/heads/main'
-
-      - run: |
-          git checkout origin/5.0 && yarn
-          (cd core/client && git checkout origin/5.0 && yarn)
-          (cd content/themes/casper && git checkout origin/5.0)
-        if: github.ref == 'refs/heads/5.0'
 
       - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - run: echo "ghost_admin_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
