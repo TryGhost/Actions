@@ -27,7 +27,7 @@ jobs:
 
       - name: Set env variables
         run: |
-          echo "bump_type=preminor" >> $GITHUB_ENV
+          echo "bump_type=premajor" >> $GITHUB_ENV
           echo "canary_zip=ghost-canary" >> $GITHUB_ENV
 
       - run: yarn
