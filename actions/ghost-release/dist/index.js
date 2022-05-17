@@ -4969,6 +4969,8 @@ const ghostVersion = ghostPackageInfo.version;
             folder: basePath
         });
 
+        const adminDir = path.join(basePath, 'core', (semver.major(ghostVersion) >= 5 ? 'admin' : 'client'));
+
         changelog
             .write({
                 githubRepoPath: `https://github.com/TryGhost/Ghost`,
@@ -4978,7 +4980,7 @@ const ghostVersion = ghostPackageInfo.version;
                 githubRepoPath: `https://github.com/TryGhost/Admin`,
                 lastVersion: previousVersionTagged,
                 append: true,
-                folder: path.join(basePath, 'core', 'client')
+                folder: adminDir
             })
             .sort()
             .clean();
