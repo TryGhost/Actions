@@ -85,10 +85,10 @@
     utils-copy-error "^1.0.1"
     uuid "^8.3.2"
 
-"@tryghost/release-utils@0.7.13":
-  version "0.7.13"
-  resolved "https://registry.yarnpkg.com/@tryghost/release-utils/-/release-utils-0.7.13.tgz#96a5fe364d420d9a0b5f9c142b6514fd36690ebe"
-  integrity sha512-VPOZooT144fSaUHrt1Y1jaAN1NxNjr3gOm29iPO0V3d+x5HXtK8Jkv7Lufp36/AbjGXFP5RHV17CygzINi1gUA==
+"@tryghost/release-utils@0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@tryghost/release-utils/-/release-utils-0.8.0.tgz#2e017e0ed8326252becd9085f97d1dce61984bd6"
+  integrity sha512-3KbxucGpT5N3km5pYBUAJSEhXkOWkb6ABJ7PU0UtOqfmgQRprenAxf1rcSuQK0K/85ezXamVFNkfjZcy3355Fw==
   dependencies:
     "@tryghost/errors" "^1.2.1"
     bluebird "^3.7.2"
