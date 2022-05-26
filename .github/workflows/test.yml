@@ -31,7 +31,7 @@ jobs:
         with:
           files: "lerna.json"
 
-      - run: yarn global add lerna
+      - run: yarn global add lerna@^4
         if: steps.check_files.outputs.files_exists == 'true'
 
       - run: yarn
