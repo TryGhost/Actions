@@ -32,8 +32,6 @@ async function main() {
 
         for (const openIssue of openIssues) {
             issue = openIssue;
-            const needsTriageLabel = openIssue.labels.find(l => l.name === 'needs triage');
-            const needsInfoLabel = openIssue.labels.find(l => l.name === 'needs info');
 
             // TODO: maybe improve on this by getting the actual date
             // when it was labeled?
@@ -48,12 +46,22 @@ async function main() {
                 continue;
             }
 
+            const existingTimelineEvents = await helpers.listTimelineEvents();
+
+            const needsInfoLabel = existingTimelineEvents.find((l) => l.event === 'labeled' && l.label?.name === 'needs info');
             if (needsInfoLabel) {
+                const lastComment = existingTimelineEvents.find((l) => l.event === 'commented');
+
+                if (lastComment && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at)) {
+                    continue;
+                }
+
                 await helpers.leaveComment(comments.NO_UPDATE);
                 await helpers.closeIssue();
                 continue;
             }
 
+            const needsTriageLabel = existingTimelineEvents.find((l) => l.event === 'labeled' && l.label?.name === 'needs triage');
             if (needsTriageLabel) {
                 const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'ErisDS';
                 await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
@@ -205,6 +213,9 @@ const helpers = {
             issue_number: issue.number,
             per_page: 100
         });
+
+        events.reverse();
+
         return events;
     },
 
