@@ -48,7 +48,7 @@ async function main() {
 
             const existingTimelineEvents = await helpers.listTimelineEvents();
 
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
             if (needsInfoLabel) {
                 const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
@@ -61,7 +61,7 @@ async function main() {
                 continue;
             }
 
-            const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+            const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs triage');
             if (needsTriageLabel) {
                 const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'ErisDS';
                 await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
