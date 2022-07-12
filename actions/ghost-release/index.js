@@ -97,7 +97,7 @@ const ghostVersion = ghostPackageInfo.version;
                     type: 'section',
                     text: {
                         type: 'mrkdwn',
-                        text: `👻 *Ghost ${ghostVersion} is loose!* - https://github.com/TryGhost/Ghost/releases/tag/${ghostVersionTagged}\n\n${changelogContents}`
+                        text: `👻 *Ghost v${ghostVersion} is loose!* - https://github.com/TryGhost/Ghost/releases/tag/${ghostVersionTagged}\n\n${changelogContents}`
                     }
                 }]
             });
