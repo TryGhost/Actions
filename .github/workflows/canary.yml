@@ -28,7 +28,7 @@ jobs:
       - name: Set env variables
         run: |
           echo "bump_type=preminor" >> $GITHUB_ENV
-          echo "canary_zip=ghost-canary" >> $GITHUB_ENV
+          echo "canary_archive=ghost-canary" >> $GITHUB_ENV
 
       - run: yarn
       - run: yarn main
@@ -42,10 +42,10 @@ jobs:
       - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
         working-directory: core/admin
 
-      - run: grunt release --skip-update
+      - run: npm pack
 
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.canary_zip }}
-          path: .dist/release/*
+          name: ${{ env.canary_archive }}
+          path: *.tgz
           retention-days: 4
