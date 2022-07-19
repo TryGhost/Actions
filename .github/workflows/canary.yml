@@ -47,5 +47,5 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.canary_archive }}
-          path: *.tgz
+          path: '*.tgz'
           retention-days: 4
