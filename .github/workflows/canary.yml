@@ -35,17 +35,33 @@ jobs:
 
       - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - run: echo "ghost_admin_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-        working-directory: core/admin
-      - run: if [ -n "$(git status --porcelain)" ]; then git add core/admin content/themes/casper && git commit -m "Updated Ghost-Admin and Casper"; fi
+        working-directory: ghost/core/core/admin
+      - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/core/admin ghost/core/content/themes/casper && git commit -m "Updated Ghost-Admin and Casper"; fi
 
       - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
+        working-directory: ghost/core
       - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
-        working-directory: core/admin
+        working-directory: ghost/core/core/admin
+
+      - run: npm install -g ultra-runner@3.10.5
+      - run: npm install -g daniellockyer/monobundle
+
+      - run: mkdir components
+        working-directory: ghost/core
+      - run: ultra --filter '@tryghost/*' -r npm pack --pack-destination ../core/components
+
+      - run: monobundle
+        working-directory: ghost/core
+
+      - run: yarn
+      - run: cp ../../README.md . && cp ../../yarn.lock .
+        working-directory: ghost/core
 
       - run: npm pack
+        working-directory: ghost/core
 
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.canary_archive }}
-          path: '*.tgz'
+          path: 'ghost/core/ghost-*.tgz'
           retention-days: 4
