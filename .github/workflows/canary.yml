@@ -48,12 +48,12 @@ jobs:
 
       - run: mkdir components
         working-directory: ghost/core
-      - run: ultra --filter '@tryghost/*' -r npm pack --pack-destination ../core/components
 
       - run: monobundle
         working-directory: ghost/core
 
-      - run: yarn
+      - run: ultra --filter '@tryghost/*' -r npm pack --pack-destination ../core/components
+
       - run: cp ../../README.md .
         working-directory: ghost/core
 
