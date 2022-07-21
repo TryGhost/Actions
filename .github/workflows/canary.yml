@@ -54,7 +54,7 @@ jobs:
         working-directory: ghost/core
 
       - run: yarn
-      - run: cp ../../README.md . && cp ../../yarn.lock .
+      - run: cp ../../README.md .
         working-directory: ghost/core
 
       - run: npm pack
