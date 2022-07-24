@@ -1,0 +1,40 @@
+name: Release
+on: workflow_call
+env:
+  FORCE_COLOR: 1
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Release
+    env:
+      RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_NOTIFICATION_URL: ${{ secrets.RELEASE_NOTIFICATION_URL }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: actions/setup-node@v3
+        env:
+          FORCE_COLOR: 0
+        with:
+          node-version: '16.14.2'
+          cache: yarn
+      - run: npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+
+      - run: yarn
+      - run: npm install -g ultra-runner@3.10.5 daniellockyer/monobundle
+
+      - run: monobundle
+        working-directory: ghost/core
+
+      - run: ultra --filter '@tryghost/*' -r npm pack --pack-destination ../core/components
+
+      - run: cp ../../README.md .
+        working-directory: ghost/core
+
+      - run: npm publish
+        working-directory: ghost/core
+
+      - uses: tryghost/action-ghost-release@main
