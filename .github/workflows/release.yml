@@ -24,12 +24,8 @@ jobs:
       - run: npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
 
       - run: yarn
-      - run: npm install -g daniellockyer/monobundle
 
-      - run: monobundle
-        working-directory: ghost/core
-
-      - run: cp ../../README.md .
+      - run: npx --yes daniellockyer/monobundle
         working-directory: ghost/core
 
       - run: npm publish

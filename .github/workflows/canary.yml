@@ -43,12 +43,7 @@ jobs:
       - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
         working-directory: ghost/core/core/admin
 
-      - run: npm install -g daniellockyer/monobundle
-
-      - run: monobundle
-        working-directory: ghost/core
-
-      - run: cp ../../README.md .
+      - run: npx --yes daniellockyer/monobundle
         working-directory: ghost/core
 
       - run: npm pack
