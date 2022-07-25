@@ -7,8 +7,7 @@ const comments = require('./comments');
 
 const CORE_TEAM_TRIAGERS = [
     'ErisDS',
-    'daniellockyer',
-    'matthanley'
+    'daniellockyer'
 ];
 
 // These are used enough that it's easier to keep them here
