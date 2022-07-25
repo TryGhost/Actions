@@ -43,12 +43,10 @@ jobs:
       - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
         working-directory: ghost/core/core/admin
 
-      - run: npm install -g ultra-runner@3.10.5 daniellockyer/monobundle
+      - run: npm install -g daniellockyer/monobundle
 
       - run: monobundle
         working-directory: ghost/core
-
-      - run: ultra --filter '@tryghost/*' -r npm pack --pack-destination ../core/components
 
       - run: cp ../../README.md .
         working-directory: ghost/core
