@@ -4957,7 +4957,7 @@ if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces
 }
 
 const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, subPath, 'package.json')));
-const changelogPath = path.join(basePath, '.dist', 'changelog.md');
+const changelogPath = path.join(basePath, 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 
 (async () => {
