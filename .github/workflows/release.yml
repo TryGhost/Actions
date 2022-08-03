@@ -24,8 +24,6 @@ jobs:
       - run: npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
 
       - run: yarn
-      - run: yarn
-        working-directory: ghost/core/core/admin
 
       - run: npx --yes daniellockyer/monobundle
         working-directory: ghost/core
