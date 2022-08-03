@@ -38,6 +38,8 @@ jobs:
 
       - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash"
         working-directory: ghost/core
+      - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash"
+        working-directory: ghost/admin
 
       - run: npx --yes daniellockyer/monobundle
         working-directory: ghost/core
