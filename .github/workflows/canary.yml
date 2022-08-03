@@ -31,7 +31,7 @@ jobs:
           echo "canary_archive=ghost-canary" >> $GITHUB_ENV
 
       - run: yarn
-      - run: yarn main
+      - run: yarn main:submodules
 
       - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/content/themes/casper && git commit -m "Updated Casper"; fi
