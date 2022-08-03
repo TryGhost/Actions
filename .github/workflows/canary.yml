@@ -34,14 +34,10 @@ jobs:
       - run: yarn main
 
       - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      - run: echo "ghost_admin_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-        working-directory: ghost/core/core/admin
-      - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/core/admin ghost/core/content/themes/casper && git commit -m "Updated Ghost-Admin and Casper"; fi
+      - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/content/themes/casper && git commit -m "Updated Casper"; fi
 
-      - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
+      - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash"
         working-directory: ghost/core
-      - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash.$ghost_admin_hash"
-        working-directory: ghost/core/core/admin
 
       - run: npx --yes daniellockyer/monobundle
         working-directory: ghost/core
