@@ -18,6 +18,8 @@ const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, subPath,
 const changelogPath = path.join(basePath, 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 
+const newMonorepo = ghostVersion.startsWith('5');
+
 (async () => {
     try {
         const tags = await releaseUtils.releases.get({
@@ -51,26 +53,41 @@ const ghostVersion = ghostPackageInfo.version;
 
         const changelog = new releaseUtils.Changelog({
             changelogPath,
-            folder: path.join(basePath, subPath)
+            folder: basePath
         });
 
-        const adminDir = path.join(path.join(basePath, subPath), 'core', (semver.major(ghostVersion) >= 5 ? 'admin' : 'client'));
-
-        changelog
-            .write({
-                githubRepoPath: `https://github.com/TryGhost/Ghost`,
-                lastVersion: previousVersionTagged
-            })
-            .write({
-                githubRepoPath: `https://github.com/TryGhost/Admin`,
-                lastVersion: previousVersionTagged,
-                append: true,
-                folder: adminDir
-            })
-            .sort()
-            .clean();
+        if (newMonorepo) {
+            changelog
+                .write({
+                    githubRepoPath: `https://github.com/TryGhost/Ghost`,
+                    lastVersion: previousVersionTagged
+                })
+                .sort()
+                .clean();
+        } else {
+            const adminDir = path.join(path.join(basePath, subPath), 'core', 'client');
+            changelog
+                .write({
+                    githubRepoPath: `https://github.com/TryGhost/Ghost`,
+                    lastVersion: previousVersionTagged
+                })
+                .write({
+                    githubRepoPath: `https://github.com/TryGhost/Admin`,
+                    lastVersion: previousVersionTagged,
+                    append: true,
+                    folder: adminDir
+                })
+                .sort()
+                .clean();
+        }
 
         const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
+
+        let extraText = `---\n\nView the changelog for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
+        if (newMonorepo) {
+            extraText += `\n* Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}`;
+        }
+        extraText += `\n\n🪄 Love open source? We're hiring [Node.js Engineers](https://careers.ghost.org/product-engineer-node-js) to work on Ghost full-time`;
 
         await releaseUtils.releases.create({
             draft: false,
@@ -83,7 +100,7 @@ const ghostVersion = ghostPackageInfo.version;
                 token: process.env.RELEASE_TOKEN
             },
             changelogPath: [{changelogPath}],
-            extraText: `---\n\nView the changelogs for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}\n* Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}\n\n🪄 Love open source? We're hiring [Node.js Engineers](https://careers.ghost.org/product-engineer-node-js) to work on Ghost full-time`
+            extraText
         });
 
         const webhookUrl = process.env.RELEASE_NOTIFICATION_URL;
