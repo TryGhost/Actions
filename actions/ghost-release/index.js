@@ -83,8 +83,11 @@ const newMonorepo = ghostVersion.startsWith('5');
 
         const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
 
-        let extraText = `---\n\nView the changelog for full details:\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
+        let extraText;
         if (newMonorepo) {
+            extraText = `---\n\nView the changelog for full details: https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
+        } else {
+            extraText = `---\n\nView the changelog for full details:\n\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
             extraText += `\n* Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}`;
         }
         extraText += `\n\n🪄 Love open source? We're hiring [Node.js Engineers](https://careers.ghost.org/product-engineer-node-js) to work on Ghost full-time`;
