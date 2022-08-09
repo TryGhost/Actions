@@ -17,7 +17,7 @@
   "devDependencies": {
     "@zeit/ncc": "0.22.3",
     "eslint": "8.21.0",
-    "eslint-plugin-ghost": "2.14.0"
+    "eslint-plugin-ghost": "2.15.1"
   },
   "dependencies": {
     "@slack/webhook": "6.1.0",
