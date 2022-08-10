@@ -25,9 +25,6 @@ jobs:
 
       - run: yarn
 
-      - run: npx --yes daniellockyer/monobundle
-        working-directory: ghost/core
-
       - run: npm publish
         working-directory: ghost/core
 
