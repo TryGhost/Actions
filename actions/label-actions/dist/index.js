@@ -2733,7 +2733,7 @@ exports.withCustomRequest = withCustomRequest;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-const VERSION = "2.21.1";
+const VERSION = "2.21.3";
 
 function ownKeys(object, enumerableOnly) {
   var keys = Object.keys(object);
@@ -3948,7 +3948,7 @@ const Endpoints = {
   }
 };
 
-const VERSION = "5.16.1";
+const VERSION = "5.16.2";
 
 function endpointsToMethods(octokit, endpointsMap) {
   const newMethods = {};
@@ -9086,19 +9086,14 @@ async function main() {
             // when it was labeled?
             const issueLastUpdated = new Date(openIssue.updated_at);
 
-            // Only run if the issue was last updated 4 weeks ago
-            const updatedAtThresholdMs = 4 * 7 * 24 * 60 * 60 * 1000;
-
-            // If we're within `updatedAtThresholdMs`, we're ok so we should just
-            // return
-            if (Date.now() - issueLastUpdated.getTime() < updatedAtThresholdMs) {
-                continue;
-            }
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            const olderThan2Weeks = (Date.now() - issueLastUpdated.getTime()) > (2 * oneWeek);
+            const olderThan4Weeks = (Date.now() - issueLastUpdated.getTime()) > (4 * oneWeek);
 
             const existingTimelineEvents = await helpers.listTimelineEvents();
 
             const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
-            if (needsInfoLabel) {
+            if (needsInfoLabel && olderThan2Weeks) {
                 const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
                 if (lastComment && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at)) {
@@ -9111,7 +9106,7 @@ async function main() {
             }
 
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs triage');
-            if (needsTriageLabel) {
+            if (needsTriageLabel && olderThan4Weeks) {
                 const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'ErisDS';
                 await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
                 continue;
