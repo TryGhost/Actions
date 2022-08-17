@@ -9096,7 +9096,7 @@ async function main() {
             if (needsInfoLabel && olderThan2Weeks) {
                 const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
-                if (lastComment && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at)) {
+                if (lastComment && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at) && lastComment.actor.type !== "Bot") {
                     continue;
                 }
 
