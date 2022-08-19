@@ -40,7 +40,9 @@ jobs:
       - run: yarn main:submodules
         if: github.ref == 'refs/heads/main'
 
-      - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Last 5 commits
+        run: git log -5 --pretty=oneline
+
       - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/content/themes/casper && git commit -m "Updated Casper"; fi
 
       - run: yarn version --no-git-tag-version --new-version ${{ inputs.version }}
