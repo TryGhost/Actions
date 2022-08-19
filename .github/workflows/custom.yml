@@ -36,7 +36,6 @@ jobs:
           git config --global user.email "ghost@example.com"
 
       - run: yarn
-      - run: git submodule update --init
 
       - run: yarn main:submodules
         if: github.ref == 'refs/heads/main'
@@ -44,9 +43,9 @@ jobs:
       - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/content/themes/casper && git commit -m "Updated Casper"; fi
 
-      - run: yarn version --new-version ${{ inputs.version }}
+      - run: yarn version --no-git-tag-version --new-version ${{ inputs.version }}
         working-directory: ghost/core
-      - run: yarn version --new-version ${{ inputs.version }}
+      - run: yarn version --no-git-tag-version --new-version ${{ inputs.version }}
         working-directory: ghost/admin
 
       - run: npm pack
