@@ -15,7 +15,7 @@ env:
 jobs:
   canary:
     runs-on: ubuntu-latest
-    name: Custom
+    name: ${{ inputs.branch }} - ${{ inputs.version }}
     steps:
       - uses: actions/checkout@v3
         with:
