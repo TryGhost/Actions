@@ -46,7 +46,11 @@ async function main() {
             if (needsInfoLabel && olderThan2Weeks) {
                 const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
-                if (lastComment && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at) && lastComment.actor.type !== 'Bot') {
+                if (lastComment // we have a comment in the timeline events
+                    && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at) // that comment is newer than the label
+                    && lastComment.actor.type !== 'Bot' // the comment was not by a bot
+                    && !CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
+                ) {
                     continue;
                 }
 
