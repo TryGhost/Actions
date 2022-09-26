@@ -82,15 +82,15 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-                /*case 'needs info':
-                    await helpers.leaveComment(comments.PR_NEEDS_INFO);
-                    break;*/
-                /*case 'changes requested':
-                    await helpers.leaveComment(comments.PR_CHANGES_REQUESTED);
-                    break;*/
-                default:
-                    core.info(`Encountered an unhandled label: ${label.name}`);
-                    break;
+            /*case 'needs info':
+                await helpers.leaveComment(comments.PR_NEEDS_INFO);
+                break;*/
+            /*case 'changes requested':
+                await helpers.leaveComment(comments.PR_CHANGES_REQUESTED);
+                break;*/
+            default:
+                core.info(`Encountered an unhandled label: ${label.name}`);
+                break;
             }
             return;
         }
@@ -130,63 +130,63 @@ async function main() {
             let existingNeedsTriageLabel;
 
             switch (label.name) {
-                case 'Ghost(Pro)':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.GHOST_PRO);
-                    await helpers.closeIssue();
-                    break;
-                case 'invalid security report':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
-                    await helpers.closeIssue();
-                    break;
-                case 'support request':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.SUPPORT_REQUEST);
-                    await helpers.closeIssue();
-                    break;
-                case 'feature request':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.FEATURE_REQUEST);
-                    await helpers.closeIssue();
-                    break;
-                case 'needs template':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.NEEDS_TEMPLATE);
-                    await helpers.closeIssue();
-                    break;
-                case 'self hosting':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.SELF_HOSTING);
-                    await helpers.closeIssue();
-                    break;
-                case 'needs info':
-                    await helpers.removeNeedsTriageLabel();
-                    await helpers.leaveComment(comments.NEEDS_INFO);
-                    break;
-                case 'bug':
-                case 'p0':
-                case 'p1':
-                case 'p2':
-                case 'community project':
-                case 'good first issue':
-                case 'help wanted':
-                    existingTimelineEvents = await helpers.listTimelineEvents();
-                    existingNeedsTriageLabel = existingTimelineEvents.find((l) => {
-                        return l.event === 'labeled' && l.label && l.label.name === 'needs triage';
-                    });
+            case 'Ghost(Pro)':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.GHOST_PRO);
+                await helpers.closeIssue();
+                break;
+            case 'invalid security report':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
+                await helpers.closeIssue();
+                break;
+            case 'support request':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.SUPPORT_REQUEST);
+                await helpers.closeIssue();
+                break;
+            case 'feature request':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.FEATURE_REQUEST);
+                await helpers.closeIssue();
+                break;
+            case 'needs template':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.NEEDS_TEMPLATE);
+                await helpers.closeIssue();
+                break;
+            case 'self hosting':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.SELF_HOSTING);
+                await helpers.closeIssue();
+                break;
+            case 'needs info':
+                await helpers.removeNeedsTriageLabel();
+                await helpers.leaveComment(comments.NEEDS_INFO);
+                break;
+            case 'bug':
+            case 'p0':
+            case 'p1':
+            case 'p2':
+            case 'community project':
+            case 'good first issue':
+            case 'help wanted':
+                existingTimelineEvents = await helpers.listTimelineEvents();
+                existingNeedsTriageLabel = existingTimelineEvents.find((l) => {
+                    return l.event === 'labeled' && l.label && l.label.name === 'needs triage';
+                });
 
-                    // check if the issue was opened with one of these labels BEFORE we added `needs triage`
-                    // if so, we don't want to remove the `needs triage` label
-                    if (existingNeedsTriageLabel && new Date(label.created_at) < new Date(existingNeedsTriageLabel.created_at)) {
-                        return;
-                    }
+                // check if the issue was opened with one of these labels BEFORE we added `needs triage`
+                // if so, we don't want to remove the `needs triage` label
+                if (existingNeedsTriageLabel && new Date(label.created_at) < new Date(existingNeedsTriageLabel.created_at)) {
+                    return;
+                }
 
-                    await helpers.removeNeedsTriageLabel();
-                    break;
-                default:
-                    core.info(`Encountered an unhandled label: ${label.name}`);
-                    break;
+                await helpers.removeNeedsTriageLabel();
+                break;
+            default:
+                core.info(`Encountered an unhandled label: ${label.name}`);
+                break;
             }
             return;
         }
