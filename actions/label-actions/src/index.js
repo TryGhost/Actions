@@ -28,7 +28,6 @@ async function main() {
 
     if (payload.schedule) {
         const openIssues = await helpers.listOpenLabeledIssues();
-
         for (const openIssue of openIssues) {
             issue = openIssue;
 
@@ -70,113 +69,130 @@ async function main() {
         return;
     }
 
-    // Otherwise, we can only handle issue-related events right now
-    if (!payload.issue) {
-        core.info(`Ignoring event, detected a non-issue event: ${JSON.stringify(payload)}`);
-        return;
-    }
-
     // We only want to do something when a human labels an issue
     if (payload.sender && payload.sender.type === 'Bot') {
         core.info('Ignoring event, detected a bot');
         return;
     }
 
-    issue = payload.issue;
+    if (payload.pull_request) {
+        issue = payload.pull_request;
 
-    if (payload.action === 'opened') {
-        // If an issue is opened with a closeable label, we shouldn't
-        // bother to add `needs triage`
-        const CLOSEABLE_LABELS = ['support request', 'feature request'];
-        const existingLabels = await helpers.listLabels();
+        if (payload.action === 'labeled') {
+            const label = payload.label;
 
-        const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
-        if (shouldIgnore) {
+            switch (label.name) {
+                /*case 'needs info':
+                    await helpers.leaveComment(comments.PR_NEEDS_INFO);
+                    break;*/
+                /*case 'changes requested':
+                    await helpers.leaveComment(comments.PR_CHANGES_REQUESTED);
+                    break;*/
+                default:
+                    core.info(`Encountered an unhandled label: ${label.name}`);
+                    break;
+            }
             return;
         }
-
-        // Ignore labelled issues from Ghost core team triagers
-        if (CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
-            return;
-        }
-
-        await helpers.addLabel('needs triage');
-        return;
     }
 
-    if (payload.action === 'closed') {
-        await helpers.removeNeedsTriageLabel();
-        return;
-    }
+    if (payload.issue) {
+        issue = payload.issue;
 
-    if (payload.action === 'labeled') {
-        const label = payload.label;
-        let existingTimelineEvents;
-        let existingNeedsTriageLabel;
+        if (payload.action === 'opened') {
+            // If an issue is opened with a closeable label, we shouldn't
+            // bother to add `needs triage`
+            const CLOSEABLE_LABELS = ['support request', 'feature request'];
+            const existingLabels = await helpers.listLabels();
 
-        switch (label.name) {
-        case 'Ghost(Pro)':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.GHOST_PRO);
-            await helpers.closeIssue();
-            break;
-        case 'invalid security report':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
-            await helpers.closeIssue();
-            break;
-        case 'support request':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.SUPPORT_REQUEST);
-            await helpers.closeIssue();
-            break;
-        case 'feature request':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.FEATURE_REQUEST);
-            await helpers.closeIssue();
-            break;
-        case 'needs template':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.NEEDS_TEMPLATE);
-            await helpers.closeIssue();
-            break;
-        case 'self hosting':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.SELF_HOSTING);
-            await helpers.closeIssue();
-            break;
-        case 'needs info':
-            await helpers.removeNeedsTriageLabel();
-            await helpers.leaveComment(comments.NEEDS_INFO);
-            break;
-        case 'bug':
-        case 'p0':
-        case 'p1':
-        case 'p2':
-        case 'community project':
-        case 'good first issue':
-        case 'help wanted':
-            existingTimelineEvents = await helpers.listTimelineEvents();
-            existingNeedsTriageLabel = existingTimelineEvents.find((l) => {
-                return l.event === 'labeled' && l.label && l.label.name === 'needs triage';
-            });
-
-            // check if the issue was opened with one of these labels BEFORE we added `needs triage`
-            // if so, we don't want to remove the `needs triage` label
-            if (existingNeedsTriageLabel && new Date(label.created_at) < new Date(existingNeedsTriageLabel.created_at)) {
+            const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
+            if (shouldIgnore) {
                 return;
             }
 
-            await helpers.removeNeedsTriageLabel();
-            break;
-        default:
-            core.info(`Encountered an unhandled label: ${label.name}`);
-            break;
+            // Ignore labelled issues from Ghost core team triagers
+            if (CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
+                return;
+            }
+
+            await helpers.addLabel('needs triage');
+            return;
         }
-        return;
+
+        if (payload.action === 'closed') {
+            await helpers.removeNeedsTriageLabel();
+            return;
+        }
+
+        if (payload.action === 'labeled') {
+            const label = payload.label;
+            let existingTimelineEvents;
+            let existingNeedsTriageLabel;
+
+            switch (label.name) {
+                case 'Ghost(Pro)':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.GHOST_PRO);
+                    await helpers.closeIssue();
+                    break;
+                case 'invalid security report':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
+                    await helpers.closeIssue();
+                    break;
+                case 'support request':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.SUPPORT_REQUEST);
+                    await helpers.closeIssue();
+                    break;
+                case 'feature request':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.FEATURE_REQUEST);
+                    await helpers.closeIssue();
+                    break;
+                case 'needs template':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.NEEDS_TEMPLATE);
+                    await helpers.closeIssue();
+                    break;
+                case 'self hosting':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.SELF_HOSTING);
+                    await helpers.closeIssue();
+                    break;
+                case 'needs info':
+                    await helpers.removeNeedsTriageLabel();
+                    await helpers.leaveComment(comments.NEEDS_INFO);
+                    break;
+                case 'bug':
+                case 'p0':
+                case 'p1':
+                case 'p2':
+                case 'community project':
+                case 'good first issue':
+                case 'help wanted':
+                    existingTimelineEvents = await helpers.listTimelineEvents();
+                    existingNeedsTriageLabel = existingTimelineEvents.find((l) => {
+                        return l.event === 'labeled' && l.label && l.label.name === 'needs triage';
+                    });
+
+                    // check if the issue was opened with one of these labels BEFORE we added `needs triage`
+                    // if so, we don't want to remove the `needs triage` label
+                    if (existingNeedsTriageLabel && new Date(label.created_at) < new Date(existingNeedsTriageLabel.created_at)) {
+                        return;
+                    }
+
+                    await helpers.removeNeedsTriageLabel();
+                    break;
+                default:
+                    core.info(`Encountered an unhandled label: ${label.name}`);
+                    break;
+            }
+            return;
+        }
     }
 
-    core.info(`Encountered an unhandled action - ${payload.action}`);
+    core.info(`Encountered an unhandled action - ${payload}`);
 }
 
 const helpers = {
