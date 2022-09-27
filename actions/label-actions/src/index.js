@@ -82,12 +82,9 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-            /*case 'needs info':
+            case 'needs info':
                 await helpers.leaveComment(comments.PR_NEEDS_INFO);
-                break;*/
-            /*case 'changes requested':
-                await helpers.leaveComment(comments.PR_CHANGES_REQUESTED);
-                break;*/
+                break;
             default:
                 core.info(`Encountered an unhandled label: ${label.name}`);
                 break;

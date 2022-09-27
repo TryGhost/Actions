@@ -37,5 +37,9 @@ If you're trying to report a dependency with a known vulnerability, we appreciat
 
 We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`,
 
+    PR_NEEDS_INFO: `Note from our bot: The \`needs info\` label has been added to this pull request. Updating your original PR message with more details is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've updated us. Thank you for the PR, hopefully we can get it merged soon!`,
+
+    PR_NEEDS_INFO_CLOSED: `Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this PR for now, but let us know if you manage to dig up some more info and we'll reopen. Thank you 🙏`,
+
     PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`
 };
