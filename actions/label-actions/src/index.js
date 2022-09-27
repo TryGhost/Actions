@@ -66,6 +66,36 @@ async function main() {
             }
         }
 
+        const openPullRequests = await helpers.listOpenPullRequests();
+        for (const openPullRequest of openPullRequests) {
+            issue = openPullRequest;
+
+            // TODO: maybe improve on this by getting the actual date
+            // when it was labeled?
+            const lastUpdated = new Date(openPullRequest.updated_at);
+
+            const oneWeek = 7 * 24 * 60 * 60 * 1000;
+            const olderThan4Weeks = (Date.now() - lastUpdated.getTime()) > (4 * oneWeek);
+            const existingTimelineEvents = await helpers.listTimelineEvents();
+
+            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
+            if (needsInfoLabel && olderThan4Weeks) {
+                const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
+
+                if (lastComment // we have a comment in the timeline events
+                    && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at) // that comment is newer than the label
+                    && lastComment.actor.type !== 'Bot' // the comment was not by a bot
+                    && !CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
+                ) {
+                    continue;
+                }
+
+                await helpers.leaveComment(comments.PR_NEEDS_INFO_CLOSED);
+                await helpers.closeIssue();
+                continue;
+            }
+        }
+
         return;
     }
 
@@ -235,6 +265,18 @@ const helpers = {
             .filter((thing, index, self) => index === self.findIndex(t => t.id === thing.id));
 
         return combinedIssues;
+    },
+
+    /**
+     * @returns {Promise<Array>}
+     */
+    listOpenPullRequests: async function () {
+        const {data: needsInfoPullRequests} = await client.rest.pulls.list({
+            ...repo,
+            state: 'open'
+        });
+
+        return needsInfoPullRequests;
     },
 
     /**
