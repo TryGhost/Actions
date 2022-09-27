@@ -41,5 +41,11 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 
     PR_NEEDS_INFO_CLOSED: `Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this PR for now, but let us know if you manage to dig up some more info and we'll reopen. Thank you 🙏`,
 
-    PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`
+    PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`,
+
+    PR_CHANGES_REQUESTED: `Note from our bot: Some changes have been requested on this pull request. Updating your code is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've made the changes. Thank you 🙏`,
+
+    PR_CHANGES_REQUESTED_REMINDER: `Hi there 👋 We requested a few changes on this PR, but haven't heard back. If you are still interested in helping us get this change into Ghost please comment and let us know. Thank you 🙏`,
+
+    PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`
 };

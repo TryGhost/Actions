@@ -115,6 +115,9 @@ async function main() {
             case 'needs info':
                 await helpers.leaveComment(comments.PR_NEEDS_INFO);
                 break;
+            case 'changes requested':
+                await helpers.leaveComment(comments.PR_CHANGES_REQUESTED);
+                break;
             default:
                 core.info(`Encountered an unhandled label: ${label.name}`);
                 break;
