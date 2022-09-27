@@ -9810,7 +9810,7 @@ async function main() {
         }
 
         if (payload.action === 'closed' && payload.merged) {
-            const ownerLogin = payload.user.login;
+            const ownerLogin = payload.pull_request.user.login;
 
             // Renovate PRs don't need comments
             if (ownerLogin === 'renovate[bot]') {
