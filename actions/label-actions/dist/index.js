@@ -9527,7 +9527,9 @@ If you're trying to report a dependency with a known vulnerability, we appreciat
 
     SELF_HOSTING: `Hey @{issue-author} 👋
 
-We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`
+We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`,
+
+    PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`
 };
 
 
@@ -9804,6 +9806,28 @@ async function main() {
                 core.info(`Encountered an unhandled label: ${label.name}`);
                 break;
             }
+            return;
+        }
+
+        if (payload.action === 'closed' && payload.merged) {
+            const ownerLogin = payload.user.login;
+
+            // Renovate PRs don't need comments
+            if (ownerLogin === 'renovate[bot]') {
+                return;
+            }
+
+            const isCollaboratorRequest = await client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
+                ...repo,
+                username: ownerLogin
+            });
+
+            // PR owner is a collaborator on the repo, so we shouldn't do anything
+            if (isCollaboratorRequest.status === 204) {
+                return;
+            }
+
+            await helpers.leaveComment(comments.PR_MERGED);
             return;
         }
     }

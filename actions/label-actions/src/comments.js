@@ -35,5 +35,7 @@ If you're trying to report a dependency with a known vulnerability, we appreciat
 
     SELF_HOSTING: `Hey @{issue-author} 👋
 
-We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`
+We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`,
+
+    PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`
 };
