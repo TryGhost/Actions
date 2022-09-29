@@ -31,25 +31,11 @@ async function main() {
         for (const openIssue of openIssues) {
             issue = openIssue;
 
-            // TODO: maybe improve on this by getting the actual date
-            // when it was labeled?
-            const issueLastUpdated = new Date(openIssue.updated_at);
-
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            const olderThan2Weeks = (Date.now() - issueLastUpdated.getTime()) > (2 * oneWeek);
-            const olderThan4Weeks = (Date.now() - issueLastUpdated.getTime()) > (4 * oneWeek);
-
             const existingTimelineEvents = await helpers.listTimelineEvents();
 
             const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
-            if (needsInfoLabel && olderThan2Weeks) {
-                const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
-
-                if (lastComment // we have a comment in the timeline events
-                    && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at) // that comment is newer than the label
-                    && lastComment.actor.type !== 'Bot' // the comment was not by a bot
-                    && !CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
-                ) {
+            if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel, 2)) {
+                if (isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
                 }
 
@@ -59,7 +45,7 @@ async function main() {
             }
 
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs triage');
-            if (needsTriageLabel && olderThan4Weeks) {
+            if (needsTriageLabel && isOlderThanXWeeks(needsTriageLabel, 4)) {
                 const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'ErisDS';
                 await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
                 continue;
@@ -70,27 +56,26 @@ async function main() {
         for (const openPullRequest of openPullRequests) {
             issue = openPullRequest;
 
-            // TODO: maybe improve on this by getting the actual date
-            // when it was labeled?
-            const lastUpdated = new Date(openPullRequest.updated_at);
-
-            const oneWeek = 7 * 24 * 60 * 60 * 1000;
-            const olderThan4Weeks = (Date.now() - lastUpdated.getTime()) > (4 * oneWeek);
             const existingTimelineEvents = await helpers.listTimelineEvents();
 
             const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
-            if (needsInfoLabel && olderThan4Weeks) {
-                const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
-
-                if (lastComment // we have a comment in the timeline events
-                    && new Date(lastComment.created_at) > new Date(needsInfoLabel.created_at) // that comment is newer than the label
-                    && lastComment.actor.type !== 'Bot' // the comment was not by a bot
-                    && !CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
-                ) {
+            if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel, 4)) {
+                if (isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
                 }
 
                 await helpers.leaveComment(comments.PR_NEEDS_INFO_CLOSED);
+                await helpers.closeIssue();
+                continue;
+            }
+
+            const changesRequestedLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'changes requested');
+            if (changesRequestedLabel && isOlderThanXWeeks(changesRequestedLabel, 12)) {
+                if (isPendingOnInternal(existingTimelineEvents, changesRequestedLabel)) {
+                    continue;
+                }
+
+                await helpers.leaveComment(comments.PR_CHANGES_REQUESTED_CLOSED);
                 await helpers.closeIssue();
                 continue;
             }
@@ -245,6 +230,29 @@ async function main() {
     }
 
     core.info(`Encountered an unhandled action - ${JSON.stringify(payload)}`);
+}
+
+/**
+ * @param {Object} existingTimelineEvents
+ * @param {Object} label
+ */
+function isPendingOnInternal(existingTimelineEvents, label) {
+    const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
+
+    return (lastComment // we have a comment in the timeline events
+        && new Date(lastComment.created_at) > new Date(label.created_at) // that comment is newer than the label
+        && lastComment.actor.type !== 'Bot' // the comment was not by a bot
+        && !CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
+    );
+}
+
+/**
+ * @param {Date} date
+ * @param {number} weeks
+ */
+function isOlderThanXWeeks(date, weeks) {
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    return (Date.now() - date.getTime()) > (weeks * oneWeek);
 }
 
 const helpers = {
