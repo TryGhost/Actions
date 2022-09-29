@@ -9758,7 +9758,7 @@ async function main() {
             const existingTimelineEvents = await helpers.listTimelineEvents();
 
             const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
-            if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel, 2)) {
+            if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel.created_at, 2)) {
                 if (isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
                 }
@@ -9769,7 +9769,7 @@ async function main() {
             }
 
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs triage');
-            if (needsTriageLabel && isOlderThanXWeeks(needsTriageLabel, 4)) {
+            if (needsTriageLabel && isOlderThanXWeeks(needsTriageLabel.created_at, 4)) {
                 const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'ErisDS';
                 await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
                 continue;
@@ -9783,7 +9783,7 @@ async function main() {
             const existingTimelineEvents = await helpers.listTimelineEvents();
 
             const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
-            if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel, 4)) {
+            if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel.created_at, 4)) {
                 if (isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
                 }
@@ -9794,7 +9794,7 @@ async function main() {
             }
 
             const changesRequestedLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'changes requested');
-            if (changesRequestedLabel && isOlderThanXWeeks(changesRequestedLabel, 12)) {
+            if (changesRequestedLabel && isOlderThanXWeeks(changesRequestedLabel.created_at, 12)) {
                 if (isPendingOnInternal(existingTimelineEvents, changesRequestedLabel)) {
                     continue;
                 }
@@ -9976,7 +9976,7 @@ function isPendingOnInternal(existingTimelineEvents, label) {
  */
 function isOlderThanXWeeks(date, weeks) {
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    return (Date.now() - date.getTime()) > (weeks * oneWeek);
+    return (Date.now() - new Date(date).getTime()) > (weeks * oneWeek);
 }
 
 const helpers = {
