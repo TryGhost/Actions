@@ -244,7 +244,7 @@ async function main() {
         }
     }
 
-    core.info(`Encountered an unhandled action - ${payload}`);
+    core.info(`Encountered an unhandled action - ${JSON.stringify(payload)}`);
 }
 
 const helpers = {
