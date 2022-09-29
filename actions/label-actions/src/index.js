@@ -125,7 +125,7 @@ async function main() {
             return;
         }
 
-        if (payload.action === 'closed' && payload.merged) {
+        if (payload.action === 'closed' && issue.merged) {
             const ownerLogin = payload.pull_request.user.login;
 
             // Renovate PRs don't need comments
