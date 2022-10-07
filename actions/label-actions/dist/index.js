@@ -9842,14 +9842,20 @@ async function main() {
                 return;
             }
 
-            const isCollaboratorRequest = await client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
-                ...repo,
-                username: ownerLogin
-            });
+            try {
+                const isCollaboratorRequest = await client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
+                    ...repo,
+                    username: ownerLogin
+                });
 
-            // PR owner is a collaborator on the repo, so we shouldn't do anything
-            if (isCollaboratorRequest.status === 204) {
-                return;
+                // PR owner is a collaborator on the repo, so we shouldn't do anything
+                if (isCollaboratorRequest.status === 204) {
+                    return;
+                }
+            } catch (err) {
+                if (err.status !== 404) {
+                    throw err;
+                }
             }
 
             await helpers.leaveComment(comments.PR_MERGED);
