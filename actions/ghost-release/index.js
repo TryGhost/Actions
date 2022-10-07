@@ -33,6 +33,10 @@ const newMonorepo = ghostVersion.startsWith('5');
         tags.forEach((release) => {
             let lastVersion = release.name || release.tag_name;
 
+            if (lastVersion.includes('@tryghost')) {
+                return;
+            }
+
             if (release.prerelease) {
                 return;
             }
