@@ -9834,33 +9834,7 @@ async function main() {
             return;
         }
 
-        if (payload.action === 'closed' && issue.merged) {
-            const ownerLogin = payload.pull_request.user.login;
-
-            // Renovate PRs don't need comments
-            if (ownerLogin === 'renovate[bot]') {
-                return;
-            }
-
-            try {
-                const isCollaboratorRequest = await client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
-                    ...repo,
-                    username: ownerLogin
-                });
-
-                // PR owner is a collaborator on the repo, so we shouldn't do anything
-                if (isCollaboratorRequest.status === 200) {
-                    return;
-                }
-            } catch (err) {
-                if (err.status !== 404) {
-                    throw err;
-                }
-            }
-
-            await helpers.leaveComment(comments.PR_MERGED);
-            return;
-        }
+        if (payload.action === 'closed' && issue.merged && false) {}
     }
 
     if (payload.issue) {

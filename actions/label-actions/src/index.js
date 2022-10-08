@@ -110,7 +110,7 @@ async function main() {
             return;
         }
 
-        if (payload.action === 'closed' && issue.merged) {
+        if (payload.action === 'closed' && issue.merged && false) {
             const ownerLogin = payload.pull_request.user.login;
 
             // Renovate PRs don't need comments
