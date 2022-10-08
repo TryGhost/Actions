@@ -9849,7 +9849,7 @@ async function main() {
                 });
 
                 // PR owner is a collaborator on the repo, so we shouldn't do anything
-                if (isCollaboratorRequest.status === 204) {
+                if (isCollaboratorRequest.status === 200) {
                     return;
                 }
             } catch (err) {
