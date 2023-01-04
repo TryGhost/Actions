@@ -7,7 +7,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && !startsWith(github.head_ref, 'renovate/'))
     strategy:
       matrix:
-        node: [ 14, 16 ]
+        node: [ 14, 16, 18 ]
     env:
       FORCE_COLOR: 1
     name: Node ${{ matrix.node }}
