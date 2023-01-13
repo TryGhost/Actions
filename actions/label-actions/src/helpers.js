@@ -1,6 +1,11 @@
 const github = require('@actions/github');
 
 module.exports = class Helpers {
+    static CORE_TEAM_TRIAGERS = [
+        'ErisDS',
+        'daniellockyer'
+    ];
+
     /**
      * @param {string} token
      * @param {object} repo
@@ -14,6 +19,44 @@ module.exports = class Helpers {
 
     isTeamRepo() {
         return this.repo.owner === 'TryGhost' && this.repo.repo === 'Team';
+    }
+
+    /**
+     * @param {Object} existingTimelineEvents
+     * @param {Object} label
+     */
+    isPendingOnInternal(existingTimelineEvents, label) {
+        const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
+
+        return (lastComment // we have a comment in the timeline events
+            && new Date(lastComment.created_at) > new Date(label.created_at) // that comment is newer than the label
+            && lastComment.actor.type !== 'Bot' // the comment was not by a bot
+            && !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
+        );
+    }
+
+    /**
+     * @param {Date} date
+     * @param {number} weeks
+     */
+    isOlderThanXWeeks(date, weeks) {
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        return (Date.now() - new Date(date).getTime()) > (weeks * oneWeek);
+    }
+
+    /**
+     * @param {object} issue
+     * @param {object} label
+     */
+    async removeNeedTriageLabelIfOlder(issue, label) {
+        // check if the issue was opened with one of these labels AFTER we added `needs triage`
+        // if so, we want to remove the `needs triage` label
+        const existingTimelineEvents = await this.listTimelineEvents(issue);
+        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+
+        if (existingNeedsTriageLabel && new Date(label.created_at) > new Date(existingNeedsTriageLabel.created_at)) {
+            await this.removeNeedsTriageLabel(issue);
+        }
     }
 
     /**
