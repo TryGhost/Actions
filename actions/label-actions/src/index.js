@@ -124,7 +124,9 @@ async function main() {
                 return;
             }
 
-            await helpers.addLabel(issue, 'needs triage');
+            if (!existingLabels.find(l => l.name === 'needs triage')) {
+                await helpers.addLabel(issue, 'needs triage');
+            }
             return;
         }
 
