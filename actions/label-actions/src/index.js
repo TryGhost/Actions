@@ -110,7 +110,7 @@ async function main() {
             }
 
             if (helpers.isTeamRepo()) {
-                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix'];
+                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix', 'later'];
                 const projectLabels = existingLabels.filter(l => l.name.startsWith('project:'));
                 const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
                 if (projectLabels.length || similarLabels.length) {
