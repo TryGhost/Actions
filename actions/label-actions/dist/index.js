@@ -10052,6 +10052,16 @@ async function main() {
                 return;
             }
 
+            if (helpers.isTeamRepo()) {
+                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix'];
+                const projectLabels = existingLabels.filter(l => l.name.startsWith('project:'));
+                const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
+                if (projectLabels.length || similarLabels.length) {
+                    // we already have a triaged label, so we don't need to add needs triage
+                    return;
+                }
+            }
+
             // Ignore labelled issues from Ghost core team triagers
             if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
                 return;
