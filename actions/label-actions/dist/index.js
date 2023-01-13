@@ -9909,6 +9909,7 @@ async function main() {
             case 'p0':
             case 'p1':
             case 'p2':
+            case 'oss':
             case 'community project':
             case 'good first issue':
             case 'help wanted':
