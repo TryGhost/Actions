@@ -176,16 +176,17 @@ async function main() {
             case 'community project':
             case 'good first issue':
             case 'help wanted':
+                // check if the issue was opened with one of these labels AFTER we added `needs triage`
+                // if so, we want to remove the `needs triage` label
                 existingTimelineEvents = await helpers.listTimelineEvents(issue);
                 existingNeedsTriageLabel = existingTimelineEvents.find((l) => l.event === 'labeled' && l.label?.name === 'needs triage');
 
-                // check if the issue was opened with one of these labels BEFORE we added `needs triage`
-                // if so, we don't want to remove the `needs triage` label
-                if (existingNeedsTriageLabel && new Date(label.created_at) < new Date(existingNeedsTriageLabel.created_at)) {
-                    return;
+                if (existingNeedsTriageLabel) {
+                    if (new Date(label.created_at) > new Date(existingNeedsTriageLabel.created_at)) {
+                        await helpers.removeNeedsTriageLabel(issue);
+                    }
                 }
 
-                await helpers.removeNeedsTriageLabel(issue);
                 break;
             default:
                 core.info(`Encountered an unhandled label: ${label.name}`);
