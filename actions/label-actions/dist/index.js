@@ -9833,8 +9833,6 @@ async function main() {
             }
             return;
         }
-
-        if (payload.action === 'closed' && issue.merged && false) {}
     }
 
     if (payload.issue) {
