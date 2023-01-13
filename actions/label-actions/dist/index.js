@@ -10064,16 +10064,16 @@ async function main() {
                 if (helpers.isTeamRepo()) {
                     return;
                 }
-            case 'p0':
-                if (helpers.isTeamRepo() && label.name === 'p0') {
+            case 'p0:critical':
+                if (helpers.isTeamRepo() && label.name === 'p0:critical') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
                 }
-            case 'p1':
-                if (helpers.isTeamRepo() && label.name === 'p1') {
+            case 'p1:priority':
+                if (helpers.isTeamRepo() && label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                 }
-            case 'p2':
-                if (helpers.isTeamRepo() && label.name === 'p2') {
+            case 'p2:major':
+                if (helpers.isTeamRepo() && label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                 }
             case 'oss':
