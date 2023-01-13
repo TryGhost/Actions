@@ -169,10 +169,27 @@ async function main() {
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
                 break;
             case 'bug':
+                // We have templates for bug reports in the Team repo, so we shouldn't
+                // assume the issue has been triaged, so we shouldn't remove the label
+                if (helpers.isTeamRepo()) {
+                    return;
+                }
             case 'p0':
+                if (helpers.isTeamRepo() && label.name === 'p0') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
+                }
             case 'p1':
+                if (helpers.isTeamRepo() && label.name === 'p1') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
+                }
             case 'p2':
+                if (helpers.isTeamRepo() && label.name === 'p2') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
+                }
             case 'oss':
+                if (helpers.isTeamRepo() && label.name === 'oss') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
+                }
             case 'community project':
             case 'good first issue':
             case 'help wanted':

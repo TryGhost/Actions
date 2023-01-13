@@ -12,6 +12,10 @@ module.exports = class Helpers {
         this.repo = repo;
     }
 
+    isTeamRepo() {
+        return this.repo.owner === 'TryGhost' && this.repo.repo === 'Team';
+    }
+
     /**
      * @returns {Promise<Array>}
      */

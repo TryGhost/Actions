@@ -9491,6 +9491,14 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = {
+    TEAM_ISSUE_P0: `This issue has been labelled as P0 which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+
+    TEAM_ISSUE_P1: `This issue has been labelled as P1 which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+
+    TEAM_ISSUE_P2: `This issue has been labelled as P2 which means a fix should be in the next scheduled release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+
+    TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
+
     SUPPORT_REQUEST: `Hey @{issue-author} 👋 We ask that you please do not use GitHub for help or support 😄. We use GitHub solely for bug-tracking and community-driven development.
 
 Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/6) is a great place to get community support, plus it helps create a central location for searching problems/solutions.
@@ -9560,6 +9568,10 @@ module.exports = class Helpers {
     constructor(token, repo) {
         this.client = github.getOctokit(token);
         this.repo = repo;
+    }
+
+    isTeamRepo() {
+        return this.repo.owner === 'TryGhost' && this.repo.repo === 'Team';
     }
 
     /**
@@ -10047,10 +10059,27 @@ async function main() {
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
                 break;
             case 'bug':
+                // We have templates for bug reports in the Team repo, so we shouldn't
+                // assume the issue has been triaged, so we shouldn't remove the label
+                if (helpers.isTeamRepo()) {
+                    return;
+                }
             case 'p0':
+                if (helpers.isTeamRepo() && label.name === 'p0') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
+                }
             case 'p1':
+                if (helpers.isTeamRepo() && label.name === 'p1') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
+                }
             case 'p2':
+                if (helpers.isTeamRepo() && label.name === 'p2') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
+                }
             case 'oss':
+                if (helpers.isTeamRepo() && label.name === 'oss') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
+                }
             case 'community project':
             case 'good first issue':
             case 'help wanted':

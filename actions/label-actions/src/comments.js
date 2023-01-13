@@ -1,4 +1,12 @@
 module.exports = {
+    TEAM_ISSUE_P0: `This issue has been labelled as P0 which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+
+    TEAM_ISSUE_P1: `This issue has been labelled as P1 which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+
+    TEAM_ISSUE_P2: `This issue has been labelled as P2 which means a fix should be in the next scheduled release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+
+    TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
+
     SUPPORT_REQUEST: `Hey @{issue-author} 👋 We ask that you please do not use GitHub for help or support 😄. We use GitHub solely for bug-tracking and community-driven development.
 
 Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/6) is a great place to get community support, plus it helps create a central location for searching problems/solutions.
