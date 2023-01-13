@@ -3,17 +3,13 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 
+const Helpers = require('./helpers');
 const comments = require('./comments');
 
 const CORE_TEAM_TRIAGERS = [
     'ErisDS',
     'daniellockyer'
 ];
-
-// These are used enough that it's easier to keep them here
-let client;
-let repo;
-let issue;
 
 async function main() {
     const githubToken = core.getInput('github-token');
@@ -22,61 +18,56 @@ async function main() {
         throw new Error('github-token is missing');
     }
 
-    client = github.getOctokit(githubToken);
     const {payload} = github.context;
-    repo = github.context.repo;
+    const helpers = new Helpers(githubToken, github.context.repo);
 
     if (payload.schedule) {
         const openIssues = await helpers.listOpenLabeledIssues();
         for (const openIssue of openIssues) {
-            issue = openIssue;
+            const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
 
-            const existingTimelineEvents = await helpers.listTimelineEvents();
-
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
+            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
             if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel.created_at, 2)) {
                 if (isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
                 }
 
-                await helpers.leaveComment(comments.NO_UPDATE);
-                await helpers.closeIssue();
+                await helpers.leaveComment(openIssue, comments.NO_UPDATE);
+                await helpers.closeIssue(openIssue);
                 continue;
             }
 
-            const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs triage');
+            const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
             if (needsTriageLabel && isOlderThanXWeeks(needsTriageLabel.created_at, 4)) {
                 const issueAssignee = openIssue.assignees && openIssue.assignees[0] && openIssue.assignees[0].login || 'ErisDS';
-                await helpers.leaveComment(comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
+                await helpers.leaveComment(openIssue, comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
                 continue;
             }
         }
 
         const openPullRequests = await helpers.listOpenPullRequests();
         for (const openPullRequest of openPullRequests) {
-            issue = openPullRequest;
+            const existingTimelineEvents = await helpers.listTimelineEvents(openPullRequest);
 
-            const existingTimelineEvents = await helpers.listTimelineEvents();
-
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'needs info');
+            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
             if (needsInfoLabel && isOlderThanXWeeks(needsInfoLabel.created_at, 4)) {
                 if (isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
                 }
 
-                await helpers.leaveComment(comments.PR_NEEDS_INFO_CLOSED);
-                await helpers.closeIssue();
+                await helpers.leaveComment(openPullRequest, comments.PR_NEEDS_INFO_CLOSED);
+                await helpers.closeIssue(openPullRequest);
                 continue;
             }
 
-            const changesRequestedLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label && l.label.name === 'changes requested');
+            const changesRequestedLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'changes requested');
             if (changesRequestedLabel && isOlderThanXWeeks(changesRequestedLabel.created_at, 12)) {
                 if (isPendingOnInternal(existingTimelineEvents, changesRequestedLabel)) {
                     continue;
                 }
 
-                await helpers.leaveComment(comments.PR_CHANGES_REQUESTED_CLOSED);
-                await helpers.closeIssue();
+                await helpers.leaveComment(openPullRequest, comments.PR_CHANGES_REQUESTED_CLOSED);
+                await helpers.closeIssue(openPullRequest);
                 continue;
             }
         }
@@ -91,17 +82,15 @@ async function main() {
     }
 
     if (payload.pull_request) {
-        issue = payload.pull_request;
-
         if (payload.action === 'labeled') {
             const label = payload.label;
 
             switch (label.name) {
             case 'needs info':
-                await helpers.leaveComment(comments.PR_NEEDS_INFO);
+                await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
                 break;
             case 'changes requested':
-                await helpers.leaveComment(comments.PR_CHANGES_REQUESTED);
+                await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
                 break;
             default:
                 core.info(`Encountered an unhandled label: ${label.name}`);
@@ -112,13 +101,13 @@ async function main() {
     }
 
     if (payload.issue) {
-        issue = payload.issue;
+        const issue = payload.issue;
 
         if (payload.action === 'opened') {
             // If an issue is opened with a closeable label, we shouldn't
             // bother to add `needs triage`
             const CLOSEABLE_LABELS = ['support request', 'feature request'];
-            const existingLabels = await helpers.listLabels();
+            const existingLabels = await helpers.listLabels(issue);
 
             const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
             if (shouldIgnore) {
@@ -130,12 +119,12 @@ async function main() {
                 return;
             }
 
-            await helpers.addLabel('needs triage');
+            await helpers.addLabel(issue, 'needs triage');
             return;
         }
 
         if (payload.action === 'closed') {
-            await helpers.removeNeedsTriageLabel();
+            await helpers.removeNeedsTriageLabel(issue);
             return;
         }
 
@@ -146,38 +135,38 @@ async function main() {
 
             switch (label.name) {
             case 'Ghost(Pro)':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.GHOST_PRO);
-                await helpers.closeIssue();
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.GHOST_PRO);
+                await helpers.closeIssue(issue);
                 break;
             case 'invalid security report':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.INVALID_SECURITY_REPORT);
-                await helpers.closeIssue();
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.INVALID_SECURITY_REPORT);
+                await helpers.closeIssue(issue);
                 break;
             case 'support request':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.SUPPORT_REQUEST);
-                await helpers.closeIssue();
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.SUPPORT_REQUEST);
+                await helpers.closeIssue(issue);
                 break;
             case 'feature request':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.FEATURE_REQUEST);
-                await helpers.closeIssue();
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.FEATURE_REQUEST);
+                await helpers.closeIssue(issue);
                 break;
             case 'needs template':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.NEEDS_TEMPLATE);
-                await helpers.closeIssue();
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.NEEDS_TEMPLATE);
+                await helpers.closeIssue(issue);
                 break;
             case 'self hosting':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.SELF_HOSTING);
-                await helpers.closeIssue();
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.SELF_HOSTING);
+                await helpers.closeIssue(issue);
                 break;
             case 'needs info':
-                await helpers.removeNeedsTriageLabel();
-                await helpers.leaveComment(comments.NEEDS_INFO);
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.NEEDS_INFO);
                 break;
             case 'bug':
             case 'p0':
@@ -187,10 +176,8 @@ async function main() {
             case 'community project':
             case 'good first issue':
             case 'help wanted':
-                existingTimelineEvents = await helpers.listTimelineEvents();
-                existingNeedsTriageLabel = existingTimelineEvents.find((l) => {
-                    return l.event === 'labeled' && l.label && l.label.name === 'needs triage';
-                });
+                existingTimelineEvents = await helpers.listTimelineEvents(issue);
+                existingNeedsTriageLabel = existingTimelineEvents.find((l) => l.event === 'labeled' && l.label?.name === 'needs triage');
 
                 // check if the issue was opened with one of these labels BEFORE we added `needs triage`
                 // if so, we don't want to remove the `needs triage` label
@@ -198,7 +185,7 @@ async function main() {
                     return;
                 }
 
-                await helpers.removeNeedsTriageLabel();
+                await helpers.removeNeedsTriageLabel(issue);
                 break;
             default:
                 core.info(`Encountered an unhandled label: ${label.name}`);
@@ -233,129 +220,6 @@ function isOlderThanXWeeks(date, weeks) {
     const oneWeek = 7 * 24 * 60 * 60 * 1000;
     return (Date.now() - new Date(date).getTime()) > (weeks * oneWeek);
 }
-
-const helpers = {
-    /**
-     * @returns {Promise<Array>}
-     */
-    listOpenLabeledIssues: async function () {
-        const {data: needsTriageIssues} = await client.rest.issues.listForRepo({
-            ...repo,
-            state: 'open',
-            labels: 'needs triage'
-        });
-        const {data: needsInfoIssues} = await client.rest.issues.listForRepo({
-            ...repo,
-            state: 'open',
-            labels: 'needs info'
-        });
-
-        const combinedIssues = needsTriageIssues
-            .concat(needsInfoIssues)
-            .filter((thing, index, self) => index === self.findIndex(t => t.id === thing.id));
-
-        return combinedIssues;
-    },
-
-    /**
-     * @returns {Promise<Array>}
-     */
-    listOpenPullRequests: async function () {
-        const {data: needsInfoPullRequests} = await client.rest.pulls.list({
-            ...repo,
-            state: 'open'
-        });
-
-        return needsInfoPullRequests;
-    },
-
-    /**
-     * @returns {Promise<Array>}
-     */
-    listTimelineEvents: async function () {
-        const {data: events} = await client.rest.issues.listEventsForTimeline({
-            ...repo,
-            issue_number: issue.number,
-            per_page: 100
-        });
-
-        events.reverse();
-
-        return events;
-    },
-
-    /**
-     * @returns {Promise<Array>}
-     */
-    listLabels: async function () {
-        const {data: labels} = await client.rest.issues.listLabelsOnIssue({
-            ...repo,
-            issue_number: issue.number
-        });
-        return labels;
-    },
-
-    /**
-     * @param {String} body
-     */
-    leaveComment: async function (body, replacements = {}) {
-        if (issue.user) {
-            body = body.replace(/{issue-author}/, issue.user.login);
-        }
-
-        body = body.replace(/{repository-name}/, `${repo.owner}/${repo.repo}`);
-
-        if (replacements) {
-            for (const r in replacements) {
-                body = body.replace(r, replacements[r]);
-            }
-        }
-
-        await client.rest.issues.createComment({
-            ...repo,
-            issue_number: issue.number,
-            body
-        });
-    },
-
-    closeIssue: async function () {
-        await client.rest.issues.update({
-            ...repo,
-            issue_number: issue.number,
-            state: 'closed'
-        });
-    },
-
-    /**
-     * @param {String} name
-     */
-    addLabel: async function (name) {
-        await client.rest.issues.addLabels({
-            ...repo,
-            issue_number: issue.number,
-            labels: [name]
-        });
-    },
-
-    /**
-     * @param {String} name
-     */
-    removeLabel: async function (name) {
-        await client.rest.issues.removeLabel({
-            ...repo,
-            issue_number: issue.number,
-            name
-        });
-    },
-
-    removeNeedsTriageLabel: async function () {
-        try {
-            await helpers.removeLabel('needs triage');
-        } catch (err) {
-            // It might not exist, that's ok for now.
-        }
-    }
-};
 
 (async () => {
     try {
