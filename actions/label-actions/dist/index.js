@@ -9978,7 +9978,7 @@ async function main() {
             }
         }
 
-        const openNeedsTriageIssues = await helpers.listOpenNeedsTriageIssues()
+        const openNeedsTriageIssues = await helpers.listOpenNeedsTriageIssues();
         for (const openIssue of openNeedsTriageIssues) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
