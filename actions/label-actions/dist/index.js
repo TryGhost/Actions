@@ -10086,7 +10086,7 @@ async function main() {
                 // check if the issue was opened with one of these labels AFTER we added `needs triage`
                 // if so, we want to remove the `needs triage` label
                 existingTimelineEvents = await helpers.listTimelineEvents(issue);
-                existingNeedsTriageLabel = existingTimelineEvents.find((l) => l.event === 'labeled' && l.label?.name === 'needs triage');
+                existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
 
                 if (existingNeedsTriageLabel) {
                     if (new Date(label.created_at) > new Date(existingNeedsTriageLabel.created_at)) {
