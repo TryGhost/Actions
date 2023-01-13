@@ -115,6 +115,16 @@ module.exports = class Helpers {
     }
 
     /**
+     * @param {string} name
+     */
+    async createLabel(name) {
+        await this.client.rest.issues.createLabel({
+            ...this.repo,
+            name
+        });
+    }
+
+    /**
      * @param {object} issue
      * @param {String} name
      */
