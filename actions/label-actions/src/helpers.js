@@ -62,23 +62,25 @@ module.exports = class Helpers {
     /**
      * @returns {Promise<Array>}
      */
-    async listOpenLabeledIssues() {
+    async listOpenNeedsTriageIssues() {
         const {data: needsTriageIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
             labels: 'needs triage'
         });
+        return needsTriageIssues;
+    }
+
+    /**
+     * @returns {Promise<Array>}
+     */
+    async listOpenNeedsInfoIssues() {
         const {data: needsInfoIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
             labels: 'needs info'
         });
-
-        const combinedIssues = needsTriageIssues
-            .concat(needsInfoIssues)
-            .filter((thing, index, self) => index === self.findIndex(t => t.id === thing.id));
-
-        return combinedIssues;
+        return needsInfoIssues;
     }
 
     /**

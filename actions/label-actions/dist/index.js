@@ -9620,23 +9620,25 @@ module.exports = class Helpers {
     /**
      * @returns {Promise<Array>}
      */
-    async listOpenLabeledIssues() {
+    async listOpenNeedsTriageIssues() {
         const {data: needsTriageIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
             labels: 'needs triage'
         });
+        return needsTriageIssues;
+    }
+
+    /**
+     * @returns {Promise<Array>}
+     */
+    async listOpenNeedsInfoIssues() {
         const {data: needsInfoIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
             labels: 'needs info'
         });
-
-        const combinedIssues = needsTriageIssues
-            .concat(needsInfoIssues)
-            .filter((thing, index, self) => index === self.findIndex(t => t.id === thing.id));
-
-        return combinedIssues;
+        return needsInfoIssues;
     }
 
     /**
@@ -9960,11 +9962,11 @@ async function main() {
     const helpers = new Helpers(githubToken, github.context.repo);
 
     if (payload.schedule) {
-        const openIssues = await helpers.listOpenLabeledIssues();
-        for (const openIssue of openIssues) {
+        const openNeedsInfoIssues = await helpers.listOpenNeedsInfoIssues();
+        for (const openIssue of openNeedsInfoIssues) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-
             const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+
             if (needsInfoLabel && helpers.isOlderThanXWeeks(needsInfoLabel.created_at, 2)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
@@ -9974,8 +9976,13 @@ async function main() {
                 await helpers.closeIssue(openIssue);
                 continue;
             }
+        }
 
+        const openNeedsTriageIssues = await helpers.listOpenNeedsTriageIssues()
+        for (const openIssue of openNeedsTriageIssues) {
+            const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+
             if (needsTriageLabel && helpers.isOlderThanXWeeks(needsTriageLabel.created_at, 4)) {
                 const issueAssignee = openIssue?.assignees?.[0].login || 'ErisDS';
                 await helpers.leaveComment(openIssue, comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
