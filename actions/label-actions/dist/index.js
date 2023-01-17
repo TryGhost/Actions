@@ -9622,8 +9622,8 @@ module.exports = class Helpers {
                     }
                 }
             }`, {
-                ...this.repo,
-                number: issue.number
+            ...this.repo,
+            number: issue.number
         });
 
         return response?.repository?.issue?.projectsV2?.nodes || [];
