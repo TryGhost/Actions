@@ -46,6 +46,33 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
+     */
+    async getProjectsForIssue(issue) {
+        const response = await this.client.graphql(`
+            query issue($owner: String!, $name: String!, $number: Int!) {
+                repository(owner: $owner, name: $name) {
+                    issue(number: $number) {
+                        title
+                        projectsV2(first: 20) {
+                            nodes {
+                                title
+                                url
+                                number
+                                resourcePath
+                            }
+                        }
+                    }
+                }
+            }`, {
+                ...this.repo,
+                number: issue.number
+        });
+
+        return response?.repository?.issue?.projectsV2?.nodes || [];
+    }
+
+    /**
+     * @param {object} issue
      * @param {object} label
      */
     async removeNeedTriageLabelIfOlder(issue, label) {

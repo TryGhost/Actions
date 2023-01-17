@@ -122,6 +122,12 @@ async function main() {
                     // we already have a triaged label, so we don't need to add needs triage
                     return;
                 }
+
+                // Don't add `needs triage` for issues assigned to a project
+                const projects = await helpers.getProjectsForIssue(issue);
+                if (projects.length) {
+                    return;
+                }
             }
 
             // Ignore labelled issues from Ghost core team triagers

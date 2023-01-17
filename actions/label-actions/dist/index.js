@@ -9604,6 +9604,33 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
+     */
+    async getProjectsForIssue(issue) {
+        const response = await this.client.graphql(`
+            query issue($owner: String!, $name: String!, $number: Int!) {
+                repository(owner: $owner, name: $name) {
+                    issue(number: $number) {
+                        title
+                        projectsV2(first: 20) {
+                            nodes {
+                                title
+                                url
+                                number
+                                resourcePath
+                            }
+                        }
+                    }
+                }
+            }`, {
+                ...this.repo,
+                number: issue.number
+        });
+
+        return response?.repository?.issue?.projectsV2?.nodes || [];
+    }
+
+    /**
+     * @param {object} issue
      * @param {object} label
      */
     async removeNeedTriageLabelIfOlder(issue, label) {
@@ -10065,6 +10092,12 @@ async function main() {
                 const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
                 if (projectLabels.length || similarLabels.length) {
                     // we already have a triaged label, so we don't need to add needs triage
+                    return;
+                }
+
+                // Don't add `needs triage` for issues assigned to a project
+                const projects = await helpers.getProjectsForIssue(issue);
+                if (projects.length) {
                     return;
                 }
             }
