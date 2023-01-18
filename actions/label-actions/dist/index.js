@@ -10102,8 +10102,8 @@ async function main() {
                 }
             }
 
-            // Ignore labelled issues from Ghost core team triagers
-            if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
+            // Ignore labelled issues from Ghost core team triagers on external repos
+            if (!helpers.isTeamRepo() && Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
                 return;
             }
 
