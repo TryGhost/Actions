@@ -9607,8 +9607,8 @@ module.exports = class Helpers {
      */
     async getProjectsForIssue(issue) {
         const response = await this.client.graphql(`
-            query issue($owner: String!, $name: String!, $number: Int!) {
-                repository(owner: $owner, name: $name) {
+            query issue($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
                     issue(number: $number) {
                         title
                         projectsV2(first: 20) {
