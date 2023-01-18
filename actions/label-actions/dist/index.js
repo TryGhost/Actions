@@ -10169,7 +10169,7 @@ async function main() {
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
-                await helpers.removeNeedTriageLabelIfOlder(issue);
+                await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else {
                 core.info(`Encountered an unhandled label: ${label.name}`);
             }
