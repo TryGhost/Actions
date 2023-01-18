@@ -35,6 +35,15 @@ async function main() {
 
         const openNeedsTriageIssues = await helpers.listOpenNeedsTriageIssues();
         for (const openIssue of openNeedsTriageIssues) {
+            if (helpers.isTeamRepo()) {
+                // Clean up any issues which have been added to a Project because they don't need triaging
+                const projects = await helpers.getProjectsForIssue(openIssue);
+                if (projects.length) {
+                    await helpers.removeNeedsTriageLabel(openIssue);
+                    continue;
+                }
+            }
+
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
 
