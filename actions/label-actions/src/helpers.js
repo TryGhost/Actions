@@ -73,15 +73,13 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
-     * @param {object} label
      */
-    async removeNeedTriageLabelIfOlder(issue, label) {
+    async removeNeedsTriageLabelIfOlder(issue) {
         // check if the issue was opened with one of these labels AFTER we added `needs triage`
         // if so, we want to remove the `needs triage` label
         const existingTimelineEvents = await this.listTimelineEvents(issue);
         const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
-
-        if (existingNeedsTriageLabel && new Date(label.created_at) > new Date(existingNeedsTriageLabel.created_at)) {
+        if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
     }

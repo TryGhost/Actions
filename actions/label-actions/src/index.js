@@ -183,23 +183,23 @@ async function main() {
                     return;
                 }
 
-                await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else if (helpers.isTeamRepo()) {
                 if (label.name === 'p0:critical') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
-                await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                await helpers.removeNeedTriageLabelIfOlder(issue);
             } else {
                 core.info(`Encountered an unhandled label: ${label.name}`);
             }

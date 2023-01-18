@@ -9631,15 +9631,13 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
-     * @param {object} label
      */
-    async removeNeedTriageLabelIfOlder(issue, label) {
+    async removeNeedsTriageLabelIfOlder(issue) {
         // check if the issue was opened with one of these labels AFTER we added `needs triage`
         // if so, we want to remove the `needs triage` label
         const existingTimelineEvents = await this.listTimelineEvents(issue);
         const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
-
-        if (existingNeedsTriageLabel && new Date(label.created_at) > new Date(existingNeedsTriageLabel.created_at)) {
+        if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
     }
@@ -10155,23 +10153,23 @@ async function main() {
                     return;
                 }
 
-                await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else if (helpers.isTeamRepo()) {
                 if (label.name === 'p0:critical') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
-                    await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
-                await helpers.removeNeedTriageLabelIfOlder(issue, label);
+                await helpers.removeNeedTriageLabelIfOlder(issue);
             } else {
                 core.info(`Encountered an unhandled label: ${label.name}`);
             }
