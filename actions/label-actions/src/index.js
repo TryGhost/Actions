@@ -48,6 +48,10 @@ async function main() {
             const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
 
             if (needsTriageLabel && helpers.isOlderThanXWeeks(needsTriageLabel.created_at, 4)) {
+                if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabel)) {
+                    continue;
+                }
+
                 const issueAssignee = helpers.isTeamRepo() ? '55sketch' : (openIssue?.assignees?.[0]?.login || 'daniellockyer');
                 await helpers.leaveComment(openIssue, comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
                 continue;
