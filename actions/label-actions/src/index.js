@@ -20,10 +20,10 @@ async function main() {
         const openNeedsInfoIssues = await helpers.listOpenNeedsInfoIssues();
         for (const openIssue of openNeedsInfoIssues) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+            const needsInfoLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
 
-            if (needsInfoLabel && helpers.isOlderThanXWeeks(needsInfoLabel.created_at, 2)) {
-                if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
+            if (needsInfoLabelEvent && helpers.isOlderThanXWeeks(needsInfoLabelEvent.created_at, 2)) {
+                if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabelEvent)) {
                     continue;
                 }
 
@@ -45,10 +45,10 @@ async function main() {
             }
 
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
 
-            if (needsTriageLabel && helpers.isOlderThanXWeeks(needsTriageLabel.created_at, 4)) {
-                if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabel)) {
+            if (needsTriageLabelEvent && helpers.isOlderThanXWeeks(needsTriageLabelEvent.created_at, 4)) {
+                if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabelEvent)) {
                     continue;
                 }
 

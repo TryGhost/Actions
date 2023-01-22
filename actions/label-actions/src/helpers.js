@@ -30,7 +30,7 @@ module.exports = class Helpers {
 
         return (lastComment // we have a comment in the timeline events
             && new Date(lastComment.created_at) > new Date(label.created_at) // that comment is newer than the label
-            && lastComment.actor.type !== 'Bot' // the comment was not by a bot
+            && lastComment.actor.type === 'Bot' // the comment was by a bot
             && !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
         );
     }
