@@ -9689,7 +9689,7 @@ module.exports = class Helpers {
             per_page: 100
         });
 
-        events.reverse();
+        events.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         return events;
     }
