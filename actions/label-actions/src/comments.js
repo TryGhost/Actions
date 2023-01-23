@@ -5,7 +5,7 @@ module.exports = {
 
     TEAM_ISSUE_P2: `This issue has been labelled as P2 which means a fix should be in the next scheduled release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P3: `This issue has been labelled as P3 which means this is a low priority issue and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P3: `This issue has been labelled as P3 which means this is a low priority issue for the next cooldown phase, and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
     TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
 
