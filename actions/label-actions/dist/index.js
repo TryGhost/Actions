@@ -9605,6 +9605,30 @@ module.exports = class Helpers {
     }
 
     /**
+     * @param {string} username
+     */
+    async isCollaboratorRequest(username) {
+        try {
+            const isCollaboratorRequest = await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
+                ...this.repo,
+                username
+            });
+
+            if (isCollaboratorRequest.status === 200) {
+                return true;
+            }
+
+            return false;
+        } catch (err) {
+            if (err.status !== 404) {
+                throw err;
+            }
+
+            return false;
+        }
+    }
+
+    /**
      * @param {object} issue
      * @param {string} projectId
      * @param {string} fieldId
@@ -10123,6 +10147,21 @@ async function main() {
             default:
                 core.info(`Encountered an unhandled label: ${label.name}`);
                 break;
+            }
+            return;
+        }
+
+        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
+            const ownerLogin = payload.pull_request.user.login;
+
+            // Renovate PRs don't need comments
+            if (ownerLogin === 'renovate[bot]') {
+                return;
+            }
+
+            const isCollaboratorRequest = await helpers.isCollaboratorRequest(ownerLogin);
+            if (!isCollaboratorRequest) {
+                await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
             }
             return;
         }

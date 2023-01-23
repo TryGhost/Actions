@@ -111,6 +111,21 @@ async function main() {
             }
             return;
         }
+
+        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
+            const ownerLogin = payload.pull_request.user.login;
+
+            // Renovate PRs don't need comments
+            if (ownerLogin === 'renovate[bot]') {
+                return;
+            }
+
+            const isCollaboratorRequest = await helpers.isCollaboratorRequest(ownerLogin);
+            if (!isCollaboratorRequest) {
+                await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
+            }
+            return;
+        }
     }
 
     if (payload.issue) {
