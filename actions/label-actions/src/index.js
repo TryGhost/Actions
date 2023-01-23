@@ -207,6 +207,9 @@ async function main() {
                 } else if (label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                } else if (label.name === 'p3:minor') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
