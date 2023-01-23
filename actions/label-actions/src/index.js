@@ -210,9 +210,12 @@ async function main() {
                 } else if (label.name === 'p3:minor') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToProductBacklog(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                } else if (label.name === 'minor-feature') {
+                    await helpers.addToProductBacklog(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);

@@ -9606,6 +9606,49 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
+     * @param {string} projectId
+     * @param {string} fieldId
+     * @param {string} optionId
+     */
+    async addIssueToProject(issue, projectId, fieldId, optionId) {
+        const addResponse = await this.client.graphql(`
+            mutation addIssueToProject($projectId: ID!, $issueId: ID!) {
+                addProjectV2ItemById(input: {contentId: $issueId, projectId: $projectId}) {
+                    item {
+                        id
+                    }
+                    }
+            }`, {
+            projectId,
+            issueId: issue.node_id
+        });
+
+        if (addResponse?.addProjectV2ItemById?.item?.id) {
+            await this.client.graphql(`
+                mutation moveItemToColumn($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                    updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: {singleSelectOptionId: $optionId}}) {
+                        projectV2Item {
+                            id
+                        }
+                    }
+                }`, {
+                projectId,
+                itemId: addResponse.addProjectV2ItemById.item.id,
+                fieldId,
+                optionId
+            });
+        }
+    }
+
+    /**
+     * @param {object} issue
+     */
+    async addToProductBacklog(issue) {
+        return this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AEyWy', 'PVTSSF_lADOACE-Z84AEyWyzgCwgeQ', 'f75ad846');
+    }
+
+    /**
+     * @param {object} issue
      */
     async getProjectsForIssue(issue) {
         const response = await this.client.graphql(`
@@ -10182,9 +10225,12 @@ async function main() {
                 } else if (label.name === 'p3:minor') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToProductBacklog(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                } else if (label.name === 'minor-feature') {
+                    await helpers.addToProductBacklog(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
