@@ -112,7 +112,7 @@ async function main() {
             return;
         }
 
-        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
+        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged && false) {
             const ownerLogin = payload.pull_request.user.login;
 
             // Renovate PRs don't need comments
