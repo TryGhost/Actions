@@ -9754,12 +9754,13 @@ module.exports = class Helpers {
      * @returns {Promise<Array>}
      */
     async listTimelineEvents(issue) {
-        const {data: events} = await this.client.rest.issues.listEventsForTimeline({
+        let {data: events} = await this.client.rest.issues.listEventsForTimeline({
             ...this.repo,
             issue_number: issue.number,
             per_page: 100
         });
 
+        events = events.filter(e => e);
         events.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         return events;
