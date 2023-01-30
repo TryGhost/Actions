@@ -26,7 +26,7 @@ const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
 const branchParts = githubRef.split('/');
 const branch = branchParts[branchParts.length - 1];
 
-const openLink = `<https://github.com/${githubRepo}/runs/${githubRunId}|view>`;
+const openLink = `<https://github.com/${githubRepo}/actions/runs/${githubRunId}/|view>`;
 
 (async () => {
     await webhook.send({
