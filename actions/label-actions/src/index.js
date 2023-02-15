@@ -28,7 +28,7 @@ async function main() {
                 }
 
                 await helpers.leaveComment(openIssue, comments.NO_UPDATE);
-                await helpers.closeIssue(openIssue);
+                await helpers.closeIssue(openIssue, 'not_planned');
                 continue;
             }
         }
@@ -99,15 +99,15 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-            case 'needs info':
-                await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
-                break;
-            case 'changes requested':
-                await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
-                break;
-            default:
-                core.info(`Encountered an unhandled label: ${label.name}`);
-                break;
+                case 'needs info':
+                    await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
+                    break;
+                case 'changes requested':
+                    await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
+                    break;
+                default:
+                    core.info(`Encountered an unhandled label: ${label.name}`);
+                    break;
             }
             return;
         }
@@ -180,27 +180,27 @@ async function main() {
             if (label.name === 'Ghost(Pro)') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.GHOST_PRO);
-                await helpers.closeIssue(issue);
+                await helpers.closeIssue(issue, 'not_planned');
             } else if (label.name === 'invalid security report') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.INVALID_SECURITY_REPORT);
-                await helpers.closeIssue(issue);
+                await helpers.closeIssue(issue, 'not_planned');
             } else if (label.name === 'support request') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.SUPPORT_REQUEST);
-                await helpers.closeIssue(issue);
+                await helpers.closeIssue(issue, 'not_planned');
             } else if (label.name === 'feature request') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.FEATURE_REQUEST);
-                await helpers.closeIssue(issue);
+                await helpers.closeIssue(issue, 'not_planned');
             } else if (label.name === 'needs template') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_TEMPLATE);
-                await helpers.closeIssue(issue);
+                await helpers.closeIssue(issue, 'not_planned');
             } else if (label.name === 'self hosting') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.SELF_HOSTING);
-                await helpers.closeIssue(issue);
+                await helpers.closeIssue(issue, 'not_planned');
             } else if (label.name === 'needs info') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);

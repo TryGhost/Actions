@@ -245,12 +245,14 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
+     * @param {('completed'|'not_planned')} [state_reason]
      */
-    async closeIssue(issue) {
+    async closeIssue(issue, state_reason = 'completed') {
         await this.client.rest.issues.update({
             ...this.repo,
             issue_number: issue.number,
-            state: 'closed'
+            state: 'closed',
+            state_reason
         });
     }
 
