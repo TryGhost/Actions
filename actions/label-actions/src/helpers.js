@@ -23,13 +23,19 @@ module.exports = class Helpers {
 
     /**
      * @param {Object} existingTimelineEvents
-     * @param {Object} label
+     * @param {Object} labelEvent
      */
-    isPendingOnInternal(existingTimelineEvents, label) {
+    isPendingOnInternal(existingTimelineEvents, labelEvent) {
         const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
+        if (labelEvent.label?.name === 'needs triage') {
+            if (lastComment.actor.login === 'Ghost-Slimer') {
+                return true;
+            }
+        }
+
         return (lastComment // we have a comment in the timeline events
-            && new Date(lastComment.created_at) > new Date(label.created_at) // that comment is newer than the label
+            && new Date(lastComment.created_at) > new Date(labelEvent.created_at) // that comment is newer than the label
             && (
                 lastComment.actor.type === 'Bot' // the comment was by a bot
                 && !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
