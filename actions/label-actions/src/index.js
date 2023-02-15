@@ -89,7 +89,7 @@ async function main() {
     }
 
     // We only want to do something when a human labels an issue
-    if (payload.sender?.type === 'Bot') {
+    if (payload.sender?.type === 'Bot' || payload.sender?.name === 'Ghost-Slimer') {
         core.info('Ignoring event, detected a bot');
         return;
     }
