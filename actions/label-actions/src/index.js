@@ -20,7 +20,7 @@ async function main() {
         const openNeedsInfoIssues = await helpers.listOpenNeedsInfoIssues();
         for (const openIssue of openNeedsInfoIssues) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsInfoLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+            const needsInfoLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:info');
 
             if (needsInfoLabelEvent && helpers.isOlderThanXWeeks(needsInfoLabelEvent.created_at, 2)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabelEvent)) {
@@ -45,7 +45,7 @@ async function main() {
             }
 
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
 
             if (needsTriageLabelEvent && helpers.isOlderThanXWeeks(needsTriageLabelEvent.created_at, 4)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabelEvent)) {
@@ -62,7 +62,7 @@ async function main() {
         for (const openPullRequest of openPullRequests) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openPullRequest);
 
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:info');
             if (needsInfoLabel && helpers.isOlderThanXWeeks(needsInfoLabel.created_at, 4)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
@@ -99,7 +99,7 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-                case 'needs info':
+                case 'needs:info':
                     await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
                     break;
                 case 'changes requested':
@@ -133,7 +133,7 @@ async function main() {
 
         if (payload.action === 'opened') {
             // If an issue is opened with a closeable label, we shouldn't
-            // bother to add `needs triage`
+            // bother to add `needs:triage`
             const CLOSEABLE_LABELS = ['support request', 'feature request'];
             const existingLabels = await helpers.listLabels(issue);
 
@@ -151,7 +151,7 @@ async function main() {
                     return;
                 }
 
-                // Don't add `needs triage` for issues assigned to a project
+                // Don't add `needs:triage` for issues assigned to a project
                 const projects = await helpers.getProjectsForIssue(issue);
                 if (projects.length) {
                     return;
@@ -163,8 +163,8 @@ async function main() {
                 return;
             }
 
-            if (!existingLabels.find(l => l.name === 'needs triage')) {
-                await helpers.addLabel(issue, 'needs triage');
+            if (!existingLabels.find(l => l.name === 'needs:triage')) {
+                await helpers.addLabel(issue, 'needs:triage');
             }
             return;
         }
@@ -193,7 +193,7 @@ async function main() {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.FEATURE_REQUEST);
                 await helpers.closeIssue(issue, 'not_planned');
-            } else if (label.name === 'needs template') {
+            } else if (label.name === 'needs:template') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_TEMPLATE);
                 await helpers.closeIssue(issue, 'not_planned');
@@ -201,7 +201,7 @@ async function main() {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.SELF_HOSTING);
                 await helpers.closeIssue(issue, 'not_planned');
-            } else if (label.name === 'needs info') {
+            } else if (label.name === 'needs:info') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
             } else if (label.name === 'bug') {

@@ -23,7 +23,7 @@ Please look for similar ideas to vote for on the [forum](https://forum.ghost.org
 
 FYI: Many projects use issue templates to point you in the right direction. Reading the guidelines or issue templates before opening issues can save you and project maintainers valuable time.`,
 
-    NEEDS_INFO: `Note from our bot: The \`needs info\` label has been added to this issue. Updating your original issue with more details is great, but won't notify us, so please make sure you leave a comment so that we can see when you've updated us.`,
+    NEEDS_INFO: `Note from our bot: The \`needs:info\` label has been added to this issue. Updating your original issue with more details is great, but won't notify us, so please make sure you leave a comment so that we can see when you've updated us.`,
 
     NEEDS_TEMPLATE: `Hey @{issue-author} 👋
 
@@ -47,7 +47,7 @@ If you're trying to report a dependency with a known vulnerability, we appreciat
 
 We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`,
 
-    PR_NEEDS_INFO: `Note from our bot: The \`needs info\` label has been added to this pull request. Updating your original PR message with more details is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've updated us. Thank you for the PR, hopefully we can get it merged soon!`,
+    PR_NEEDS_INFO: `Note from our bot: The \`needs:info\` label has been added to this pull request. Updating your original PR message with more details is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've updated us. Thank you for the PR, hopefully we can get it merged soon!`,
 
     PR_NEEDS_INFO_CLOSED: `Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this PR for now, but let us know if you manage to dig up some more info and we'll reopen. Thank you 🙏`,
 

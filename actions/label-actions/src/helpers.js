@@ -28,7 +28,7 @@ module.exports = class Helpers {
     isPendingOnInternal(existingTimelineEvents, labelEvent) {
         const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
-        if (labelEvent.label?.name === 'needs triage') {
+        if (labelEvent.label?.name === 'needs:triage') {
             if (lastComment.actor.login === 'Ghost-Slimer') {
                 return true;
             }
@@ -150,10 +150,10 @@ module.exports = class Helpers {
      * @param {object} issue
      */
     async removeNeedsTriageLabelIfOlder(issue) {
-        // check if the issue was opened with one of these labels AFTER we added `needs triage`
-        // if so, we want to remove the `needs triage` label
+        // check if the issue was opened with one of these labels AFTER we added `needs:triage`
+        // if so, we want to remove the `needs:triage` label
         const existingTimelineEvents = await this.listTimelineEvents(issue);
-        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
         if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
@@ -166,7 +166,7 @@ module.exports = class Helpers {
         const {data: needsTriageIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
-            labels: 'needs triage'
+            labels: 'needs:triage'
         });
         return needsTriageIssues;
     }
@@ -178,7 +178,7 @@ module.exports = class Helpers {
         const {data: needsInfoIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
-            labels: 'needs info'
+            labels: 'needs:info'
         });
         return needsInfoIssues;
     }
@@ -301,7 +301,7 @@ module.exports = class Helpers {
      */
     async removeNeedsTriageLabel(issue) {
         try {
-            await this.removeLabel(issue, 'needs triage');
+            await this.removeLabel(issue, 'needs:triage');
         } catch (err) {
             // It might not exist, that's ok for now.
         }

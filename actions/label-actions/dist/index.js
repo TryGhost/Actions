@@ -9623,7 +9623,7 @@ Please look for similar ideas to vote for on the [forum](https://forum.ghost.org
 
 FYI: Many projects use issue templates to point you in the right direction. Reading the guidelines or issue templates before opening issues can save you and project maintainers valuable time.`,
 
-    NEEDS_INFO: `Note from our bot: The \`needs info\` label has been added to this issue. Updating your original issue with more details is great, but won't notify us, so please make sure you leave a comment so that we can see when you've updated us.`,
+    NEEDS_INFO: `Note from our bot: The \`needs:info\` label has been added to this issue. Updating your original issue with more details is great, but won't notify us, so please make sure you leave a comment so that we can see when you've updated us.`,
 
     NEEDS_TEMPLATE: `Hey @{issue-author} 👋
 
@@ -9647,7 +9647,7 @@ If you're trying to report a dependency with a known vulnerability, we appreciat
 
 We've reviewed your bug report and believe the issue is environment specific, rather than a bug. Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/self-hosting/18) is a great place to get community support, plus it helps create a central location for searching problems/solutions.`,
 
-    PR_NEEDS_INFO: `Note from our bot: The \`needs info\` label has been added to this pull request. Updating your original PR message with more details is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've updated us. Thank you for the PR, hopefully we can get it merged soon!`,
+    PR_NEEDS_INFO: `Note from our bot: The \`needs:info\` label has been added to this pull request. Updating your original PR message with more details is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've updated us. Thank you for the PR, hopefully we can get it merged soon!`,
 
     PR_NEEDS_INFO_CLOSED: `Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this PR for now, but let us know if you manage to dig up some more info and we'll reopen. Thank you 🙏`,
 
@@ -9696,7 +9696,7 @@ module.exports = class Helpers {
     isPendingOnInternal(existingTimelineEvents, labelEvent) {
         const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
-        if (labelEvent.label?.name === 'needs triage') {
+        if (labelEvent.label?.name === 'needs:triage') {
             if (lastComment.actor.login === 'Ghost-Slimer') {
                 return true;
             }
@@ -9818,10 +9818,10 @@ module.exports = class Helpers {
      * @param {object} issue
      */
     async removeNeedsTriageLabelIfOlder(issue) {
-        // check if the issue was opened with one of these labels AFTER we added `needs triage`
-        // if so, we want to remove the `needs triage` label
+        // check if the issue was opened with one of these labels AFTER we added `needs:triage`
+        // if so, we want to remove the `needs:triage` label
         const existingTimelineEvents = await this.listTimelineEvents(issue);
-        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
         if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
@@ -9834,7 +9834,7 @@ module.exports = class Helpers {
         const {data: needsTriageIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
-            labels: 'needs triage'
+            labels: 'needs:triage'
         });
         return needsTriageIssues;
     }
@@ -9846,7 +9846,7 @@ module.exports = class Helpers {
         const {data: needsInfoIssues} = await this.client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
-            labels: 'needs info'
+            labels: 'needs:info'
         });
         return needsInfoIssues;
     }
@@ -9969,7 +9969,7 @@ module.exports = class Helpers {
      */
     async removeNeedsTriageLabel(issue) {
         try {
-            await this.removeLabel(issue, 'needs triage');
+            await this.removeLabel(issue, 'needs:triage');
         } catch (err) {
             // It might not exist, that's ok for now.
         }
@@ -10178,7 +10178,7 @@ async function main() {
         const openNeedsInfoIssues = await helpers.listOpenNeedsInfoIssues();
         for (const openIssue of openNeedsInfoIssues) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsInfoLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+            const needsInfoLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:info');
 
             if (needsInfoLabelEvent && helpers.isOlderThanXWeeks(needsInfoLabelEvent.created_at, 2)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabelEvent)) {
@@ -10203,7 +10203,7 @@ async function main() {
             }
 
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs triage');
+            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
 
             if (needsTriageLabelEvent && helpers.isOlderThanXWeeks(needsTriageLabelEvent.created_at, 4)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabelEvent)) {
@@ -10220,7 +10220,7 @@ async function main() {
         for (const openPullRequest of openPullRequests) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openPullRequest);
 
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs info');
+            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:info');
             if (needsInfoLabel && helpers.isOlderThanXWeeks(needsInfoLabel.created_at, 4)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
@@ -10257,7 +10257,7 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-                case 'needs info':
+                case 'needs:info':
                     await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
                     break;
                 case 'changes requested':
@@ -10278,7 +10278,7 @@ async function main() {
 
         if (payload.action === 'opened') {
             // If an issue is opened with a closeable label, we shouldn't
-            // bother to add `needs triage`
+            // bother to add `needs:triage`
             const CLOSEABLE_LABELS = ['support request', 'feature request'];
             const existingLabels = await helpers.listLabels(issue);
 
@@ -10296,7 +10296,7 @@ async function main() {
                     return;
                 }
 
-                // Don't add `needs triage` for issues assigned to a project
+                // Don't add `needs:triage` for issues assigned to a project
                 const projects = await helpers.getProjectsForIssue(issue);
                 if (projects.length) {
                     return;
@@ -10308,8 +10308,8 @@ async function main() {
                 return;
             }
 
-            if (!existingLabels.find(l => l.name === 'needs triage')) {
-                await helpers.addLabel(issue, 'needs triage');
+            if (!existingLabels.find(l => l.name === 'needs:triage')) {
+                await helpers.addLabel(issue, 'needs:triage');
             }
             return;
         }
@@ -10338,7 +10338,7 @@ async function main() {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.FEATURE_REQUEST);
                 await helpers.closeIssue(issue, 'not_planned');
-            } else if (label.name === 'needs template') {
+            } else if (label.name === 'needs:template') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_TEMPLATE);
                 await helpers.closeIssue(issue, 'not_planned');
@@ -10346,7 +10346,7 @@ async function main() {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.SELF_HOSTING);
                 await helpers.closeIssue(issue, 'not_planned');
-            } else if (label.name === 'needs info') {
+            } else if (label.name === 'needs:info') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
             } else if (label.name === 'bug') {
