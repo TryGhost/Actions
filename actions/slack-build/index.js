@@ -28,11 +28,19 @@ const branch = branchParts[branchParts.length - 1];
 
 const openLink = `<https://github.com/${githubRepo}/actions/runs/${githubRunId}/|view>`;
 
+let actorLink = githubActor;
+
+switch (githubActor) {
+    case 'daniellockyer':
+        actorLink = '<@URZENL0V7>';
+        break;
+}
+
 (async () => {
     await webhook.send({
         attachments: [{
             color: statusColor,
-            text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${githubActor} - ${openLink}`,
+            text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${actorLink} - ${openLink}`,
         }]
     });
 })();
