@@ -156,6 +156,31 @@ async function main() {
                 if (projects.length) {
                     return;
                 }
+
+                const trackingIssues = await helpers.getTrackingIssues(issue);
+                if (trackingIssues.length) {
+                    const firstTrackingIssue = trackingIssues[0];
+
+                    const trackingIssueProjects = await helpers.getProjectsForIssue(firstTrackingIssue);
+                    if (!trackingIssueProjects.length) {
+                        return;
+                    }
+
+                    const projectColumns = await helpers.getProjectColumns(trackingIssueProjects[0].id);
+                    const statusColumn = projectColumns.find(c => c.name === 'Status');
+
+                    if (!statusColumn) {
+                        return;
+                    }
+
+                    const todoOption = statusColumn.options.find(o => ['To Do', 'Todo'].includes(o.name) || o.name.includes('Todo'));
+                    if (!todoOption) {
+                        return;
+                    }
+
+                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, statusColumn.id, todoOption.id);
+                    return;
+                }
             }
 
             // Ignore labelled issues from Ghost core team triagers on external repos

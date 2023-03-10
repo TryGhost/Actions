@@ -78,6 +78,33 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
+     */
+    async getTrackingIssues(issue) {
+        const response = await this.client.graphql(`
+            query issue($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                    issue(number: $number) {
+                        title
+                        trackedInIssues(first: 20) {
+                            nodes {
+                                id
+                                title
+                                url
+                                number
+                                resourcePath
+                            }
+                        }
+                    }
+                }
+            }`, {
+            ...this.repo,
+            number: issue.number
+        });
+        return response?.repository?.issue?.trackedInIssues?.nodes || [];
+    }
+
+    /**
+     * @param {object} issue
      * @param {string} projectId
      * @param {string} fieldId
      * @param {string} optionId
@@ -130,6 +157,7 @@ module.exports = class Helpers {
                         title
                         projectsV2(first: 20) {
                             nodes {
+                                id
                                 title
                                 url
                                 number
@@ -144,6 +172,49 @@ module.exports = class Helpers {
         });
 
         return response?.repository?.issue?.projectsV2?.nodes || [];
+    }
+
+    /**
+     * @param {strings } projectId
+     */
+    async getProjectColumns(projectId) {
+        const response = await this.client.graphql(`
+            query project($projectId: ID!) {
+                node(id: $projectId) {
+                    ... on ProjectV2 {
+                        fields(first: 20) {
+                            nodes {
+                                ... on ProjectV2Field {
+                                    id
+                                    name
+                                }
+                                ... on ProjectV2IterationField {
+                                    id
+                                    name
+                                    configuration {
+                                        iterations {
+                                            startDate
+                                            id
+                                        }
+                                    }
+                                }
+                                ... on ProjectV2SingleSelectField {
+                                    id
+                                    name
+                                    options {
+                                        id
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }`, {
+            projectId
+        });
+
+        return response?.node?.fields?.nodes || [];
     }
 
     /**

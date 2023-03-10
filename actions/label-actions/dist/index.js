@@ -9746,6 +9746,33 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
+     */
+    async getTrackingIssues(issue) {
+        const response = await this.client.graphql(`
+            query issue($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                    issue(number: $number) {
+                        title
+                        trackedInIssues(first: 20) {
+                            nodes {
+                                id
+                                title
+                                url
+                                number
+                                resourcePath
+                            }
+                        }
+                    }
+                }
+            }`, {
+            ...this.repo,
+            number: issue.number
+        });
+        return response?.repository?.issue?.trackedInIssues?.nodes || [];
+    }
+
+    /**
+     * @param {object} issue
      * @param {string} projectId
      * @param {string} fieldId
      * @param {string} optionId
@@ -9798,6 +9825,7 @@ module.exports = class Helpers {
                         title
                         projectsV2(first: 20) {
                             nodes {
+                                id
                                 title
                                 url
                                 number
@@ -9812,6 +9840,49 @@ module.exports = class Helpers {
         });
 
         return response?.repository?.issue?.projectsV2?.nodes || [];
+    }
+
+    /**
+     * @param {strings } projectId
+     */
+    async getProjectColumns(projectId) {
+        const response = await this.client.graphql(`
+            query project($projectId: ID!) {
+                node(id: $projectId) {
+                    ... on ProjectV2 {
+                        fields(first: 20) {
+                            nodes {
+                                ... on ProjectV2Field {
+                                    id
+                                    name
+                                }
+                                ... on ProjectV2IterationField {
+                                    id
+                                    name
+                                    configuration {
+                                        iterations {
+                                            startDate
+                                            id
+                                        }
+                                    }
+                                }
+                                ... on ProjectV2SingleSelectField {
+                                    id
+                                    name
+                                    options {
+                                        id
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }`, {
+            projectId
+        });
+
+        return response?.node?.fields?.nodes || [];
     }
 
     /**
@@ -10299,6 +10370,31 @@ async function main() {
                 // Don't add `needs:triage` for issues assigned to a project
                 const projects = await helpers.getProjectsForIssue(issue);
                 if (projects.length) {
+                    return;
+                }
+
+                const trackingIssues = await helpers.getTrackingIssues(issue);
+                if (trackingIssues.length) {
+                    const firstTrackingIssue = trackingIssues[0];
+
+                    const trackingIssueProjects = await helpers.getProjectsForIssue(firstTrackingIssue);
+                    if (!trackingIssueProjects.length) {
+                        return;
+                    }
+
+                    const projectColumns = await helpers.getProjectColumns(trackingIssueProjects[0].id);
+                    const statusColumn = projectColumns.find(c => c.name === 'Status');
+
+                    if (!statusColumn) {
+                        return;
+                    }
+
+                    const todoOption = statusColumn.options.find(o => ['To Do', 'Todo'].includes(o.name) || o.name.includes('Todo'));
+                    if (!todoOption) {
+                        return;
+                    }
+
+                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, statusColumn.id, todoOption.id);
                     return;
                 }
             }
