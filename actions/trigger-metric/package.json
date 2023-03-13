@@ -1,29 +1,17 @@
 {
-  "name": "action-trigger-metric",
-  "version": "0.0.0",
-  "repository": "git@github.com:TryGhost/action-trigger-metric.git",
-  "author": "Ghost Foundation",
-  "license": "MIT",
-  "main": "app.js",
-  "scripts": {
-    "dev": "echo \"Implement me!\"",
-    "test:unit": "NODE_ENV=testing c8 --all --check-coverage --100  --reporter text --reporter cobertura mocha './test/**/*.test.js'",
-    "test": "yarn test:unit",
-    "lint:code": "eslint *.js lib/ --ext .js --cache",
-    "lint": "yarn lint:code",
-    "preship": "yarn test",
-    "ship": "STATUS=$(git status --porcelain); echo $STATUS; if [ -z \"$STATUS\" ]; then yarn version && git push --follow-tags; fi"
-  },
-  "files": [
-    "app.js",
-    "lib"
-  ],
-  "devDependencies": {
-    "c8": "7.13.0",
-    "eslint": "8.36.0",
-    "eslint-plugin-ghost": "2.16.0",
-    "mocha": "10.2.0",
-    "sinon": "15.0.2"
-  },
-  "dependencies": {}
+    "name": "action-trigger-metric",
+    "version": "0.2.6",
+    "main": "dist/index.js",
+    "repository": "git@github.com:TryGhost/action-trigger-metric.git",
+    "author": "Ghost Foundation",
+    "license": "MIT",
+    "scripts": {
+        "build": "rm dist/index.js && ncc build",
+        "ship": "STATUS=$(git status --porcelain); echo $STATUS; if [ -z \"$STATUS\" ]; then yarn version && git push --follow-tags; fi"
+    },
+    "devDependencies": {
+        "@actions/core": "^1.6.0",
+        "@tryghost/metrics": "^0.2.6",
+        "@vercel/ncc": "^0.31.1"
+    }
 }

@@ -1,32 +1,7 @@
-# Action Trigger Metric
+# action-trigger-metric
 
-Ship metrics during Github Actions using @tryghost/metrics
+Uses the `@tryghost/metrics` repo to send a metric based on the parameters passed.
 
+## Credit
 
-## Usage
-
-
-## Develop
-
-1. `git clone` this repo & `cd` into it as usual
-2. Run `yarn` to install top-level dependencies.
-
-
-## Run
-
-- `yarn dev`
-- View: [http://localhost:9999](http://localhost:9999)
-
-## Test
-
-- `yarn lint` run just eslint
-- `yarn test` run lint and tests
-
-## Publish
-
-- `yarn ship`
-
-
-# Copyright & License 
-
-Copyright (c) 2013-2023 Ghost Foundation - Released under the [MIT license](LICENSE).
+Inspired by Daniel Lockyer's [action-slack-build](https://github.com/daniellockyer/action-slack-build) repo.

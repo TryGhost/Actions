@@ -1,0 +1,15 @@
+name: 'Ghost Metric Shipper'
+description: 'Send metrics to various backends using @tryghost/metrics for GitHub Actions'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+inputs:
+  metricName:
+    description: 'Metric name'
+    required: true
+  metricValue:
+    description: 'Value of the metric'
+    required: true
+  configuration:
+    description: 'Stringified config to use as loggingrc.js input'
+    required: true
