@@ -1,6 +1,6 @@
 {
     "name": "action-trigger-metric",
-    "version": "0.2.6",
+    "version": "0.3.0",
     "main": "dist/index.js",
     "repository": "git@github.com:TryGhost/action-trigger-metric.git",
     "author": "Ghost Foundation",
