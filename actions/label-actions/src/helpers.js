@@ -57,16 +57,12 @@ module.exports = class Helpers {
      */
     async isCollaboratorRequest(username) {
         try {
-            const isCollaboratorRequest = await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
+            await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
                 ...this.repo,
                 username
             });
 
-            if (isCollaboratorRequest.status === 200) {
-                return true;
-            }
-
-            return false;
+            return true;
         } catch (err) {
             if (err.status !== 404) {
                 throw err;

@@ -99,20 +99,20 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-                case 'needs:info':
-                    await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
-                    break;
-                case 'changes requested':
-                    await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
-                    break;
-                default:
-                    core.info(`Encountered an unhandled label: ${label.name}`);
-                    break;
+            case 'needs:info':
+                await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
+                break;
+            case 'changes requested':
+                await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
+                break;
+            default:
+                core.info(`Encountered an unhandled label: ${label.name}`);
+                break;
             }
             return;
         }
 
-        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged && false) {
+        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
             const ownerLogin = payload.pull_request.user.login;
 
             // Renovate PRs don't need comments

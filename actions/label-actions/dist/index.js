@@ -9725,16 +9725,12 @@ module.exports = class Helpers {
      */
     async isCollaboratorRequest(username) {
         try {
-            const isCollaboratorRequest = await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
+            await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
                 ...this.repo,
                 username
             });
 
-            if (isCollaboratorRequest.status === 200) {
-                return true;
-            }
-
-            return false;
+            return true;
         } catch (err) {
             if (err.status !== 404) {
                 throw err;
@@ -10328,20 +10324,33 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-                case 'needs:info':
-                    await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
-                    break;
-                case 'changes requested':
-                    await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
-                    break;
-                default:
-                    core.info(`Encountered an unhandled label: ${label.name}`);
-                    break;
+            case 'needs:info':
+                await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
+                break;
+            case 'changes requested':
+                await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
+                break;
+            default:
+                core.info(`Encountered an unhandled label: ${label.name}`);
+                break;
             }
             return;
         }
 
-        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged && false) {}
+        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
+            const ownerLogin = payload.pull_request.user.login;
+
+            // Renovate PRs don't need comments
+            if (ownerLogin === 'renovate[bot]') {
+                return;
+            }
+
+            const isCollaboratorRequest = await helpers.isCollaboratorRequest(ownerLogin);
+            if (!isCollaboratorRequest) {
+                await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
+            }
+            return;
+        }
     }
 
     if (payload.issue) {
