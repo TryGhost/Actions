@@ -762,10 +762,33 @@ const openLink = `<https://github.com/${githubRepo}/actions/runs/${githubRunId}/
 
 let actorLink = githubActor;
 
-switch (githubActor) {
-    case 'daniellockyer':
-        actorLink = '<@URZENL0V7>';
-        break;
+const githubActorToSlackId = {
+    daniellockyer: 'URZENL0V7',
+    'sam-lord': 'U017YUER0HL',
+    JoeeGrigg: 'U02LNNXJKGA',
+
+    aileen: 'U04D59TH6',
+    peterzimon: 'U7L3K6GM7',
+
+    SimonBackx: 'U033YGE89JN',
+    'sanne-san': 'U019N6Y2PB2',
+    allouis: 'UCCEPHM39',
+
+    cmraible: 'U04ETKA5E3D',
+    minimaluminium: 'U019YHN4WSG',
+    rishabhgrg: 'UCB9U7X99',
+    naz: 'UCBHY29PX',
+
+    lenabaidakova: 'U043VFG46HY',
+    '9larsons': 'U04HMKJDA79',
+    kevinansfield: 'U051KGJR2',
+    sagzy: 'U04RLV7E6F8',
+    ronaldlangeveld: 'U03MV5LH4F5',
+    djordjevlais: 'U02KQRQH3GS',
+};
+
+if (githubActorToSlackId[githubActor]) {
+    actorLink = `<@${githubActorToSlackId[githubActor]}>`;
 }
 
 (async () => {
