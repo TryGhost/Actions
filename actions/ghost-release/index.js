@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
+
+const github = require('@actions/github');
 const releaseUtils = require('@tryghost/release-utils');
 
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
@@ -22,9 +24,12 @@ const newMonorepo = ghostVersion.startsWith('5');
 
 (async () => {
     try {
-        const tags = await releaseUtils.releases.get({
-            userAgent: 'ghost-release',
-            uri: `https://api.github.com/repos/TryGhost/Ghost/releases?per_page=100`
+        const client = github.getOctokit(process.env.RELEASE_TOKEN);
+
+        const {data: tags} = await client.rest.repos.listReleases({
+            owner: 'TryGhost',
+            repo: 'Ghost',
+            per_page: 100
         });
 
         const sameMajorReleaseTags = [];
