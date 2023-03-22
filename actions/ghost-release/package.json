@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@actions/github": "5.1.1",
+    "@sentry/cli": "2.15.2",
     "@slack/webhook": "6.1.0",
     "@tryghost/release-utils": "0.8.1",
     "semver": "7.3.8"

@@ -6,6 +6,7 @@ const semver = require('semver');
 
 const github = require('@actions/github');
 const releaseUtils = require('@tryghost/release-utils');
+const Sentry = require('@sentry/cli').default;
 
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
@@ -138,6 +139,30 @@ const newMonorepo = ghostVersion.startsWith('5');
                     }
                 }]
             });
+        }
+
+        if (process.env.SENTRY_AUTH_TOKEN) {
+            try {
+                const sentry = new Sentry(null, {
+                    org: 'ghost-foundation',
+                    project: 'admin',
+                    authToken: process.env.SENTRY_AUTH_TOKEN
+                });
+
+                const sentryReleases = [ghostVersion, ghostVersion.split('.').slice(0, 2).join('.')];
+
+                for (const release of sentryReleases) {
+                    const releaseName = `ghost@${release}`;
+                    await sentry.releases.new(releaseName);
+                    await sentry.releases.uploadSourceMaps(releaseName, {
+                        include: ['ghost/admin/dist/assets'],
+                        urlPrefix: `~/ghost/assets/`
+                    });
+                    await sentry.releases.finalize(releaseName);
+                }
+            } catch (err) {
+                console.error(err); // eslint-disable-line no-console
+            }
         }
     } catch (err) {
         console.error(err); // eslint-disable-line no-console
