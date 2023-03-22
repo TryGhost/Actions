@@ -7227,7 +7227,7 @@ const semver = __webpack_require__(876);
 const releaseUtils = __webpack_require__(83);
 
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
-const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json')));
+const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
 
 let subPath = '.';
 
@@ -7235,7 +7235,7 @@ if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces
     subPath = 'ghost/core';
 }
 
-const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, subPath, 'package.json')));
+const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, subPath, 'package.json'), 'utf-8'));
 const changelogPath = path.join(basePath, 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 
