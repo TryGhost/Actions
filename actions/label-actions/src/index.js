@@ -143,6 +143,11 @@ async function main() {
             }
 
             if (helpers.isTeamRepo()) {
+                if (existingLabels.find(l => l.name.startsWith('flaky-test'))) {
+                    await helpers.addToCoreBacklog(issue);
+                    return;
+                }
+
                 const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix', 'later'];
                 const projectLabels = existingLabels.filter(l => l.name.startsWith('project:'));
                 const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
@@ -250,10 +255,12 @@ async function main() {
                 } else if (label.name === 'p3:minor') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                    await helpers.addToProductBacklog(issue);
+                    await helpers.addToCoreBacklog(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                } else if (label.name === 'flaky-test') {
+                    await helpers.addToCoreBacklog(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);

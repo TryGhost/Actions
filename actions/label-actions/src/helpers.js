@@ -138,8 +138,8 @@ module.exports = class Helpers {
     /**
      * @param {object} issue
      */
-    async addToProductBacklog(issue) {
-        return this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AEyWy', 'PVTSSF_lADOACE-Z84AEyWyzgCwgeQ', 'f75ad846');
+    async addToCoreBacklog(issue) {
+        return this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AMpxN', 'PVTSSF_lADOACE-Z84AMpxNzgIEnW4', '698e45eb');
     }
 
     /**
