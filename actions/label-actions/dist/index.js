@@ -9770,10 +9770,9 @@ module.exports = class Helpers {
     /**
      * @param {object} issue
      * @param {string} projectId
-     * @param {string} fieldId
-     * @param {string} optionId
+     * @param {object} [options]
      */
-    async addIssueToProject(issue, projectId, fieldId, optionId) {
+    async addIssueToProject(issue, projectId, options = {}) {
         const addResponse = await this.client.graphql(`
             mutation addIssueToProject($projectId: ID!, $issueId: ID!) {
                 addProjectV2ItemById(input: {contentId: $issueId, projectId: $projectId}) {
@@ -9787,27 +9786,39 @@ module.exports = class Helpers {
         });
 
         if (addResponse?.addProjectV2ItemById?.item?.id) {
-            await this.client.graphql(`
-                mutation moveItemToColumn($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                    updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: {singleSelectOptionId: $optionId}}) {
-                        projectV2Item {
-                            id
+            for (const option of Object.keys(options)) {
+                await this.client.graphql(`
+                    mutation moveItemToColumn($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                        updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: {singleSelectOptionId: $optionId}}) {
+                            projectV2Item {
+                                id
+                            }
                         }
-                    }
-                }`, {
-                projectId,
-                itemId: addResponse.addProjectV2ItemById.item.id,
-                fieldId,
-                optionId
-            });
+                    }`, {
+                    projectId,
+                    itemId: addResponse.addProjectV2ItemById.item.id,
+                    fieldId: option,
+                    optionId: options[option]
+                });
+            }
         }
     }
 
     /**
      * @param {object} issue
+     * @param {boolean} [urgent]
      */
-    async addToCoreBacklog(issue) {
-        return this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AMpxN', 'PVTSSF_lADOACE-Z84AMpxNzgIEnW4', '698e45eb');
+    async addToCoreBacklog(issue, urgent = false) {
+        const options = {
+            'PVTSSF_lADOACE-Z84AMpxNzgIEnW4': '698e45eb' // Status = Backlog
+        };
+
+        if (urgent) {
+            options['PVTSSF_lADOACE-Z84AMpxNzgII6Gw'] = 'd78c9410'; // Appetite = Urgent
+            options['PVTSSF_lADOACE-Z84AMpxNzgIEnW4'] = '1d562eba'; // Status = Todo
+        }
+
+        await this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AMpxN', options);
     }
 
     /**
@@ -10408,7 +10419,9 @@ async function main() {
                         return;
                     }
 
-                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, statusColumn.id, todoOption.id);
+                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, {
+                        [statusColumn.id]: todoOption.id
+                    });
                     return;
                 }
             }
@@ -10471,12 +10484,15 @@ async function main() {
                 if (label.name === 'p0:critical') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToCoreBacklog(issue, true);
                 } else if (label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToCoreBacklog(issue, true);
                 } else if (label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToCoreBacklog(issue);
                 } else if (label.name === 'p3:minor') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);

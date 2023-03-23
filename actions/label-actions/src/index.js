@@ -183,7 +183,9 @@ async function main() {
                         return;
                     }
 
-                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, statusColumn.id, todoOption.id);
+                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, {
+                        [statusColumn.id]: todoOption.id
+                    });
                     return;
                 }
             }
@@ -246,12 +248,15 @@ async function main() {
                 if (label.name === 'p0:critical') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToCoreBacklog(issue, true);
                 } else if (label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToCoreBacklog(issue, true);
                 } else if (label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
+                    await helpers.addToCoreBacklog(issue);
                 } else if (label.name === 'p3:minor') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
