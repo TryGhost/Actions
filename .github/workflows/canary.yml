@@ -27,7 +27,6 @@ jobs:
 
       - name: Set env variables
         run: |
-          echo "bump_type=preminor" >> $GITHUB_ENV
           echo "canary_archive=ghost-canary" >> $GITHUB_ENV
 
       - run: yarn
@@ -40,11 +39,24 @@ jobs:
           tool_versions: |
             semver 3.3.0
 
-      - run: echo "NEW_VERSION=$(semver bump ${{ env.bump_type }} $(git describe --tags --abbrev=0 --match=v*))+$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - run: |
+          CURRENT_TAG=$(git describe --tags --abbrev=0 --match=v*)
+          echo $CURRENT_TAG
+          BUMPED_VERSION=$(semver bump minor $CURRENT_TAG)
+          echo $BUMPED_VERSION
+          BUILD_STRING=$(git rev-parse --short HEAD)
+          echo $BUILD_STRING
+          echo "NEW_VERSION=$BUMPED_VERSION-pre.0+$BUILD_STRING" >> $GITHUB_ENV
 
       - run: |
-          jq ".version = \"$NEW_VERSION\"" ghost/admin/package.json > ghost/admin/package.json
-          jq ".version = \"$NEW_VERSION\"" ghost/core/package.json > ghost/core/package.json
+          admin_tmp=$(mktemp)
+          jq ".version = \"$NEW_VERSION\"" ghost/admin/package.json > $admin_tmp
+          cat $admin_tmp && mv $admin_tmp ghost/admin/package.json
+          chmod 644 ghost/admin/package.json
+          core_tmp=$(mktemp)
+          jq ".version = \"$NEW_VERSION\"" ghost/core/package.json > $core_tmp
+          cat $core_tmp && mv $core_tmp ghost/core/package.json
+          chmod 644 ghost/core/package.json
 
       - run: npm pack
         working-directory: ghost/core
