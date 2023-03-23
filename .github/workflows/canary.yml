@@ -33,13 +33,18 @@ jobs:
       - run: yarn
       - run: yarn main:submodules
 
-      - run: echo "ghost_hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/content/themes/casper && git commit -m "Updated Casper"; fi
 
-      - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash"
-        working-directory: ghost/core
-      - run: npm version ${{ env.bump_type }} --preid="pre.$ghost_hash"
-        working-directory: ghost/admin
+      - uses: asdf-vm/actions/install@v2
+        with:
+          tool_versions: |
+            semver 3.3.0
+
+      - run: echo "NEW_VERSION=$(semver bump ${{ env.bump_type }} $(git describe --tags --abbrev=0 --match=v*))+$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - run: |
+          jq ".version = \"$NEW_VERSION\"" ghost/admin/package.json > ghost/admin/package.json
+          jq ".version = \"$NEW_VERSION\"" ghost/core/package.json > ghost/core/package.json
 
       - run: npm pack
         working-directory: ghost/core
