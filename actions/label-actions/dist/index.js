@@ -10358,7 +10358,7 @@ async function main() {
 
             const isCollaboratorRequest = await helpers.isCollaboratorRequest(ownerLogin);
             if (!isCollaboratorRequest) {
-                await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
+                //await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
             }
             return;
         }
