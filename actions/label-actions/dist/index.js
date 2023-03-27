@@ -9848,7 +9848,7 @@ module.exports = class Helpers {
             return;
         }
 
-        currentBodyLines.splice(endOfTaskList, 0, `* [ ] ${issue.html_url}`);
+        currentBodyLines.splice(endOfTaskList, 0, `- [ ] ${issue.html_url}`);
 
         await this.client.rest.issues.update({
             owner: 'TryGhost',
