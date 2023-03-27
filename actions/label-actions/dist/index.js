@@ -9821,6 +9821,43 @@ module.exports = class Helpers {
         await this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AMpxN', options);
     }
 
+    async addToFlakyTestTaskList(issue) {
+        // https://github.com/TryGhost/Team/issues/2833
+        const flakyTestIssueNumber = 2833;
+
+        const {data: parentIssue} = await this.client.rest.issues.get({
+            owner: 'TryGhost',
+            repo: 'Team',
+            issue_number: flakyTestIssueNumber
+        });
+
+        if (parentIssue.state === 'closed') {
+            return;
+        }
+
+        const currentBody = parentIssue.body;
+
+        if (!currentBody?.includes('```[tasklist]')) {
+            return;
+        }
+
+        const currentBodyLines = currentBody.split('\n');
+        const endOfTaskList = currentBodyLines.findIndex(line => line === '```');
+
+        if (endOfTaskList === -1) {
+            return;
+        }
+
+        currentBodyLines.splice(endOfTaskList, 0, `* [ ] ${issue.html_url}`);
+
+        await this.client.rest.issues.update({
+            owner: 'TryGhost',
+            repo: 'Team',
+            issue_number: flakyTestIssueNumber,
+            body: currentBodyLines.join('\n')
+        });
+    }
+
     /**
      * @param {object} issue
      */
@@ -10381,6 +10418,7 @@ async function main() {
             if (helpers.isTeamRepo()) {
                 if (existingLabels.find(l => l.name.startsWith('flaky-test'))) {
                     await helpers.addToCoreBacklog(issue);
+                    await helpers.addToFlakyTestTaskList(issue);
                     return;
                 }
 

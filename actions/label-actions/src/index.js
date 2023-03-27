@@ -145,6 +145,7 @@ async function main() {
             if (helpers.isTeamRepo()) {
                 if (existingLabels.find(l => l.name.startsWith('flaky-test'))) {
                     await helpers.addToCoreBacklog(issue);
+                    await helpers.addToFlakyTestTaskList(issue);
                     return;
                 }
 
