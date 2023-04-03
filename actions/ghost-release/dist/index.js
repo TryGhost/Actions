@@ -936,7 +936,7 @@ const semver = __webpack_require__(7876);
 
 const github = __webpack_require__(1469);
 const releaseUtils = __webpack_require__(3083);
-const Sentry = __webpack_require__(4928).default;
+const Sentry = __webpack_require__(4928);
 
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));

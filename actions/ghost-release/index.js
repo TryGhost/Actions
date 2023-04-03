@@ -6,7 +6,7 @@ const semver = require('semver');
 
 const github = require('@actions/github');
 const releaseUtils = require('@tryghost/release-utils');
-const Sentry = require('@sentry/cli').default;
+const Sentry = require('@sentry/cli');
 
 const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
