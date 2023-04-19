@@ -1,5 +1,9 @@
 name: Canary Build
-on: workflow_call
+on:
+  workflow_call:
+    secrets:
+      CANARY_DOCKER_BUILD:
+        required: true
 env:
   FORCE_COLOR: 1
 jobs:
