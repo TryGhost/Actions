@@ -774,6 +774,7 @@ const githubActorToSlackId = {
     'sanne-san': 'U019N6Y2PB2',
     allouis: 'UCCEPHM39',
 
+    mike182uk: 'U052YFMMJQL',
     cmraible: 'U04ETKA5E3D',
     minimaluminium: 'U019YHN4WSG',
     rishabhgrg: 'UCB9U7X99',
