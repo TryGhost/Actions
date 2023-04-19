@@ -71,6 +71,6 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           token: ${{ secrets.CANARY_DOCKER_BUILD }}
-          workflow: deploy.yaml
+          workflow: .github/workflows/deploy.yaml
           repo: TryGhost/Ghost-Moya
           inputs: '{ "version": "canary", "environment": "staging" }'
