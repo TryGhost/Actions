@@ -70,3 +70,11 @@ jobs:
           name: ${{ env.canary_archive }}
           path: 'ghost/core/ghost-*.tgz'
           retention-days: 4
+          
+      - name: Invoke workflow in another repo with inputs
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          token: ${{ secrets.CANARY_DOCKER_BUILD }}
+          workflow: .github/workflows/deploy.yaml
+          repo: TryGhost/Ghost-Moya
+          inputs: '{ "version": "canary", "environment": "staging" }'
