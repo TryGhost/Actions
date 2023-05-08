@@ -149,7 +149,7 @@ async function main() {
                     return;
                 }
 
-                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix', 'later'];
+                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix', 'later', 'tasklist'];
                 const projectLabels = existingLabels.filter(l => l.name.startsWith('project:'));
                 const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
                 if (projectLabels.length || similarLabels.length) {
