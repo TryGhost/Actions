@@ -20,8 +20,6 @@ const ghostPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, subPath,
 const changelogPath = path.join(basePath, 'changelog.md');
 const ghostVersion = ghostPackageInfo.version;
 
-const newMonorepo = ghostVersion.startsWith('5');
-
 (async () => {
     try {
         const client = github.getOctokit(process.env.RELEASE_TOKEN);
@@ -65,40 +63,17 @@ const newMonorepo = ghostVersion.startsWith('5');
             folder: basePath
         });
 
-        if (newMonorepo) {
-            changelog
-                .write({
-                    githubRepoPath: `https://github.com/TryGhost/Ghost`,
-                    lastVersion: previousVersionTagged
-                })
-                .sort()
-                .clean();
-        } else {
-            const adminDir = path.join(path.join(basePath, subPath), 'core', 'client');
-            changelog
-                .write({
-                    githubRepoPath: `https://github.com/TryGhost/Ghost`,
-                    lastVersion: previousVersionTagged
-                })
-                .write({
-                    githubRepoPath: `https://github.com/TryGhost/Admin`,
-                    lastVersion: previousVersionTagged,
-                    append: true,
-                    folder: adminDir
-                })
-                .sort()
-                .clean();
-        }
+        changelog
+            .write({
+                githubRepoPath: `https://github.com/TryGhost/Ghost`,
+                lastVersion: previousVersionTagged
+            })
+            .sort()
+            .clean();
 
         const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
 
-        let extraText;
-        if (newMonorepo) {
-            extraText = `---\n\nView the changelog for full details: https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
-        } else {
-            extraText = `---\n\nView the changelog for full details:\n\n* Ghost - https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
-            extraText += `\n* Admin - https://github.com/tryghost/admin/compare/${previousVersionTagged}...${ghostVersionTagged}`;
-        }
+        let extraText = `---\n\nView the changelog for full details: https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
         extraText += `\n\n🌐 Help us translate Ghost + Portal: https://forum.ghost.org/t/help-translate-ghost-beta/37461`;
 
         await releaseUtils.releases.create({
