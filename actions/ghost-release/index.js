@@ -115,7 +115,8 @@ const ghostVersion = ghostPackageInfo.version;
             });
         }
 
-        await client.rest.actions.createWorkflowDispatch({
+        const ghostMoyaClient = github.getOctokit(process.env.CANARY_DOCKER_BUILD);
+        await ghostMoyaClient.rest.actions.createWorkflowDispatch({
             owner: 'TryGhost',
             repo: 'Ghost-Moya',
             workflow_id: '.github/workflows/deploy.yml',
