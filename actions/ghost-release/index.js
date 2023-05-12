@@ -141,6 +141,17 @@ const newMonorepo = ghostVersion.startsWith('5');
             });
         }
 
+        await client.rest.actions.createWorkflowDispatch({
+            owner: 'TryGhost',
+            repo: 'Ghost-Moya',
+            workflow_id: '.github/workflows/deploy.yml',
+            ref: 'main',
+            inputs: {
+                version: ghostVersion,
+                environment: 'both'
+            }
+        });
+
         if (process.env.SENTRY_AUTH_TOKEN) {
             try {
                 const sentry = new Sentry(null, {
