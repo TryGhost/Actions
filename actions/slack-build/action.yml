@@ -1,0 +1,9 @@
+name: 'Slack Build Notification'
+description: 'Send Slack notifications for GitHub Action builds'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+inputs:
+  status:
+    description: 'Build status'
+    required: true
