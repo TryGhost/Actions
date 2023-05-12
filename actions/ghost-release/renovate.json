@@ -1,0 +1,6 @@
+{
+  "extends": [
+    "@tryghost:base",
+    "@tryghost:automergeTestLint"
+  ]
+}
