@@ -7,12 +7,15 @@ const semver = require('semver');
 const github = require('@actions/github');
 const releaseUtils = require('@tryghost/release-utils');
 
-const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
+let basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
 
 let subPath = '.';
 
-if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces)) {
+if (rootPackageInfo.name === 'ghost-release') {
+    basePath = 'release';
+    subPath = 'release/ghost/core';
+} else if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces)) {
     subPath = 'ghost/core';
 }
 

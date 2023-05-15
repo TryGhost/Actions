@@ -1209,12 +1209,15 @@ const semver = __webpack_require__(7876);
 const github = __webpack_require__(1469);
 const releaseUtils = __webpack_require__(3083);
 
-const basePath = process.env.GITHUB_WORKSPACE || process.cwd();
+let basePath = process.env.GITHUB_WORKSPACE || process.cwd();
 const rootPackageInfo = JSON.parse(fs.readFileSync(path.join(basePath, 'package.json'), 'utf-8'));
 
 let subPath = '.';
 
-if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces)) {
+if (rootPackageInfo.name === 'ghost-release') {
+    basePath = 'release';
+    subPath = 'release/ghost/core';
+} else if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces)) {
     subPath = 'ghost/core';
 }
 
