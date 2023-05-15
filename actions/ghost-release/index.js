@@ -14,7 +14,7 @@ let subPath = '.';
 
 if (rootPackageInfo.name === 'ghost-release') {
     basePath = 'release';
-    subPath = 'release/ghost/core';
+    subPath = 'ghost/core';
 } else if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces)) {
     subPath = 'ghost/core';
 }
