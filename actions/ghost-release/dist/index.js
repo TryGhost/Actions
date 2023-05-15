@@ -1216,7 +1216,7 @@ let subPath = '.';
 
 if (rootPackageInfo.name === 'ghost-release') {
     basePath = 'release';
-    subPath = 'release/ghost/core';
+    subPath = 'ghost/core';
 } else if (rootPackageInfo.name !== 'ghost' && Array.isArray(rootPackageInfo.workspaces)) {
     subPath = 'ghost/core';
 }
@@ -1320,8 +1320,7 @@ const ghostVersion = ghostPackageInfo.version;
             });
         }
 
-        const ghostMoyaClient = github.getOctokit(process.env.CANARY_DOCKER_BUILD);
-        await ghostMoyaClient.rest.actions.createWorkflowDispatch({
+        await client.rest.actions.createWorkflowDispatch({
             owner: 'TryGhost',
             repo: 'Ghost-Moya',
             workflow_id: '.github/workflows/deploy.yml',
