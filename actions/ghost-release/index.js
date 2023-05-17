@@ -62,7 +62,7 @@ const ghostVersion = ghostPackageInfo.version;
         const previousVersionTagged = (semver.major(previousVersion) >= 4) ? `v${previousVersion}` : previousVersion;
 
         const changelog = new releaseUtils.Changelog({
-            changelogPath,
+            changelogPath: 'changelog.md',
             folder: basePath
         });
 
