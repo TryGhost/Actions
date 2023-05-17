@@ -48,6 +48,7 @@ const githubActorToSlackId = {
     rishabhgrg: 'UCB9U7X99',
     naz: 'UCBHY29PX',
 
+    'binary-koan': 'U0556P426LF',
     lenabaidakova: 'U043VFG46HY',
     '9larsons': 'U04HMKJDA79',
     kevinansfield: 'U051KGJR2',
