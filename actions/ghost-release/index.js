@@ -124,7 +124,8 @@ const ghostVersion = ghostPackageInfo.version;
             workflow_id: '.github/workflows/deploy.yml',
             ref: 'main',
             inputs: {
-                version: ghostVersion,
+                version: 'specific_version',
+                version_extra: ghostVersion,
                 environment: 'both'
             }
         });
