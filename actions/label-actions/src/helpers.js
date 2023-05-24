@@ -28,6 +28,11 @@ module.exports = class Helpers {
     isPendingOnInternal(existingTimelineEvents, labelEvent) {
         const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
 
+        // If there's no comment, we probably need to come and do something
+        if (!lastComment) {
+            return true;
+        }
+
         if (labelEvent.label?.name === 'needs:triage') {
             if (lastComment.actor.login === 'Ghost-Slimer') {
                 return true;
