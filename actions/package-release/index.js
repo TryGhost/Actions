@@ -1,6 +1,8 @@
 /* eslint-disable no-console, max-lines */
 
 const {gitmojis} = require('gitmojis');
+const {request} = require('undici');
+const semver = require('semver');
 const simpleGit = require('simple-git');
 
 (async () => {
@@ -72,30 +74,42 @@ const simpleGit = require('simple-git');
 
             return `* ${message} - ${entry.author_name}`;
         });
-    
-    if (changelogContents.length === 0) {
-        console.log('No changelog entries found, exiting');
-        process.exit(0);
+
+    if (packageNameWithoutScope === 'koenig-lexical') {
+        try {
+            console.log('Clearing jsDelivr cache for koenig-lexical');
+            const majorMinorVersion = semver.major(packageVersion) + '.' + semver.minor(packageVersion);
+            const response = await request(`https://purge.jsdelivr.net/ghost/${packageNameWithoutScope}@~${majorMinorVersion}/dist/koenig-lexical.umd.js`);
+            console.log('response', response);
+        } catch (err) {
+            console.log('Failed to clear cache', err);
+        }
     }
+    
+    if (changelogContents.length) {
+        const slackBody = `👻 *@${packageName} v${packageVersion} has been published!*\n\n${changelogContents.join('\n')}`;
+        console.log();
+        console.log(slackBody);
 
-    const slackBody = `👻 *@${packageName} v${packageVersion} has been published!*\n\n${changelogContents.join('\n')}`;
-    console.log();
-    console.log(slackBody);
+        const WEBHOOK_URL = process.env.RELEASE_NOTIFICATION_URL;
+        if (WEBHOOK_URL) {
+            const {IncomingWebhook} = require('@slack/webhook');
+            const webhook = new IncomingWebhook(WEBHOOK_URL);
 
-    const WEBHOOK_URL = process.env.RELEASE_NOTIFICATION_URL;
-    if (WEBHOOK_URL) {
-        const {IncomingWebhook} = require('@slack/webhook');
-        const webhook = new IncomingWebhook(WEBHOOK_URL);
-
-        await webhook.send({
-            username: 'Ghost',
-            blocks: [{
-                type: 'section',
-                text: {
-                    type: 'mrkdwn',
-                    text: slackBody
-                }
-            }]
-        });
+            try {
+                await webhook.send({
+                    username: 'Ghost',
+                    blocks: [{
+                        type: 'section',
+                        text: {
+                            type: 'mrkdwn',
+                            text: slackBody
+                        }
+                    }]
+                });
+            } catch (err) {
+                console.log('Failed to send slack notification');
+            }
+        }
     }
 })();

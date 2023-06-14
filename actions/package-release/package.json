@@ -15,7 +15,7 @@
     "index.js"
   ],
   "devDependencies": {
-    "@zeit/ncc": "0.22.3",
+    "@vercel/ncc": "0.36.1",
     "eslint": "8.42.0",
     "eslint-plugin-ghost": "3.1.0"
   },
@@ -23,6 +23,7 @@
     "@slack/webhook": "6.1.0",
     "gitmojis": "3.13.5",
     "semver": "7.5.1",
-    "simple-git": "3.19.0"
+    "simple-git": "3.19.0",
+    "undici": "5.22.1"
   }
 }
