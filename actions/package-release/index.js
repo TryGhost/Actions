@@ -82,7 +82,7 @@ const simpleGit = require('simple-git');
     console.log();
     console.log(slackBody);
 
-    /*const WEBHOOK_URL = process.env.RELEASE_NOTIFICATION_URL;
+    const WEBHOOK_URL = process.env.RELEASE_NOTIFICATION_URL;
     if (WEBHOOK_URL) {
         const {IncomingWebhook} = require('@slack/webhook');
         const webhook = new IncomingWebhook(WEBHOOK_URL);
@@ -97,5 +97,5 @@ const simpleGit = require('simple-git');
                 }
             }]
         });
-    }*/
+    }
 })();
