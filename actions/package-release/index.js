@@ -51,18 +51,7 @@ const simpleGit = require('simple-git');
 
     const changelogContents = changelog
         .all
-        .filter((entry) => {
-            if (entry.message.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/)) {
-                return true;
-            }
-            
-            const gitmoji = gitmojis.find(g => entry.message.startsWith(g.code));
-            if (gitmoji) {
-                return true;
-            }
-
-            return false;
-        })
+        .filter(entry => !!gitmojis.find(g => entry.message.startsWith(g.code) || entry.message.startsWith(g.emoji)))
         .map((entry) => {
             let message = entry.message;
 
