@@ -62,8 +62,7 @@ jobs:
           cat $core_tmp && mv $core_tmp ghost/core/package.json
           chmod 644 ghost/core/package.json
 
-      - run: npm pack
-        working-directory: ghost/core
+      - run: yarn archive
 
       - uses: actions/upload-artifact@v3
         with:
