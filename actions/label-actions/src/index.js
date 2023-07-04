@@ -99,6 +99,9 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
+            case 'auto-merge':
+                await helpers.enablePRAutoMerge(payload.pull_request);
+                break;
             case 'needs:info':
                 await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
                 break;

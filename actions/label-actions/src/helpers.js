@@ -21,6 +21,19 @@ module.exports = class Helpers {
         return this.repo.owner === 'TryGhost' && this.repo.repo === 'Team';
     }
 
+    async enablePRAutoMerge(pullRequest) {
+        await this.client.graphql(`
+            mutation enablePRAutoMerge($pullRequestId: ID!) {
+                enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: REBASE}) {
+                    pullRequest {
+                        id
+                    }
+                }
+            }`, {
+            pullRequestId: pullRequest.node_id
+        });
+    }
+
     /**
      * @param {Object} existingTimelineEvents
      * @param {Object} labelEvent
