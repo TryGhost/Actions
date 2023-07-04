@@ -18,7 +18,7 @@ module.exports = class Helpers {
     }
 
     isTeamRepo() {
-        return this.repo.owner === 'TryGhost' && this.repo.repo === 'Team';
+        return this.repo.owner === 'TryGhost' && this.repo.repo === 'Product';
     }
 
     async enablePRAutoMerge(pullRequest) {
