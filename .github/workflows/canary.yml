@@ -10,7 +10,6 @@ jobs:
   canary:
     runs-on: ubuntu-latest
     name: Canary
-    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,8 +29,14 @@ jobs:
           git config --global user.email "ghost@example.com"
 
       - name: Set env variables
+        if: github.ref == 'refs/heads/main'
         run: |
           echo "canary_archive=ghost-canary" >> $GITHUB_ENV
+
+      - name: Set env variables
+        if: github.ref == 'refs/heads/arch'
+        run: |
+          echo "canary_archive=ghost-canary-arch" >> $GITHUB_ENV
 
       - run: yarn
       - run: yarn main:submodules
