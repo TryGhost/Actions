@@ -82,5 +82,6 @@ jobs:
         with:
           token: ${{ secrets.CANARY_DOCKER_BUILD }}
           workflow: .github/workflows/deploy.yml
+          ref: 'refs/heads/main'
           repo: TryGhost/Ghost-Moya
           inputs: ${{ env.CANARY_BUILD_INPUTS }}
