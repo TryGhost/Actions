@@ -77,11 +77,13 @@ jobs:
           path: 'ghost/core/ghost-*.tgz'
           retention-days: 4
 
-      - name: Invoke workflow in another repo with inputs
-        uses: benc-uk/workflow-dispatch@v1
+      - name: Invoke Docker container build
+        uses: aurelien-baudet/workflow-dispatch@v2
         with:
           token: ${{ secrets.CANARY_DOCKER_BUILD }}
           workflow: .github/workflows/deploy.yml
           ref: 'refs/heads/main'
           repo: TryGhost/Ghost-Moya
           inputs: ${{ env.CANARY_BUILD_INPUTS }}
+          wait-for-completion-timeout: 10m
+          wait-for-completion-interval: 20s
