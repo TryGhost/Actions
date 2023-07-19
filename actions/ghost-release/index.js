@@ -125,7 +125,7 @@ const ghostVersion = ghostPackageInfo.version;
             ref: 'main',
             inputs: {
                 version: 'ref',
-                version_extra: 'refs/tags/${ghostVersionTagged}',
+                version_extra: `refs/tags/${ghostVersionTagged}`,
                 environment: 'both'
             }
         });
