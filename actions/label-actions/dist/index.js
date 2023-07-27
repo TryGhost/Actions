@@ -10455,7 +10455,6 @@ async function main() {
 
             if (helpers.isTeamRepo()) {
                 if (existingLabels.find(l => l.name.startsWith('flaky-test'))) {
-                    await helpers.addToCoreBacklog(issue);
                     await helpers.addToFlakyTestTaskList(issue);
                     return;
                 }
@@ -10560,24 +10559,18 @@ async function main() {
                 if (label.name === 'p0:critical') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                    await helpers.addToCoreBacklog(issue, true);
                 } else if (label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                    await helpers.addToCoreBacklog(issue, true);
                 } else if (label.name === 'p2:major') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                    await helpers.addToCoreBacklog(issue);
                 } else if (label.name === 'p3:minor') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                    await helpers.addToCoreBacklog(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'flaky-test') {
-                    await helpers.addToCoreBacklog(issue);
                 }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
