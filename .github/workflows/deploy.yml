@@ -1,0 +1,60 @@
+name: Build and push Docker Container
+
+on:
+  workflow_call:
+    secrets:
+      GCP_SA_JSON:
+        required: true
+
+env:
+  PROJECT_ID: stg-pro-397609
+  ARTIFACT_REGISTRY: europe-west2-docker.pkg.dev/stg-pro-397609/pro-containers
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2.10.0
+
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.GCP_SA_JSON }}
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1.1.1
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Configure Docker to use the gcloud command-line tool as a credential helper
+      run: gcloud --quiet auth configure-docker ${{ env.ARTIFACT_REGISTRY }}
+
+    - name: Extract repository name
+      run: echo "REPO_NAME=$(echo ${{ github.repository }} | awk -F / '{print $2}')" >> $GITHUB_ENV
+
+    - name: Build and push staging Docker image on regular push
+      if: startsWith(github.ref, 'refs/heads/')
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        tags: |
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.REPO_NAME }}:staging
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push production Docker image on new tag
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        tags: |
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.REPO_NAME }}:${{ github.ref_name }}
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.REPO_NAME }}:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+  
