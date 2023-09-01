@@ -8,7 +8,7 @@ on:
 
 env:
   PROJECT_ID: stg-pro-397609
-  ARTIFACT_REGISTRY: europe-west2-docker.pkg.dev/stg-pro-397609/pro-containers
+  ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/stg-pro-397609/pro-containers
 
 jobs:
   docker:
