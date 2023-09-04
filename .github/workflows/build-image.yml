@@ -1,4 +1,4 @@
-name: Build and push Docker Container
+name: Build and push Docker image
 
 on:
   workflow_call:
