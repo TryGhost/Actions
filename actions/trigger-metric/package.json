@@ -1,0 +1,17 @@
+{
+    "name": "action-trigger-metric",
+    "version": "0.3.0",
+    "main": "dist/index.js",
+    "repository": "git@github.com:TryGhost/action-trigger-metric.git",
+    "author": "Ghost Foundation",
+    "license": "MIT",
+    "scripts": {
+        "build": "rm dist/index.js && ncc build",
+        "ship": "STATUS=$(git status --porcelain); echo $STATUS; if [ -z \"$STATUS\" ]; then yarn version && git push --follow-tags; fi"
+    },
+    "devDependencies": {
+        "@actions/core": "^1.6.0",
+        "@tryghost/metrics": "^0.2.6",
+        "@vercel/ncc": "^0.31.1"
+    }
+}
