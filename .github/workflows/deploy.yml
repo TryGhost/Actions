@@ -7,7 +7,9 @@ on:
         required: true
 
 env:
-  PROJECT_ID: stg-pro-397609
+  STG_PROJECT_ID: stg-pro-397609
+  # TODO: Replace with the prodcution project ID when that is available
+  PRD_PROJECT_ID: stg-pro-397609
   ARTIFACT_REGISTRY_LOCATION: europe-west4-docker.pkg.dev
   ARTIFACT_REGISTRY_NAME: pro-containers
 
@@ -15,18 +17,33 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-    continue-on-error: true # Prevent build from failing when we cannot build / push container image
 
     steps:
+    - name: Set environment (Staging)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+
+    - name: Set environment (Production)
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo "ENVIRONMENT=production" >> $GITHUB_ENV
+    
+    - name: Set project id
+      run: |
+        if [[ "${{ env.ENVIRONMENT }}" == "production" ]]; then
+          echo "PROJECT_ID=${{ env.PRD_PROJECT_ID }}" >> $GITHUB_ENV
+        elif [[ "${{ env.ENVIRONMENT }}" == "staging" ]]; then
+          echo "PROJECT_ID=${{ env.STG_PROJECT_ID }}" >> $GITHUB_ENV
+        fi
+
     - name: Checkout code
       uses: actions/checkout@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2.10.0
 
     - name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v1'
       with:
+        # TODO: Use different secret for production and staging
         credentials_json: ${{ secrets.GCP_SA_JSON }}
 
     - name: Set up Google Cloud SDK
@@ -37,11 +54,29 @@ jobs:
     - name: Authenticate with GKE
       uses: 'google-github-actions/get-gke-credentials@v1'
       with:
-          cluster_name: 'ghost-pro'
-          location: 'europe-west4-a'
+        cluster_name: 'ghost-pro'
+        location: 'europe-west4-a'
     
-    # TODO: Add a staging / production split
-    - name: Apply the manifests to the Kubernetes cluster
-      if: startsWith(github.ref, 'refs/heads/main')
+    - name: Build final manifest
       run: |
-        kubectl apply -k k8s/overlays/staging
+        kubectl kustomize ./k8s/overlay/${{ env.ENVIRONMENT }} > /tmp/built-manifest.yaml
+    
+    - name: Setup yq
+      run: |
+        wget https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64.tar.gz -O - |\
+        tar xz && mv yq_linux_amd64 /usr/bin/yq
+    
+    - name: Extract Deployment Name and Namespace
+      run: |
+        deployment_name=$(yq e 'select(.kind == "Deployment") | .metadata.name' /tmp/built-manifest.yaml)
+        namespace=$(yq e 'select(.kind == "Deployment") | .metadata.namespace' /tmp/built-manifest.yaml)
+        namespace=${namespace:-default}
+        echo "Deployment Name: $deployment_name"
+        echo "Namespace: $namespace"
+        echo "DEPLOYMENT_NAME=$deployment_name" >> $GITHUB_ENV
+        echo "NAMESPACE=$namespace" >> $GITHUB_ENV
+    
+    - name: Apply the manifests to the Kubernetes cluster
+      run: |
+        kubectl apply -k k8s/overlays/${{ env.ENVIRONMENT }}
+        kubectl rollout restart deployment ${{ env.DEPLOYMENT_NAME }} --namespace ${{ env.NAMESPACE }}

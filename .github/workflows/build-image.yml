@@ -7,7 +7,9 @@ on:
         required: true
 
 env:
-  PROJECT_ID: stg-pro-397609
+  STG_PROJECT_ID: stg-pro-397609
+  # TODO: Replace with the prodcution project ID when that is available
+  PRD_PROJECT_ID: stg-pro-397609
   ARTIFACT_REGISTRY_LOCATION: europe-west4-docker.pkg.dev
   ARTIFACT_REGISTRY_NAME: pro-containers
 
@@ -15,9 +17,26 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-    continue-on-error: true # Prevent build from failing when we cannot build / push container image
 
     steps:
+    - name: Set environment (Staging)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+
+    - name: Set environment (Production)
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        echo "ENVIRONMENT=production" >> $GITHUB_ENV
+    
+    - name: Set project id
+      run: |
+        if [[ "${{ env.ENVIRONMENT }}" == "production" ]]; then
+          echo "PROJECT_ID=${{ env.PRD_PROJECT_ID }}" >> $GITHUB_ENV
+        elif [[ "${{ env.ENVIRONMENT }}" == "staging" ]]; then
+          echo "PROJECT_ID=${{ env.STG_PROJECT_ID }}" >> $GITHUB_ENV
+        fi
+
     - name: Checkout code
       uses: actions/checkout@v3
 
@@ -43,18 +62,18 @@ jobs:
         clean_name=$(echo "$raw_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_.-]//g')
         echo "REPO_NAME=$clean_name" >> $GITHUB_ENV
 
-    - name: Build and push staging Docker image on regular push
-      if: startsWith(github.ref, 'refs/heads/')
+    - name: Build and push image
+      if: env.ENVIRONMENT == 'staging'
       uses: docker/build-push-action@v3
       with:
         push: true
         tags: |
-          ${{ env.ARTIFACT_REGISTRY_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_NAME }}/${{ env.REPO_NAME }}:staging
+          ${{ env.ARTIFACT_REGISTRY_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_NAME }}/${{ env.REPO_NAME }}:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Build and push production Docker image on new tag
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Build and push image (Production)
+      if: env.ENVIRONMENT == 'production'
       uses: docker/build-push-action@v3
       with:
         push: true
