@@ -64,7 +64,7 @@ jobs:
 
     - name: Build and push image
       if: env.ENVIRONMENT == 'staging'
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         push: true
         tags: |
@@ -74,7 +74,7 @@ jobs:
 
     - name: Build and push image (Production)
       if: env.ENVIRONMENT == 'production'
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         push: true
         tags: |
