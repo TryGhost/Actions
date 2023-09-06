@@ -59,7 +59,7 @@ jobs:
     
     - name: Build final manifest
       run: |
-        kubectl kustomize ./k8s/overlay/${{ env.ENVIRONMENT }} > /tmp/built-manifest.yaml
+        kubectl kustomize ./k8s/overlays/${{ env.ENVIRONMENT }} > /tmp/built-manifest.yaml
     
     - name: Setup yq
       run: |
