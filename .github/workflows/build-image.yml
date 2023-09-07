@@ -5,6 +5,11 @@ on:
     secrets:
       GCP_SA_JSON:
         required: true
+    inputs:
+      BRANCH:
+        description: 'The branch to build for staging deployments'
+        default: main
+        type: string
 
 env:
   STG_PROJECT_ID: stg-pro-397609
@@ -16,11 +21,11 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/${{ inputs.BRANCH }}' || startsWith(github.ref, 'refs/tags/'))
 
     steps:
     - name: Set environment (Staging)
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/${{ inputs.BRANCH }}'
       run: |
         echo "ENVIRONMENT=staging" >> $GITHUB_ENV
 
