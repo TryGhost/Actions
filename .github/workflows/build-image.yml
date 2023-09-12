@@ -67,10 +67,11 @@ jobs:
         clean_name=$(echo "$raw_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_.-]//g')
         echo "REPO_NAME=$clean_name" >> $GITHUB_ENV
 
-    - name: Build and push image
+    - name: Build and push image (Staging)
       if: env.ENVIRONMENT == 'staging'
       uses: docker/build-push-action@v3
       with:
+        context: .
         push: true
         tags: |
           ${{ env.ARTIFACT_REGISTRY_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_NAME }}/${{ env.REPO_NAME }}:latest
@@ -81,6 +82,7 @@ jobs:
       if: env.ENVIRONMENT == 'production'
       uses: docker/build-push-action@v3
       with:
+        context: .
         push: true
         tags: |
           ${{ env.ARTIFACT_REGISTRY_LOCATION }}/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_NAME }}/${{ env.REPO_NAME }}:${{ github.ref_name }}
