@@ -43,7 +43,12 @@ jobs:
       - run: yarn
       - run: yarn main:submodules
 
-      - run: if [ -n "$(git status --porcelain)" ]; then git add ghost/core/content/themes/casper && git commit -m "Updated Casper"; fi
+      - name: Commit changed files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git diff
+            git add -A && git commit -m "Added untracked files";
+          fi
 
       - uses: asdf-vm/actions/install@v2
         with:
