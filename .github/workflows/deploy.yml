@@ -10,6 +10,10 @@ on:
         description: 'The branch to build for staging deployments'
         default: main
         type: string
+      ENABLE_PRODUCTION:
+        description: 'Deploy production builds based on tags'
+        default: true
+        type: boolean
 
 env:
   STG_PROJECT_ID: stg-pro-397609
@@ -21,7 +25,7 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/${{ inputs.BRANCH }}' || startsWith(github.ref, 'refs/tags/'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/${{ inputs.BRANCH }}' || (${{ inputs.ENABLE_PRODUCTION }} && startsWith(github.ref, 'refs/tags/')))
 
     steps:
     - name: Set environment (Staging)
