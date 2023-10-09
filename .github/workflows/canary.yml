@@ -50,7 +50,7 @@ jobs:
             git add -A && git commit -m "Added untracked files";
           fi
 
-      - uses: asdf-vm/actions/install@v2
+      - uses: asdf-vm/actions/install@v3
         with:
           tool_versions: |
             semver 3.3.0
