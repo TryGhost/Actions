@@ -1427,6 +1427,19 @@ class HttpClientResponse {
             }));
         });
     }
+    readBodyBuffer() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                const chunks = [];
+                this.message.on('data', (chunk) => {
+                    chunks.push(chunk);
+                });
+                this.message.on('end', () => {
+                    resolve(Buffer.concat(chunks));
+                });
+            }));
+        });
+    }
 }
 exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
@@ -1931,7 +1944,13 @@ function getProxyUrl(reqUrl) {
         }
     })();
     if (proxyVar) {
-        return new URL(proxyVar);
+        try {
+            return new URL(proxyVar);
+        }
+        catch (_a) {
+            if (!proxyVar.startsWith('http://') && !proxyVar.startsWith('https://'))
+                return new URL(`http://${proxyVar}`);
+        }
     }
     else {
         return undefined;
@@ -5985,10 +6004,6 @@ function getNodeRequestOptions(request) {
 		agent = agent(parsedURL);
 	}
 
-	if (!headers.has('Connection') && !agent) {
-		headers.set('Connection', 'close');
-	}
-
 	// HTTP-network fetch step 4.2
 	// chunked encoding is handled by Node.js
 
@@ -6362,8 +6377,11 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 
 		if (headers['transfer-encoding'] === 'chunked' && !headers['content-length']) {
 			response.once('close', function (hadError) {
+				// tests for socket presence, as in some situations the
+				// the 'socket' event is not triggered for the request
+				// (happens in deno), avoids `TypeError`
 				// if a data listener is still present we didn't end cleanly
-				const hasDataListener = socket.listenerCount('data') > 0;
+				const hasDataListener = socket && socket.listenerCount('data') > 0;
 
 				if (hasDataListener && !hadError) {
 					const err = new Error('Premature close');
@@ -6405,6 +6423,7 @@ exports.Headers = Headers;
 exports.Request = Request;
 exports.Response = Response;
 exports.FetchError = FetchError;
+exports.AbortError = AbortError;
 
 
 /***/ }),
@@ -9616,13 +9635,13 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = {
-    TEAM_ISSUE_P0: `This issue has been labelled as P0 which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P0: `This issue has been labelled as P0, which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P1: `This issue has been labelled as P1 which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P1: `This issue has been labelled as P1, which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P2: `This issue has been labelled as P2 which means a fix should be in the next scheduled release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P2: `This issue has been labelled as P2, which means a fix should be done after current project work. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P3: `This issue has been labelled as P3 which means this is a low priority issue for the next cooldown phase, and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P3: `This issue has been labelled as P3, which means this is a low priority issue and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
     TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
 
@@ -10562,7 +10581,7 @@ async function main() {
                 } else if (label.name === 'p1:priority') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p2:major') {
+                } else if (label.name === 'p2') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'p3:minor') {
