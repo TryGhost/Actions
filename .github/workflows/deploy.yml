@@ -25,11 +25,11 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/${{ inputs.BRANCH }}' || (${{ inputs.ENABLE_PRODUCTION }} && startsWith(github.ref, 'refs/tags/')))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/${{ github.event.inputs.BRANCH }}' || (${{ github.event.inputs.ENABLE_PRODUCTION }} && startsWith(github.ref, 'refs/tags/')))
 
     steps:
     - name: Set environment (Staging)
-      if: github.ref == 'refs/heads/${{ inputs.BRANCH }}'
+      if: github.ref == 'refs/heads/${{ github.event.inputs.BRANCH }}'
       run: |
         echo "ENVIRONMENT=staging" >> $GITHUB_ENV
 
