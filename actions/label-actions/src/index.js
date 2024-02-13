@@ -47,7 +47,7 @@ async function main() {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
             const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
 
-            if (needsTriageLabelEvent && helpers.isOlderThanXWeeks(needsTriageLabelEvent.created_at, 4)) {
+            if (false && needsTriageLabelEvent && helpers.isOlderThanXWeeks(needsTriageLabelEvent.created_at, 4)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabelEvent)) {
                     continue;
                 }
