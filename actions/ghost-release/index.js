@@ -77,7 +77,6 @@ const ghostVersion = ghostPackageInfo.version;
         const ghostVersionTagged = (semver.major(ghostVersion) >= 4) ? `v${ghostVersion}` : ghostVersion;
 
         let extraText = `---\n\nView the changelog for full details: https://github.com/tryghost/ghost/compare/${previousVersionTagged}...${ghostVersionTagged}`;
-        extraText += `\n\n💻 We're looking for DevOps engineers to join Ghost: https://careers.ghost.org/devops-engineer`;
 
         await releaseUtils.releases.create({
             draft: false,
