@@ -15,7 +15,7 @@
     "index.js"
   ],
   "devDependencies": {
-    "@zeit/ncc": "0.22.3",
+    "@vercel/ncc": "0.38.1",
     "eslint": "8.40.0",
     "eslint-plugin-ghost": "3.0.0"
   },
