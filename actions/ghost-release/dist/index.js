@@ -99627,18 +99627,7 @@ const ghostVersion = ghostPackageInfo.version;
             inputs: {
                 version: 'ref',
                 version_extra: `refs/tags/${ghostVersionTagged}`,
-                environment: 'production'
-            }
-        });
-        await client.rest.actions.createWorkflowDispatch({
-            owner: 'TryGhost',
-            repo: 'Ghost-Moya',
-            workflow_id: '.github/workflows/deploy-optimised.yml',
-            ref: 'assets-build',
-            inputs: {
-                version: 'ref',
-                version_extra: `refs/tags/${ghostVersionTagged}`,
-                environment: 'staging'
+                environment: 'both'
             }
         });
     } catch (err) {
