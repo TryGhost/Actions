@@ -9635,13 +9635,13 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = {
-    TEAM_ISSUE_P0: `This issue has been labelled as P0, which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P1: `This issue has been labelled as P1, which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P1: `This issue has been labelled as P1, which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P2: `This issue has been labelled as P2, which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P2: `This issue has been labelled as P2, which means a fix should be done after current project work. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P3: `This issue has been labelled as P3, which means a fix should be done after current project work. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
-    TEAM_ISSUE_P3: `This issue has been labelled as P3, which means this is a low priority issue and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
+    TEAM_ISSUE_P4: `This issue has been labelled as P4, which means this is a low priority issue and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
 
     TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
 
@@ -10567,17 +10567,17 @@ async function main() {
 
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else if (helpers.isTeamRepo()) {
-                if (label.name === 'p0:critical') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p1:priority') {
+                if (label.name === 'P1 - Urgent') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p2') {
+                } else if (label.name === 'P2 - High') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p3:minor') {
+                } else if (label.name === 'P3 - Medium') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
+                } else if (label.name === 'P4 - Low') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P4);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
