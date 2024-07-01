@@ -248,17 +248,17 @@ async function main() {
 
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else if (helpers.isTeamRepo()) {
-                if (label.name === 'p0:critical') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P0);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p1:priority') {
+                if (label.name === 'P1 - Urgent') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p2') {
+                } else if (label.name === 'P2 - High') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'p3:minor') {
+                } else if (label.name === 'P3 - Medium') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
+                    await helpers.removeNeedsTriageLabelIfOlder(issue);
+                } else if (label.name === 'P4 - Low') {
+                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P4);
                     await helpers.removeNeedsTriageLabelIfOlder(issue);
                 } else if (label.name === 'oss') {
                     await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
