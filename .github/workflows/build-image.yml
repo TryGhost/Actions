@@ -73,7 +73,7 @@ jobs:
 
     - name: Build and push image (Staging)
       if: env.ENVIRONMENT == 'staging'
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
@@ -84,7 +84,7 @@ jobs:
 
     - name: Build and push image (Production)
       if: env.ENVIRONMENT == 'production'
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
