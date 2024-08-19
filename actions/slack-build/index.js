@@ -47,6 +47,7 @@ const githubActorToSlackId = {
     minimaluminium: 'U019YHN4WSG',
     rishabhgrg: 'UCB9U7X99',
     naz: 'UCBHY29PX',
+    dvdwinden: 'U067DTGJXEX',
 
     'binary-koan': 'U0556P426LF',
     lenabaidakova: 'U043VFG46HY',
