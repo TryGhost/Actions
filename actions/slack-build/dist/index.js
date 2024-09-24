@@ -6062,6 +6062,8 @@ const openLink = `<https://github.com/${githubRepo}/actions/runs/${githubRunId}/
 let actorLink = githubActor;
 
 const githubActorToSlackId = {
+    ErisDS: 'U02563SGY',
+
     daniellockyer: 'URZENL0V7',
     'sam-lord': 'U017YUER0HL',
     JoeeGrigg: 'U02LNNXJKGA',
