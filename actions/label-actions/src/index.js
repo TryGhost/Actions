@@ -124,7 +124,7 @@ async function main() {
         if (payload.action === 'labeled') {
             const label = payload.label;
 
-            const TRIAGE_WITHOUT_COMMENT_LABELS = ['bug', 'community project', 'good first issue', 'help wanted'];
+            const TRIAGE_WITHOUT_COMMENT_LABELS = ['bug', 'community', 'core team', 'good first issue', 'help wanted'];
 
             if (label.name === 'Ghost(Pro)') {
                 await helpers.removeNeedsTriageLabel(issue);
