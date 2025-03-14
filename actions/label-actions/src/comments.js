@@ -1,14 +1,4 @@
 module.exports = {
-    TEAM_ISSUE_P1: `This issue has been labelled as P1, which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_P2: `This issue has been labelled as P2, which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_P3: `This issue has been labelled as P3, which means a fix should be done after current project work. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_P4: `This issue has been labelled as P4, which means this is a low priority issue and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
-
     SUPPORT_REQUEST: `Hey @{issue-author} 👋 We ask that you please do not use GitHub for help or support 😄. We use GitHub solely for bug-tracking and community-driven development.
 
 Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/6) is a great place to get community support, plus it helps create a central location for searching problems/solutions.
@@ -35,8 +25,6 @@ Please reopen this issue using our [bug report template](https://github.com/{rep
 
 Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this for now, but let us know if you manage to dig up some more info and we'll reopen.`,
 
-    PING_ASSIGNEE: `This issue is currently awaiting triage from @{issue-assignee}. We're having a busy time right now, but we'll update this issue ASAP. If you have any more information to help us triage faster please leave us some comments. Thank you for understanding 🙂`,
-
     INVALID_SECURITY_REPORT: `If you'd like to report a security issue with Ghost, please follow the responsible disclosure process outlined in our [security policy](https://github.com/{repository-name}/security/policy). Security issues are reported privately so that are able to properly manage disclosure and patching. Many repositories have these policies and they are very clearly sign-posted.
 
 If you're trying to report a dependency with a known vulnerability, we appreciate your time however we already have automated systems in place to ensure these are surfaced and assessed in a timely manner. The majority of the time, these are invalid reports as the vulnerability cannot be exploited via Ghost. We recommend reading this article about how [npm audit is mostly wrong](https://overreacted.io/npm-audit-broken-by-design/).`,
@@ -51,11 +39,7 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 
     PR_NEEDS_INFO_CLOSED: `Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this PR for now, but let us know if you manage to dig up some more info and we'll reopen. Thank you 🙏`,
 
-    PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`,
-
     PR_CHANGES_REQUESTED: `Note from our bot: Some changes have been requested on this pull request. Updating your code is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've made the changes. Thank you 🙏`,
-
-    PR_CHANGES_REQUESTED_REMINDER: `Hi there 👋 We requested a few changes on this PR, but haven't heard back. If you are still interested in helping us get this change into Ghost please comment and let us know. Thank you 🙏`,
 
     PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`
 };

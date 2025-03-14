@@ -33,31 +33,6 @@ async function main() {
             }
         }
 
-        const openNeedsTriageIssues = await helpers.listOpenNeedsTriageIssues();
-        for (const openIssue of openNeedsTriageIssues) {
-            if (helpers.isTeamRepo()) {
-                // Clean up any issues which have been added to a Project because they don't need triaging
-                const projects = await helpers.getProjectsForIssue(openIssue);
-                if (projects.length) {
-                    await helpers.removeNeedsTriageLabel(openIssue);
-                    continue;
-                }
-            }
-
-            const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
-
-            if (false && needsTriageLabelEvent && helpers.isOlderThanXWeeks(needsTriageLabelEvent.created_at, 4)) {
-                if (helpers.isPendingOnInternal(existingTimelineEvents, needsTriageLabelEvent)) {
-                    continue;
-                }
-
-                const issueAssignee = helpers.isTeamRepo() ? '55sketch' : (openIssue?.assignees?.[0]?.login || 'daniellockyer');
-                await helpers.leaveComment(openIssue, comments.PING_ASSIGNEE, {'{issue-assignee}': issueAssignee});
-                continue;
-            }
-        }
-
         const openPullRequests = await helpers.listOpenPullRequests();
         for (const openPullRequest of openPullRequests) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openPullRequest);
@@ -114,21 +89,6 @@ async function main() {
             }
             return;
         }
-
-        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
-            const ownerLogin = payload.pull_request.user.login;
-
-            // Renovate PRs don't need comments
-            if (ownerLogin === 'renovate[bot]') {
-                return;
-            }
-
-            const isCollaboratorRequest = await helpers.isCollaboratorRequest(ownerLogin);
-            if (!isCollaboratorRequest) {
-                //await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
-            }
-            return;
-        }
     }
 
     if (payload.issue) {
@@ -145,56 +105,8 @@ async function main() {
                 return;
             }
 
-            if (helpers.isTeamRepo()) {
-                if (existingLabels.find(l => l.name.startsWith('flaky-test'))) {
-                    await helpers.addToFlakyTestTaskList(issue);
-                    return;
-                }
-
-                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix', 'later', 'tasklist'];
-                const projectLabels = existingLabels.filter(l => l.name.startsWith('project:'));
-                const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
-                if (projectLabels.length || similarLabels.length) {
-                    // we already have a triaged label, so we don't need to add needs triage
-                    return;
-                }
-
-                // Don't add `needs:triage` for issues assigned to a project
-                const projects = await helpers.getProjectsForIssue(issue);
-                if (projects.length) {
-                    return;
-                }
-
-                const trackingIssues = await helpers.getTrackingIssues(issue);
-                if (trackingIssues.length) {
-                    const firstTrackingIssue = trackingIssues[0];
-
-                    const trackingIssueProjects = await helpers.getProjectsForIssue(firstTrackingIssue);
-                    if (!trackingIssueProjects.length) {
-                        return;
-                    }
-
-                    const projectColumns = await helpers.getProjectColumns(trackingIssueProjects[0].id);
-                    const statusColumn = projectColumns.find(c => c.name === 'Status');
-
-                    if (!statusColumn) {
-                        return;
-                    }
-
-                    const todoOption = statusColumn.options.find(o => ['To Do', 'Todo'].includes(o.name) || o.name.includes('Todo'));
-                    if (!todoOption) {
-                        return;
-                    }
-
-                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, {
-                        [statusColumn.id]: todoOption.id
-                    });
-                    return;
-                }
-            }
-
             // Ignore labelled issues from Ghost core team triagers on external repos
-            if (!helpers.isTeamRepo() && Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
+            if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
                 return;
             }
 
@@ -240,30 +152,7 @@ async function main() {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
             } else if (label.name === 'bug') {
-                // We have templates for bug reports in the Team repo, so we shouldn't
-                // assume the issue has been triaged, so we shouldn't remove the label
-                if (helpers.isTeamRepo()) {
-                    return;
-                }
-
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
-            } else if (helpers.isTeamRepo()) {
-                if (label.name === 'P1 - Urgent') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'P2 - High') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'P3 - Medium') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'P4 - Low') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P4);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'oss') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else {

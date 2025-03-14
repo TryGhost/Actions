@@ -17,10 +17,6 @@ module.exports = class Helpers {
         this.repo = repo;
     }
 
-    isTeamRepo() {
-        return this.repo.owner === 'TryGhost' && this.repo.repo === 'Product';
-    }
-
     async enablePRAutoMerge(pullRequest) {
         await this.client.graphql(`
             mutation enablePRAutoMerge($pullRequestId: ID!) {
@@ -71,53 +67,6 @@ module.exports = class Helpers {
     }
 
     /**
-     * @param {string} username
-     */
-    async isCollaboratorRequest(username) {
-        try {
-            await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
-                ...this.repo,
-                username
-            });
-
-            return true;
-        } catch (err) {
-            if (err.status !== 404) {
-                throw err;
-            }
-
-            return false;
-        }
-    }
-
-    /**
-     * @param {object} issue
-     */
-    async getTrackingIssues(issue) {
-        const response = await this.client.graphql(`
-            query issue($owner: String!, $repo: String!, $number: Int!) {
-                repository(owner: $owner, name: $repo) {
-                    issue(number: $number) {
-                        title
-                        trackedInIssues(first: 20) {
-                            nodes {
-                                id
-                                title
-                                url
-                                number
-                                resourcePath
-                            }
-                        }
-                    }
-                }
-            }`, {
-            ...this.repo,
-            number: issue.number
-        });
-        return response?.repository?.issue?.trackedInIssues?.nodes || [];
-    }
-
-    /**
      * @param {object} issue
      * @param {string} projectId
      * @param {object} [options]
@@ -156,131 +105,6 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
-     * @param {boolean} [urgent]
-     */
-    async addToCoreBacklog(issue, urgent = false) {
-        const options = {
-            'PVTSSF_lADOACE-Z84AMpxNzgIEnW4': '698e45eb' // Status = Backlog
-        };
-
-        if (urgent) {
-            options['PVTSSF_lADOACE-Z84AMpxNzgII6Gw'] = 'd78c9410'; // Appetite = Urgent
-            options['PVTSSF_lADOACE-Z84AMpxNzgIEnW4'] = '1d562eba'; // Status = Todo
-        }
-
-        await this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AMpxN', options);
-    }
-
-    async addToFlakyTestTaskList(issue) {
-        // https://github.com/TryGhost/Team/issues/2833
-        const flakyTestIssueNumber = 2833;
-
-        const {data: parentIssue} = await this.client.rest.issues.get({
-            owner: 'TryGhost',
-            repo: 'Team',
-            issue_number: flakyTestIssueNumber
-        });
-
-        if (parentIssue.state === 'closed') {
-            return;
-        }
-
-        const currentBody = parentIssue.body;
-
-        if (!currentBody?.includes('```[tasklist]')) {
-            return;
-        }
-
-        const currentBodyLines = currentBody.split('\n');
-        const endOfTaskList = currentBodyLines.findIndex(line => line === '```');
-
-        if (endOfTaskList === -1) {
-            return;
-        }
-
-        currentBodyLines.splice(endOfTaskList, 0, `- [ ] ${issue.html_url}`);
-
-        await this.client.rest.issues.update({
-            owner: 'TryGhost',
-            repo: 'Team',
-            issue_number: flakyTestIssueNumber,
-            body: currentBodyLines.join('\n')
-        });
-    }
-
-    /**
-     * @param {object} issue
-     */
-    async getProjectsForIssue(issue) {
-        const response = await this.client.graphql(`
-            query issue($owner: String!, $repo: String!, $number: Int!) {
-                repository(owner: $owner, name: $repo) {
-                    issue(number: $number) {
-                        title
-                        projectsV2(first: 20) {
-                            nodes {
-                                id
-                                title
-                                url
-                                number
-                                resourcePath
-                            }
-                        }
-                    }
-                }
-            }`, {
-            ...this.repo,
-            number: issue.number
-        });
-
-        return response?.repository?.issue?.projectsV2?.nodes || [];
-    }
-
-    /**
-     * @param {strings } projectId
-     */
-    async getProjectColumns(projectId) {
-        const response = await this.client.graphql(`
-            query project($projectId: ID!) {
-                node(id: $projectId) {
-                    ... on ProjectV2 {
-                        fields(first: 20) {
-                            nodes {
-                                ... on ProjectV2Field {
-                                    id
-                                    name
-                                }
-                                ... on ProjectV2IterationField {
-                                    id
-                                    name
-                                    configuration {
-                                        iterations {
-                                            startDate
-                                            id
-                                        }
-                                    }
-                                }
-                                ... on ProjectV2SingleSelectField {
-                                    id
-                                    name
-                                    options {
-                                        id
-                                        name
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }`, {
-            projectId
-        });
-
-        return response?.node?.fields?.nodes || [];
-    }
-
-    /**
-     * @param {object} issue
      */
     async removeNeedsTriageLabelIfOlder(issue) {
         // check if the issue was opened with one of these labels AFTER we added `needs:triage`
@@ -290,18 +114,6 @@ module.exports = class Helpers {
         if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
-    }
-
-    /**
-     * @returns {Promise<Array>}
-     */
-    async listOpenNeedsTriageIssues() {
-        const {data: needsTriageIssues} = await this.client.rest.issues.listForRepo({
-            ...this.repo,
-            state: 'open',
-            labels: 'needs:triage'
-        });
-        return needsTriageIssues;
     }
 
     /**
@@ -392,16 +204,6 @@ module.exports = class Helpers {
             issue_number: issue.number,
             state: 'closed',
             state_reason: stateReason
-        });
-    }
-
-    /**
-     * @param {string} name
-     */
-    async createLabel(name) {
-        await this.client.rest.issues.createLabel({
-            ...this.repo,
-            name
         });
     }
 

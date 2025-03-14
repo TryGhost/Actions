@@ -9635,16 +9635,6 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = {
-    TEAM_ISSUE_P1: `This issue has been labelled as P1, which means it needs an immediate fix and release. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_P2: `This issue has been labelled as P2, which means a fix and release should be prioritized during working hours. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_P3: `This issue has been labelled as P3, which means a fix should be done after current project work. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_P4: `This issue has been labelled as P4, which means this is a low priority issue and may be moved to the OSS repo. See https://www.notion.so/ghost/Bug-Prioritization-bc64d4e9ebd3468ca31c9f8ac15cba0b for more info.`,
-
-    TEAM_ISSUE_OSS: `This issue has been labelled as \`oss\`, which means it is a rare or low priority issue suitable for our contributors to work on. The triager will move it to the correct repo soon.`,
-
     SUPPORT_REQUEST: `Hey @{issue-author} 👋 We ask that you please do not use GitHub for help or support 😄. We use GitHub solely for bug-tracking and community-driven development.
 
 Many questions can be answered by reviewing our [documentation](https://ghost.org/docs/). If you can't find an answer then our [forum](https://forum.ghost.org/c/help/6) is a great place to get community support, plus it helps create a central location for searching problems/solutions.
@@ -9671,8 +9661,6 @@ Please reopen this issue using our [bug report template](https://github.com/{rep
 
 Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this for now, but let us know if you manage to dig up some more info and we'll reopen.`,
 
-    PING_ASSIGNEE: `This issue is currently awaiting triage from @{issue-assignee}. We're having a busy time right now, but we'll update this issue ASAP. If you have any more information to help us triage faster please leave us some comments. Thank you for understanding 🙂`,
-
     INVALID_SECURITY_REPORT: `If you'd like to report a security issue with Ghost, please follow the responsible disclosure process outlined in our [security policy](https://github.com/{repository-name}/security/policy). Security issues are reported privately so that are able to properly manage disclosure and patching. Many repositories have these policies and they are very clearly sign-posted.
 
 If you're trying to report a dependency with a known vulnerability, we appreciate your time however we already have automated systems in place to ensure these are surfaced and assessed in a timely manner. The majority of the time, these are invalid reports as the vulnerability cannot be exploited via Ghost. We recommend reading this article about how [npm audit is mostly wrong](https://overreacted.io/npm-audit-broken-by-design/).`,
@@ -9687,11 +9675,7 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 
     PR_NEEDS_INFO_CLOSED: `Our team needed some more info to get to the bottom of this, however we've not heard back from you. We're going to close this PR for now, but let us know if you manage to dig up some more info and we'll reopen. Thank you 🙏`,
 
-    PR_MERGED: `Thank you for your PR 🙏 It has now been merged 🎉 and will be in the next release, which is usually on a Friday. Hope to see you again soon 👋`,
-
     PR_CHANGES_REQUESTED: `Note from our bot: Some changes have been requested on this pull request. Updating your code is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've made the changes. Thank you 🙏`,
-
-    PR_CHANGES_REQUESTED_REMINDER: `Hi there 👋 We requested a few changes on this PR, but haven't heard back. If you are still interested in helping us get this change into Ghost please comment and let us know. Thank you 🙏`,
 
     PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`
 };
@@ -9719,10 +9703,6 @@ module.exports = class Helpers {
     constructor(token, repo) {
         this.client = github.getOctokit(token);
         this.repo = repo;
-    }
-
-    isTeamRepo() {
-        return this.repo.owner === 'TryGhost' && this.repo.repo === 'Product';
     }
 
     async enablePRAutoMerge(pullRequest) {
@@ -9775,53 +9755,6 @@ module.exports = class Helpers {
     }
 
     /**
-     * @param {string} username
-     */
-    async isCollaboratorRequest(username) {
-        try {
-            await this.client.request('GET /repos/{owner}/{repo}/collaborators/{username}', {
-                ...this.repo,
-                username
-            });
-
-            return true;
-        } catch (err) {
-            if (err.status !== 404) {
-                throw err;
-            }
-
-            return false;
-        }
-    }
-
-    /**
-     * @param {object} issue
-     */
-    async getTrackingIssues(issue) {
-        const response = await this.client.graphql(`
-            query issue($owner: String!, $repo: String!, $number: Int!) {
-                repository(owner: $owner, name: $repo) {
-                    issue(number: $number) {
-                        title
-                        trackedInIssues(first: 20) {
-                            nodes {
-                                id
-                                title
-                                url
-                                number
-                                resourcePath
-                            }
-                        }
-                    }
-                }
-            }`, {
-            ...this.repo,
-            number: issue.number
-        });
-        return response?.repository?.issue?.trackedInIssues?.nodes || [];
-    }
-
-    /**
      * @param {object} issue
      * @param {string} projectId
      * @param {object} [options]
@@ -9860,131 +9793,6 @@ module.exports = class Helpers {
 
     /**
      * @param {object} issue
-     * @param {boolean} [urgent]
-     */
-    async addToCoreBacklog(issue, urgent = false) {
-        const options = {
-            'PVTSSF_lADOACE-Z84AMpxNzgIEnW4': '698e45eb' // Status = Backlog
-        };
-
-        if (urgent) {
-            options['PVTSSF_lADOACE-Z84AMpxNzgII6Gw'] = 'd78c9410'; // Appetite = Urgent
-            options['PVTSSF_lADOACE-Z84AMpxNzgIEnW4'] = '1d562eba'; // Status = Todo
-        }
-
-        await this.addIssueToProject(issue, 'PVT_kwDOACE-Z84AMpxN', options);
-    }
-
-    async addToFlakyTestTaskList(issue) {
-        // https://github.com/TryGhost/Team/issues/2833
-        const flakyTestIssueNumber = 2833;
-
-        const {data: parentIssue} = await this.client.rest.issues.get({
-            owner: 'TryGhost',
-            repo: 'Team',
-            issue_number: flakyTestIssueNumber
-        });
-
-        if (parentIssue.state === 'closed') {
-            return;
-        }
-
-        const currentBody = parentIssue.body;
-
-        if (!currentBody?.includes('```[tasklist]')) {
-            return;
-        }
-
-        const currentBodyLines = currentBody.split('\n');
-        const endOfTaskList = currentBodyLines.findIndex(line => line === '```');
-
-        if (endOfTaskList === -1) {
-            return;
-        }
-
-        currentBodyLines.splice(endOfTaskList, 0, `- [ ] ${issue.html_url}`);
-
-        await this.client.rest.issues.update({
-            owner: 'TryGhost',
-            repo: 'Team',
-            issue_number: flakyTestIssueNumber,
-            body: currentBodyLines.join('\n')
-        });
-    }
-
-    /**
-     * @param {object} issue
-     */
-    async getProjectsForIssue(issue) {
-        const response = await this.client.graphql(`
-            query issue($owner: String!, $repo: String!, $number: Int!) {
-                repository(owner: $owner, name: $repo) {
-                    issue(number: $number) {
-                        title
-                        projectsV2(first: 20) {
-                            nodes {
-                                id
-                                title
-                                url
-                                number
-                                resourcePath
-                            }
-                        }
-                    }
-                }
-            }`, {
-            ...this.repo,
-            number: issue.number
-        });
-
-        return response?.repository?.issue?.projectsV2?.nodes || [];
-    }
-
-    /**
-     * @param {strings } projectId
-     */
-    async getProjectColumns(projectId) {
-        const response = await this.client.graphql(`
-            query project($projectId: ID!) {
-                node(id: $projectId) {
-                    ... on ProjectV2 {
-                        fields(first: 20) {
-                            nodes {
-                                ... on ProjectV2Field {
-                                    id
-                                    name
-                                }
-                                ... on ProjectV2IterationField {
-                                    id
-                                    name
-                                    configuration {
-                                        iterations {
-                                            startDate
-                                            id
-                                        }
-                                    }
-                                }
-                                ... on ProjectV2SingleSelectField {
-                                    id
-                                    name
-                                    options {
-                                        id
-                                        name
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }`, {
-            projectId
-        });
-
-        return response?.node?.fields?.nodes || [];
-    }
-
-    /**
-     * @param {object} issue
      */
     async removeNeedsTriageLabelIfOlder(issue) {
         // check if the issue was opened with one of these labels AFTER we added `needs:triage`
@@ -9994,18 +9802,6 @@ module.exports = class Helpers {
         if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
-    }
-
-    /**
-     * @returns {Promise<Array>}
-     */
-    async listOpenNeedsTriageIssues() {
-        const {data: needsTriageIssues} = await this.client.rest.issues.listForRepo({
-            ...this.repo,
-            state: 'open',
-            labels: 'needs:triage'
-        });
-        return needsTriageIssues;
     }
 
     /**
@@ -10096,16 +9892,6 @@ module.exports = class Helpers {
             issue_number: issue.number,
             state: 'closed',
             state_reason: stateReason
-        });
-    }
-
-    /**
-     * @param {string} name
-     */
-    async createLabel(name) {
-        await this.client.rest.issues.createLabel({
-            ...this.repo,
-            name
         });
     }
 
@@ -10360,23 +10146,6 @@ async function main() {
             }
         }
 
-        const openNeedsTriageIssues = await helpers.listOpenNeedsTriageIssues();
-        for (const openIssue of openNeedsTriageIssues) {
-            if (helpers.isTeamRepo()) {
-                // Clean up any issues which have been added to a Project because they don't need triaging
-                const projects = await helpers.getProjectsForIssue(openIssue);
-                if (projects.length) {
-                    await helpers.removeNeedsTriageLabel(openIssue);
-                    continue;
-                }
-            }
-
-            const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsTriageLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
-
-            if (false) {}
-        }
-
         const openPullRequests = await helpers.listOpenPullRequests();
         for (const openPullRequest of openPullRequests) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openPullRequest);
@@ -10433,21 +10202,6 @@ async function main() {
             }
             return;
         }
-
-        if (!helpers.isTeamRepo() && payload.action === 'closed' && payload.pull_request.merged) {
-            const ownerLogin = payload.pull_request.user.login;
-
-            // Renovate PRs don't need comments
-            if (ownerLogin === 'renovate[bot]') {
-                return;
-            }
-
-            const isCollaboratorRequest = await helpers.isCollaboratorRequest(ownerLogin);
-            if (!isCollaboratorRequest) {
-                //await helpers.leaveComment(payload.pull_request, comments.PR_MERGED);
-            }
-            return;
-        }
     }
 
     if (payload.issue) {
@@ -10464,56 +10218,8 @@ async function main() {
                 return;
             }
 
-            if (helpers.isTeamRepo()) {
-                if (existingLabels.find(l => l.name.startsWith('flaky-test'))) {
-                    await helpers.addToFlakyTestTaskList(issue);
-                    return;
-                }
-
-                const INTERNAL_LABELS = ['technical-debt', 'priority-cleanup', 'minor-feature', 'next-major', 'wontfix', 'later', 'tasklist'];
-                const projectLabels = existingLabels.filter(l => l.name.startsWith('project:'));
-                const similarLabels = existingLabels.filter(l => INTERNAL_LABELS.includes(l.name));
-                if (projectLabels.length || similarLabels.length) {
-                    // we already have a triaged label, so we don't need to add needs triage
-                    return;
-                }
-
-                // Don't add `needs:triage` for issues assigned to a project
-                const projects = await helpers.getProjectsForIssue(issue);
-                if (projects.length) {
-                    return;
-                }
-
-                const trackingIssues = await helpers.getTrackingIssues(issue);
-                if (trackingIssues.length) {
-                    const firstTrackingIssue = trackingIssues[0];
-
-                    const trackingIssueProjects = await helpers.getProjectsForIssue(firstTrackingIssue);
-                    if (!trackingIssueProjects.length) {
-                        return;
-                    }
-
-                    const projectColumns = await helpers.getProjectColumns(trackingIssueProjects[0].id);
-                    const statusColumn = projectColumns.find(c => c.name === 'Status');
-
-                    if (!statusColumn) {
-                        return;
-                    }
-
-                    const todoOption = statusColumn.options.find(o => ['To Do', 'Todo'].includes(o.name) || o.name.includes('Todo'));
-                    if (!todoOption) {
-                        return;
-                    }
-
-                    await helpers.addIssueToProject(issue, trackingIssueProjects[0].id, {
-                        [statusColumn.id]: todoOption.id
-                    });
-                    return;
-                }
-            }
-
             // Ignore labelled issues from Ghost core team triagers on external repos
-            if (!helpers.isTeamRepo() && Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
+            if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
                 return;
             }
 
@@ -10559,30 +10265,7 @@ async function main() {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
             } else if (label.name === 'bug') {
-                // We have templates for bug reports in the Team repo, so we shouldn't
-                // assume the issue has been triaged, so we shouldn't remove the label
-                if (helpers.isTeamRepo()) {
-                    return;
-                }
-
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
-            } else if (helpers.isTeamRepo()) {
-                if (label.name === 'P1 - Urgent') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P1);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'P2 - High') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P2);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'P3 - Medium') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P3);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'P4 - Low') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_P4);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (label.name === 'oss') {
-                    await helpers.leaveComment(issue, comments.TEAM_ISSUE_OSS);
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                }
             } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else {
