@@ -92,79 +92,74 @@ async function main() {
     }
 
     if (payload.issue) {
-        core.startGroup(`Processing issue #${payload.issue.number} - ${payload.action} - "${payload.issue.title}"`);
-        try {
-            const issue = payload.issue;
+        const issue = payload.issue;
 
-            if (payload.action === 'opened') {
-                // If an issue is opened with a closeable label, we shouldn't
-                // bother to add `needs:triage`
-                const CLOSEABLE_LABELS = ['support request', 'feature request'];
-                const existingLabels = await helpers.listLabels(issue);
+        if (payload.action === 'opened') {
+            // If an issue is opened with a closeable label, we shouldn't
+            // bother to add `needs:triage`
+            const CLOSEABLE_LABELS = ['support request', 'feature request'];
+            const existingLabels = await helpers.listLabels(issue);
 
-                const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
-                if (shouldIgnore) {
-                    return;
-                }
-
-                // Ignore labelled issues from Ghost core team triagers on external repos
-                if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
-                    return;
-                }
-
-                if (!existingLabels.find(l => l.name === 'needs:triage')) {
-                    await helpers.addLabel(issue, 'needs:triage');
-                }
+            const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
+            if (shouldIgnore) {
                 return;
             }
 
-            if (payload.action === 'closed') {
+            // Ignore labelled issues from Ghost core team triagers on external repos
+            if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
+                return;
+            }
+
+            if (!existingLabels.find(l => l.name === 'needs:triage')) {
+                await helpers.addLabel(issue, 'needs:triage');
+            }
+            return;
+        }
+
+        if (payload.action === 'closed') {
+            await helpers.removeNeedsTriageLabel(issue);
+            return;
+        }
+
+        if (payload.action === 'labeled') {
+            const label = payload.label;
+
+            if (label.name === 'Ghost(Pro)') {
                 await helpers.removeNeedsTriageLabel(issue);
-                return;
+                await helpers.leaveComment(issue, comments.GHOST_PRO);
+                await helpers.closeIssue(issue, 'not_planned');
+            } else if (label.name === 'invalid security report') {
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.INVALID_SECURITY_REPORT);
+                await helpers.closeIssue(issue, 'not_planned');
+            } else if (label.name === 'support request') {
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.SUPPORT_REQUEST);
+                await helpers.closeIssue(issue, 'not_planned');
+            } else if (label.name === 'feature request') {
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.FEATURE_REQUEST);
+                await helpers.closeIssue(issue, 'not_planned');
+            } else if (label.name === 'needs:template') {
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.NEEDS_TEMPLATE);
+                await helpers.closeIssue(issue, 'not_planned');
+            } else if (label.name === 'self hosting') {
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.SELF_HOSTING);
+                await helpers.closeIssue(issue, 'not_planned');
+            } else if (label.name === 'needs:info') {
+                await helpers.removeNeedsTriageLabel(issue);
+                await helpers.leaveComment(issue, comments.NEEDS_INFO);
+            } else if (label.name === 'bug') {
+                await helpers.removeNeedsTriageLabelIfOlder(issue);
+            } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
+                await helpers.removeNeedsTriageLabelIfOlder(issue);
+            } else {
+                core.info(`Encountered an unhandled label: ${label.name}`);
             }
 
-            if (payload.action === 'labeled') {
-                const label = payload.label;
-
-                if (label.name === 'Ghost(Pro)') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.GHOST_PRO);
-                    await helpers.closeIssue(issue, 'not_planned');
-                } else if (label.name === 'invalid security report') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.INVALID_SECURITY_REPORT);
-                    await helpers.closeIssue(issue, 'not_planned');
-                } else if (label.name === 'support request') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.SUPPORT_REQUEST);
-                    await helpers.closeIssue(issue, 'not_planned');
-                } else if (label.name === 'feature request') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.FEATURE_REQUEST);
-                    await helpers.closeIssue(issue, 'not_planned');
-                } else if (label.name === 'needs:template') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.NEEDS_TEMPLATE);
-                    await helpers.closeIssue(issue, 'not_planned');
-                } else if (label.name === 'self hosting') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.SELF_HOSTING);
-                    await helpers.closeIssue(issue, 'not_planned');
-                } else if (label.name === 'needs:info') {
-                    await helpers.removeNeedsTriageLabel(issue);
-                    await helpers.leaveComment(issue, comments.NEEDS_INFO);
-                } else if (label.name === 'bug') {
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
-                    await helpers.removeNeedsTriageLabelIfOlder(issue);
-                } else {
-                    core.info(`Encountered an unhandled label: ${label.name}`);
-                }
-
-                return;
-            }
-        } finally {
-            core.endGroup();
+            return;
         }
     }
 
