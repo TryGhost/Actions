@@ -10264,9 +10264,7 @@ async function main() {
             } else if (label.name === 'needs:info') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
-            } else if (label.name === 'bug') {
-                await helpers.removeNeedsTriageLabelIfOlder(issue);
-            } else if (['community project', 'good first issue', 'help wanted'].includes(label.name)) {
+            } else if (['bug', 'community project', 'good first issue', 'help wanted'].includes(label.name)) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else {
                 core.info(`Encountered an unhandled label: ${label.name}`);
