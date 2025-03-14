@@ -10237,6 +10237,8 @@ async function main() {
         if (payload.action === 'labeled') {
             const label = payload.label;
 
+            const TRIAGE_WITHOUT_COMMENT_LABELS = ['bug', 'community project', 'good first issue', 'help wanted'];
+
             if (label.name === 'Ghost(Pro)') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.GHOST_PRO);
@@ -10264,7 +10266,7 @@ async function main() {
             } else if (label.name === 'needs:info') {
                 await helpers.removeNeedsTriageLabel(issue);
                 await helpers.leaveComment(issue, comments.NEEDS_INFO);
-            } else if (['bug', 'community project', 'good first issue', 'help wanted'].includes(label.name)) {
+            } else if (TRIAGE_WITHOUT_COMMENT_LABELS.includes(label.name.toLowerCase())) {
                 await helpers.removeNeedsTriageLabelIfOlder(issue);
             } else {
                 core.info(`Encountered an unhandled label: ${label.name}`);
