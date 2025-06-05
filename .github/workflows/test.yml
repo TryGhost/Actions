@@ -34,7 +34,7 @@ jobs:
       - run: yarn global add lerna@^4
         if: steps.check_files.outputs.files_exists == 'true'
 
-      - run: yarn --prefer-offline
+      - run: yarn --prefer-offline --frozen-lockfile
       - run: yarn test
 
       - uses: codecov/codecov-action@v3
