@@ -1,0 +1,16 @@
+{
+  "name": "action-terraform-drift",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "https://github.com/TryGhost/action-terraform-drift.git",
+  "author": "Ghost Foundation",
+  "license": "MIT",
+  "scripts": {
+    "build": "ncc build",
+    "lint": "eslint . --ignore-pattern dist --ext .js --cache"
+  },
+  "devDependencies": {
+    "@slack/webhook": "6.1.0",
+    "@vercel/ncc": "0.38.0"
+  }
+}

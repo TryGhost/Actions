@@ -1,0 +1,5 @@
+name: "Slack Terraform Drift Notification"
+description: "Send Slack notifications for GitHub Action Terraform Drift"
+runs:
+  using: "node16"
+  main: "dist/index.js"
