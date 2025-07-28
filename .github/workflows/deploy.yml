@@ -86,7 +86,7 @@ jobs:
     
     - name: Setup yq
       if: steps.checkfolder.outputs.manifests_exist == 'true'
-      uses: supplypike/setup-bin@v3
+      uses: supplypike/setup-bin@v4
       with:
         uri: 'https://github.com/mikefarah/yq/releases/download/v4.35.1/yq_linux_amd64'
         name: 'yq'
