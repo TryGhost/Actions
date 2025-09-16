@@ -1,3 +1,4 @@
+const core = require('@actions/core');
 const github = require('@actions/github');
 
 module.exports = class Helpers {
@@ -238,6 +239,30 @@ module.exports = class Helpers {
             await this.removeLabel(issue, 'needs:triage');
         } catch (err) {
             // It might not exist, that's ok for now.
+        }
+    }
+
+    /**
+     * Check if a user is a member of the Ghost Foundation organization
+     * @param {string} username
+     * @returns {Promise<boolean>}
+     */
+    async isGhostFoundationMember(username) {
+        try {
+            // Check if user is a member of the Ghost Foundation organization
+            await this.client.rest.orgs.checkMembershipForUser({
+                org: 'TryGhost',
+                username: username
+            });
+            return true;
+        } catch (err) {
+            // If we get a 404, the user is not a member
+            if (err.status === 404) {
+                return false;
+            }
+            // For other errors, log and assume not a member
+            core.error(`Error checking organization membership for ${username}: ${err.message}`);
+            return false;
         }
     }
 };

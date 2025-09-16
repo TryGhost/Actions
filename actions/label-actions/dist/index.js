@@ -9686,6 +9686,7 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 /***/ 8505:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 
 module.exports = class Helpers {
@@ -9926,6 +9927,30 @@ module.exports = class Helpers {
             await this.removeLabel(issue, 'needs:triage');
         } catch (err) {
             // It might not exist, that's ok for now.
+        }
+    }
+
+    /**
+     * Check if a user is a member of the Ghost Foundation organization
+     * @param {string} username
+     * @returns {Promise<boolean>}
+     */
+    async isGhostFoundationMember(username) {
+        try {
+            // Check if user is a member of the Ghost Foundation organization
+            await this.client.rest.orgs.checkMembershipForUser({
+                org: 'TryGhost',
+                username: username
+            });
+            return true;
+        } catch (err) {
+            // If we get a 404, the user is not a member
+            if (err.status === 404) {
+                return false;
+            }
+            // For other errors, log and assume not a member
+            core.error(`Error checking organization membership for ${username}: ${err.message}`);
+            return false;
         }
     }
 };
@@ -10182,6 +10207,24 @@ async function main() {
     }
 
     if (payload.pull_request) {
+        if (payload.action === 'opened') {
+            const pullRequest = payload.pull_request;
+            const author = pullRequest.user.login;
+            
+            // Check if the PR author is a member of the Ghost Foundation org
+            const isGhostMember = await helpers.isGhostFoundationMember(author);
+            
+            // Add appropriate label based on membership
+            if (isGhostMember) {
+                await helpers.addLabel(pullRequest, 'core team');
+            } else {
+                await helpers.addLabel(pullRequest, 'community');
+            }
+            
+            core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
+            return;
+        }
+        
         if (payload.action === 'labeled') {
             const label = payload.label;
 

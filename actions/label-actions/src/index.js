@@ -70,6 +70,24 @@ async function main() {
     }
 
     if (payload.pull_request) {
+        if (payload.action === 'opened') {
+            const pullRequest = payload.pull_request;
+            const author = pullRequest.user.login;
+
+            // Check if the PR author is a member of the Ghost Foundation org
+            const isGhostMember = await helpers.isGhostFoundationMember(author);
+
+            // Add appropriate label based on membership
+            if (isGhostMember) {
+                await helpers.addLabel(pullRequest, 'core team');
+            } else {
+                await helpers.addLabel(pullRequest, 'community');
+            }
+
+            core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
+            return;
+        }
+
         if (payload.action === 'labeled') {
             const label = payload.label;
 
