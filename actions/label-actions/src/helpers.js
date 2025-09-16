@@ -2,8 +2,7 @@ const github = require('@actions/github');
 
 module.exports = class Helpers {
     static CORE_TEAM_TRIAGERS = [
-        'ErisDS',
-        'daniellockyer'
+        'ErisDS'
     ];
 
     /**
