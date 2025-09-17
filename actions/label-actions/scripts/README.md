@@ -17,6 +17,7 @@ This script retroactively labels existing open PRs based on whether the author i
 3. Create the required labels in your repository:
    - `core team` - for PRs from Ghost Foundation members
    - `community` - for PRs from external contributors
+   - `dependencies` - for PRs from dependency bots (Renovate, Dependabot)
 
 ### Usage
 
@@ -71,17 +72,21 @@ Mode: DRY RUN
    ⏭️  Already labeled as "community"
 
 [4/120] PR #1237 by @renovate[bot]
-   🤖 Skipping bot PR
+   🤖 Dependency bot PR - adding "dependencies" label
+
+[5/120] PR #1238 by @some-other-bot[bot]
+   🤖 Skipping bot PR (not a dependency bot)
 
 ...
 
 📈 Summary
 ==========
 Total PRs processed: 120
-Bot PRs skipped: 10
+Non-dependency bot PRs skipped: 5
 Already labeled: 15
+Newly labeled as "dependencies": 10
 Newly labeled as "core team": 20
-Newly labeled as "community": 75
+Newly labeled as "community": 70
 Errors: 0
 
 ⚠️  This was a DRY RUN. No labels were actually added.
@@ -108,7 +113,8 @@ Run without --dry-run to apply the labels.
 ### Notes
 
 - The script only processes open PRs
-- Bot PRs (Renovate, Dependabot, etc.) are automatically skipped
-- PRs that already have "core team" or "community" labels are skipped
+- Dependency bot PRs (Renovate, Dependabot) get labeled as "dependencies"
+- Other bot PRs are automatically skipped
+- PRs that already have appropriate labels are skipped
 - Organization membership is checked against the "TryGhost" organization
 - The script provides progress updates and a summary at the end

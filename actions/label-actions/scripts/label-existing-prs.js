@@ -158,9 +158,28 @@ async function processPR(pr) {
     
     console.log(`\n${progress} PR #${pr.number} by @${pr.user.login}`);
     
-    // Skip bot PRs (e.g., Renovate, Dependabot)
-    if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') {
-        console.log(`   🤖 Skipping bot PR`);
+    // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
+    const isDependencyBot = (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') &&
+                            (pr.user.login.includes('renovate') || pr.user.login.includes('dependabot'));
+    
+    if (isDependencyBot) {
+        // Check if already has dependencies label
+        const existingLabels = pr.labels.map(l => l.name.toLowerCase());
+        if (existingLabels.includes('dependencies')) {
+            console.log(`   ⏭️  Already labeled as "dependencies"`);
+            stats.alreadyLabeled++;
+            return;
+        }
+        
+        console.log(`   🤖 Dependency bot PR - adding "dependencies" label`);
+        await addLabel(pr, 'dependencies');
+        stats.labeledAsDependencies = (stats.labeledAsDependencies || 0) + 1;
+        return;
+    }
+    
+    // Skip other bot PRs that aren't dependency bots
+    if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]')) {
+        console.log(`   🤖 Skipping bot PR (not a dependency bot)`);
         stats.skippedBots = (stats.skippedBots || 0) + 1;
         return;
     }
@@ -220,8 +239,9 @@ async function main() {
         console.log('\n\n📈 Summary');
         console.log('==========');
         console.log(`Total PRs processed: ${stats.processed}`);
-        console.log(`Bot PRs skipped: ${stats.skippedBots || 0}`);
+        console.log(`Non-dependency bot PRs skipped: ${stats.skippedBots || 0}`);
         console.log(`Already labeled: ${stats.alreadyLabeled}`);
+        console.log(`Newly labeled as "dependencies": ${stats.labeledAsDependencies || 0}`);
         console.log(`Newly labeled as "core team": ${stats.labeledAsCore}`);
         console.log(`Newly labeled as "community": ${stats.labeledAsCommunity}`);
         console.log(`Errors: ${stats.errors}`);

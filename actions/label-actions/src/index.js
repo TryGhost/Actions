@@ -74,8 +74,18 @@ async function main() {
             const pullRequest = payload.pull_request;
             const author = pullRequest.user.login;
             
-            // Skip labeling bot PRs (e.g., Renovate, Dependabot)
-            if (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') {
+            // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
+            const isDependencyBot = (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') &&
+                                    (author.includes('renovate') || author.includes('dependabot'));
+            
+            if (isDependencyBot) {
+                await helpers.addLabel(pullRequest, 'dependencies');
+                core.info(`Labeled PR #${pullRequest.number} by ${author} as dependencies`);
+                return;
+            }
+            
+            // Skip other bot PRs that aren't dependency bots
+            if (pullRequest.user.type === 'Bot' || author.includes('[bot]')) {
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
                 return;
             }
