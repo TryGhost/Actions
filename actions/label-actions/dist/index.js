@@ -10211,6 +10211,12 @@ async function main() {
             const pullRequest = payload.pull_request;
             const author = pullRequest.user.login;
             
+            // Skip labeling bot PRs (e.g., Renovate, Dependabot)
+            if (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') {
+                core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
+                return;
+            }
+            
             // Check if the PR author is a member of the Ghost Foundation org
             const isGhostMember = await helpers.isGhostFoundationMember(author);
             
@@ -10224,7 +10230,7 @@ async function main() {
             core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
             return;
         }
-        
+
         if (payload.action === 'labeled') {
             const label = payload.label;
 

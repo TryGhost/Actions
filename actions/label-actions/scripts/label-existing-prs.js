@@ -2,11 +2,11 @@
 
 /**
  * Script to retroactively label existing open PRs based on Ghost Foundation membership
- * 
+ *
  * Usage:
  *   node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_xxx
  *   node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_xxx --dry-run
- * 
+ *
  * Options:
  *   --owner    GitHub organization/owner name (required)
  *   --repo     Repository name (required)
@@ -158,6 +158,13 @@ async function processPR(pr) {
     
     console.log(`\n${progress} PR #${pr.number} by @${pr.user.login}`);
     
+    // Skip bot PRs (e.g., Renovate, Dependabot)
+    if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') {
+        console.log(`   🤖 Skipping bot PR`);
+        stats.skippedBots = (stats.skippedBots || 0) + 1;
+        return;
+    }
+    
     // Check if already labeled
     const existingLabel = getExistingLabel(pr);
     if (existingLabel) {
@@ -193,9 +200,9 @@ async function main() {
         // Get all open PRs
         const prs = await getAllOpenPRs();
         stats.total = prs.length;
-        
+
         console.log(`\n📊 Found ${stats.total} open PRs\n`);
-        
+
         if (stats.total === 0) {
             console.log('No open PRs found. Exiting.');
             return;
@@ -204,7 +211,7 @@ async function main() {
         // Process each PR
         for (const pr of prs) {
             await processPR(pr);
-            
+
             // Add a small delay to avoid hitting rate limits
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -213,16 +220,17 @@ async function main() {
         console.log('\n\n📈 Summary');
         console.log('==========');
         console.log(`Total PRs processed: ${stats.processed}`);
+        console.log(`Bot PRs skipped: ${stats.skippedBots || 0}`);
         console.log(`Already labeled: ${stats.alreadyLabeled}`);
         console.log(`Newly labeled as "core team": ${stats.labeledAsCore}`);
         console.log(`Newly labeled as "community": ${stats.labeledAsCommunity}`);
         console.log(`Errors: ${stats.errors}`);
-        
+
         if (isDryRun) {
             console.log('\n⚠️  This was a DRY RUN. No labels were actually added.');
             console.log('Run without --dry-run to apply the labels.');
         }
-        
+
     } catch (err) {
         console.error('\n❌ Fatal error:', err.message);
         process.exit(1);

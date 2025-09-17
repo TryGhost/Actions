@@ -70,14 +70,18 @@ Mode: DRY RUN
 [3/120] PR #1236 by @contributor
    ⏭️  Already labeled as "community"
 
+[4/120] PR #1237 by @renovate[bot]
+   🤖 Skipping bot PR
+
 ...
 
 📈 Summary
 ==========
 Total PRs processed: 120
+Bot PRs skipped: 10
 Already labeled: 15
-Newly labeled as "core team": 25
-Newly labeled as "community": 80
+Newly labeled as "core team": 20
+Newly labeled as "community": 75
 Errors: 0
 
 ⚠️  This was a DRY RUN. No labels were actually added.
@@ -104,6 +108,7 @@ Run without --dry-run to apply the labels.
 ### Notes
 
 - The script only processes open PRs
+- Bot PRs (Renovate, Dependabot, etc.) are automatically skipped
 - PRs that already have "core team" or "community" labels are skipped
 - Organization membership is checked against the "TryGhost" organization
 - The script provides progress updates and a summary at the end

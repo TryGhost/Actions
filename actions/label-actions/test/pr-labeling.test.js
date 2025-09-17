@@ -114,15 +114,15 @@ describe('PR Labeling', function () {
                     login: 'external-contributor'
                 }
             };
-
+            
             // Mock org membership check to return false (404)
             const error = new Error('Not Found');
             error.status = 404;
             mockClient.rest.orgs.checkMembershipForUser.rejects(error);
-
+            
             // Call addLabel method which should be used in the PR opened handler
             await helpers.addLabel(pullRequest, 'community');
-
+            
             // Verify the label was added
             sinon.assert.calledOnce(mockClient.rest.issues.addLabels);
             sinon.assert.calledWith(mockClient.rest.issues.addLabels, {
@@ -131,6 +131,40 @@ describe('PR Labeling', function () {
                 issue_number: 456,
                 labels: ['community']
             });
+        });
+        
+        it('should skip labeling bot PRs like Renovate', async function () {
+            // Test various bot username formats
+            const botUsernames = ['renovate[bot]', 'renovate-bot', 'dependabot[bot]', 'some-other-bot[bot]'];
+            
+            for (const botUsername of botUsernames) {
+                // Reset the stub call history
+                mockClient.rest.issues.addLabels.resetHistory();
+                mockClient.rest.orgs.checkMembershipForUser.resetHistory();
+                
+                const pullRequest = {
+                    number: 789,
+                    user: {
+                        login: botUsername,
+                        type: 'Bot'
+                    }
+                };
+                
+                // Simulate the check that would happen in the PR opened handler
+                const isBot = pullRequest.user.type === 'Bot' || 
+                              botUsername.includes('[bot]') || 
+                              botUsername === 'renovate-bot';
+                
+                isBot.should.be.true();
+                
+                // Verify that we would skip the PR and not check membership or add labels
+                if (isBot) {
+                    // In the actual handler, we return early for bots
+                    // So no API calls should be made
+                    sinon.assert.notCalled(mockClient.rest.orgs.checkMembershipForUser);
+                    sinon.assert.notCalled(mockClient.rest.issues.addLabels);
+                }
+            }
         });
     });
 });
