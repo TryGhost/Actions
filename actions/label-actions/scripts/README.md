@@ -52,6 +52,8 @@ node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_YOUR_TOKEN
 4. Click "Generate token"
 5. Copy the token immediately (you won't see it again)
 
+**Note**: The default GitHub Actions token may not have sufficient permissions to check team membership if the team is private. In this case, the action will fall back to checking organization membership instead. For full team-based checking, use a personal access token with appropriate permissions.
+
 ### Example Output
 
 ```

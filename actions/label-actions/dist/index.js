@@ -9937,20 +9937,42 @@ module.exports = class Helpers {
      */
     async isGhostFoundationMember(username) {
         try {
-            // Check if user is a member of the ghost-foundation team
+            // First try to check team membership directly
             await this.client.rest.teams.getMembershipForUserInOrg({
                 org: 'TryGhost',
                 team_slug: 'ghost-foundation',
                 username: username
             });
+            core.info(`User ${username} is a member of ghost-foundation team`);
             return true;
-        } catch (err) {
+        } catch (teamErr) {
             // If we get a 404, the user is not a member
-            if (err.status === 404) {
+            if (teamErr.status === 404) {
+                core.info(`User ${username} is not a member of ghost-foundation team (404)`);
                 return false;
             }
+            
+            // For other errors (like 403 forbidden), try org membership as fallback
+            if (teamErr.status === 403) {
+                core.warning(`Cannot check team membership for ${username} (403 Forbidden), falling back to org check`);
+                try {
+                    await this.client.rest.orgs.checkMembershipForUser({
+                        org: 'TryGhost',
+                        username: username
+                    });
+                    core.info(`User ${username} is a member of TryGhost org (using fallback)`);
+                    return true;
+                } catch (orgErr) {
+                    if (orgErr.status === 404) {
+                        return false;
+                    }
+                    core.error(`Error checking org membership for ${username}: ${orgErr.message}`);
+                    return false;
+                }
+            }
+            
             // For other errors, log and assume not a member
-            core.error(`Error checking team membership for ${username}: ${err.message}`);
+            core.error(`Error checking team membership for ${username}: Status ${teamErr.status} - ${teamErr.message}`);
             return false;
         }
     }
@@ -10275,7 +10297,7 @@ async function main() {
                 core.info('Ignoring label event, detected a bot');
                 return;
             }
-            
+
             const label = payload.label;
 
             switch (label.name) {
@@ -10332,7 +10354,7 @@ async function main() {
                 core.info('Ignoring label event, detected a bot');
                 return;
             }
-            
+
             const label = payload.label;
 
             const TRIAGE_WITHOUT_COMMENT_LABELS = ['bug', 'community', 'core team', 'good first issue', 'help wanted'];

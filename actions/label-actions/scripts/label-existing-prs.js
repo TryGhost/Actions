@@ -53,17 +53,40 @@ const stats = {
  */
 async function isGhostFoundationMember(username) {
     try {
+        // First try to check team membership directly
         await octokit.rest.teams.getMembershipForUserInOrg({
             org: 'TryGhost',
             team_slug: 'ghost-foundation',
             username: username
         });
+        console.log(`   ✓ ${username} is a member of ghost-foundation team`);
         return true;
-    } catch (err) {
-        if (err.status === 404) {
+    } catch (teamErr) {
+        if (teamErr.status === 404) {
+            console.log(`   ✗ ${username} is not a member of ghost-foundation team`);
             return false;
         }
-        console.error(`⚠️  Error checking team membership for ${username}:`, err.message);
+
+        // For 403 errors, try org membership as fallback
+        if (teamErr.status === 403) {
+            console.log(`   ⚠️  Cannot check team membership (403), trying org membership...`);
+            try {
+                await octokit.rest.orgs.checkMembershipForUser({
+                    org: 'TryGhost',
+                    username: username
+                });
+                console.log(`   ✓ ${username} is a member of TryGhost org (fallback)`);
+                return true;
+            } catch (orgErr) {
+                if (orgErr.status === 404) {
+                    return false;
+                }
+                console.error(`   ❌ Error checking org membership:`, orgErr.message);
+                return false;
+            }
+        }
+
+        console.error(`   ❌ Error checking team membership for ${username}: ${teamErr.status} - ${teamErr.message}`);
         return false;
     }
 }

@@ -3,7 +3,7 @@ description: 'Performs triaging actions when issues are opened, labeled or unlab
 author: 'Ghost Foundation'
 inputs:
   github-token:
-    description: 'GitHub access token'
+    description: 'GitHub access token with read:org permissions for team membership checks'
     default: '${{ github.token }}'
     required: false
 runs:

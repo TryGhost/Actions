@@ -23,6 +23,9 @@ describe('PR Labeling', function () {
                 teams: {
                     getMembershipForUserInOrg: sandbox.stub()
                 },
+                orgs: {
+                    checkMembershipForUser: sandbox.stub()
+                },
                 issues: {
                     addLabels: sandbox.stub()
                 },
@@ -39,6 +42,7 @@ describe('PR Labeling', function () {
         // Mock core logging functions
         sandbox.stub(core, 'error');
         sandbox.stub(core, 'info');
+        sandbox.stub(core, 'warning');
     });
 
     afterEach(function () {
@@ -81,8 +85,28 @@ describe('PR Labeling', function () {
             isMember.should.be.false();
             sinon.assert.calledOnce(core.error);
             sinon.assert.calledWith(core.error,
-                'Error checking team membership for test-user: API Error'
+                'Error checking team membership for test-user: Status 500 - API Error'
             );
+        });
+
+        it('should fall back to org membership when team check returns 403', async function () {
+            const teamError = new Error('Forbidden');
+            teamError.status = 403;
+            mockClient.rest.teams.getMembershipForUserInOrg.rejects(teamError);
+            mockClient.rest.orgs.checkMembershipForUser.resolves();
+
+            const isMember = await helpers.isGhostFoundationMember('test-user');
+
+            isMember.should.be.true();
+            sinon.assert.calledOnce(core.warning);
+            sinon.assert.calledWith(core.warning,
+                'Cannot check team membership for test-user (403 Forbidden), falling back to org check'
+            );
+            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
+            sinon.assert.calledWith(mockClient.rest.orgs.checkMembershipForUser, {
+                org: 'TryGhost',
+                username: 'test-user'
+            });
         });
     });
 
