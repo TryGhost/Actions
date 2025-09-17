@@ -189,7 +189,7 @@ async function processPR(pr) {
     const progress = `[${stats.processed}/${stats.total}]`;
 
     console.log(`\n${progress} PR #${pr.number} by @${pr.user.login}`);
-    
+
     let appliedAuthorLabel = false;
 
     // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
@@ -233,7 +233,7 @@ async function processPR(pr) {
             }
         }
     }
-    
+
     // Check for locale file changes regardless of author type
     const existingLabels = pr.labels.map(l => l.name.toLowerCase());
     if (!existingLabels.includes('affects:i18n')) {

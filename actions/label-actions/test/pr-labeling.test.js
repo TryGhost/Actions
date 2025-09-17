@@ -216,7 +216,7 @@ describe('PR Labeling', function () {
                 }
             }
         });
-        
+
         it('should add affects:i18n label when PR contains locale file changes', async function () {
             const pullRequest = {
                 number: 999,
@@ -225,7 +225,7 @@ describe('PR Labeling', function () {
                     type: 'User'
                 }
             };
-            
+
             // Mock the API response for listFiles
             mockClient.rest.pulls.listFiles.resolves({
                 data: [
@@ -234,14 +234,14 @@ describe('PR Labeling', function () {
                     { filename: 'README.md' }
                 ]
             });
-            
+
             // Check containsLocaleChanges method
             const hasLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
             hasLocaleChanges.should.be.true();
-            
+
             // Simulate adding the label
             await helpers.addLabel(pullRequest, 'affects:i18n');
-            
+
             // Verify the label was added
             sinon.assert.calledOnce(mockClient.rest.issues.addLabels);
             sinon.assert.calledWith(mockClient.rest.issues.addLabels, {
@@ -251,7 +251,7 @@ describe('PR Labeling', function () {
                 labels: ['affects:i18n']
             });
         });
-        
+
         it('should not add affects:i18n label when PR has no locale file changes', async function () {
             const pullRequest = {
                 number: 1000,
@@ -260,7 +260,7 @@ describe('PR Labeling', function () {
                     type: 'User'
                 }
             };
-            
+
             // Mock the API response for listFiles without locale changes
             mockClient.rest.pulls.listFiles.resolves({
                 data: [
@@ -269,11 +269,11 @@ describe('PR Labeling', function () {
                     { filename: 'README.md' }
                 ]
             });
-            
+
             // Check containsLocaleChanges method
             const hasLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
             hasLocaleChanges.should.be.false();
-            
+
             // No label should be added, so we don't call addLabel
             sinon.assert.notCalled(mockClient.rest.issues.addLabels);
         });
