@@ -80,7 +80,7 @@ async function getAllOpenPRs() {
 
     while (true) {
         try {
-            const { data } = await octokit.rest.pulls.list({
+            const {data} = await octokit.rest.pulls.list({
                 owner: args.owner,
                 repo: args.repo,
                 state: 'open',
@@ -215,7 +215,7 @@ async function main() {
     console.log('============================');
     console.log(`Repository: ${args.owner}/${args.repo}`);
     console.log(`Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚡ LIVE (labels will be applied)'}`);
-    
+
     if (!isDryRun) {
         console.log('\n⚠️  WARNING: This will modify PR labels. Use --dry-run to preview changes first.');
     }
@@ -256,7 +256,6 @@ async function main() {
             console.log('\n⚠️  This was a DRY RUN. No labels were actually added.');
             console.log('Run without --dry-run to apply the labels.');
         }
-
     } catch (err) {
         console.error('\n❌ Fatal error:', err.message);
         process.exit(1);
@@ -264,7 +263,7 @@ async function main() {
 }
 
 // Run the script
-main().catch(err => {
+main().catch((err) => {
     console.error('Unhandled error:', err);
     process.exit(1);
 });
