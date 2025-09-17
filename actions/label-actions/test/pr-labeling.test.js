@@ -25,6 +25,9 @@ describe('PR Labeling', function () {
                 },
                 issues: {
                     addLabels: sandbox.stub()
+                },
+                pulls: {
+                    listFiles: sandbox.stub()
                 }
             }
         };
@@ -212,6 +215,67 @@ describe('PR Labeling', function () {
                     sinon.assert.notCalled(mockClient.rest.issues.addLabels);
                 }
             }
+        });
+        
+        it('should add affects:i18n label when PR contains locale file changes', async function () {
+            const pullRequest = {
+                number: 999,
+                user: {
+                    login: 'test-user',
+                    type: 'User'
+                }
+            };
+            
+            // Mock the API response for listFiles
+            mockClient.rest.pulls.listFiles.resolves({
+                data: [
+                    { filename: 'core/server/locales/en/portal.json' },
+                    { filename: 'core/server/locales/fr/portal.json' },
+                    { filename: 'README.md' }
+                ]
+            });
+            
+            // Check containsLocaleChanges method
+            const hasLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
+            hasLocaleChanges.should.be.true();
+            
+            // Simulate adding the label
+            await helpers.addLabel(pullRequest, 'affects:i18n');
+            
+            // Verify the label was added
+            sinon.assert.calledOnce(mockClient.rest.issues.addLabels);
+            sinon.assert.calledWith(mockClient.rest.issues.addLabels, {
+                owner: 'test-owner',
+                repo: 'test-repo',
+                issue_number: 999,
+                labels: ['affects:i18n']
+            });
+        });
+        
+        it('should not add affects:i18n label when PR has no locale file changes', async function () {
+            const pullRequest = {
+                number: 1000,
+                user: {
+                    login: 'test-user',
+                    type: 'User'
+                }
+            };
+            
+            // Mock the API response for listFiles without locale changes
+            mockClient.rest.pulls.listFiles.resolves({
+                data: [
+                    { filename: 'core/server/api/posts.js' },
+                    { filename: 'test/api/posts.test.js' },
+                    { filename: 'README.md' }
+                ]
+            });
+            
+            // Check containsLocaleChanges method
+            const hasLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
+            hasLocaleChanges.should.be.false();
+            
+            // No label should be added, so we don't call addLabel
+            sinon.assert.notCalled(mockClient.rest.issues.addLabels);
         });
     });
 });

@@ -110,6 +110,36 @@ async function getAllOpenPRs() {
 }
 
 /**
+ * Get list of changed files in a pull request
+ * @param {number} pullNumber
+ * @returns {Promise<Array>}
+ */
+async function getPRFiles(pullNumber) {
+    try {
+        const {data: files} = await octokit.rest.pulls.listFiles({
+            owner: args.owner,
+            repo: args.repo,
+            pull_number: pullNumber,
+            per_page: 100
+        });
+        return files;
+    } catch (err) {
+        console.error(`   ❌ Error fetching PR files:`, err.message);
+        return [];
+    }
+}
+
+/**
+ * Check if PR contains changes to locale files
+ * @param {number} pullNumber
+ * @returns {Promise<boolean>}
+ */
+async function containsLocaleChanges(pullNumber) {
+    const files = await getPRFiles(pullNumber);
+    return files.some(file => file.filename.includes('/locales/'));
+}
+
+/**
  * Check if a PR already has a core team or community label
  * @param {Object} pr
  * @returns {string|null} Returns the existing label name or null
@@ -159,6 +189,8 @@ async function processPR(pr) {
     const progress = `[${stats.processed}/${stats.total}]`;
 
     console.log(`\n${progress} PR #${pr.number} by @${pr.user.login}`);
+    
+    let appliedAuthorLabel = false;
 
     // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
     const isDependencyBot = (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') &&
@@ -170,40 +202,52 @@ async function processPR(pr) {
         if (existingLabels.includes('dependencies')) {
             console.log(`   ⏭️  Already labeled as "dependencies"`);
             stats.alreadyLabeled++;
-            return;
+        } else {
+            console.log(`   🤖 Dependency bot PR - adding "dependencies" label`);
+            await addLabel(pr, 'dependencies');
+            stats.labeledAsDependencies = (stats.labeledAsDependencies || 0) + 1;
+            appliedAuthorLabel = true;
         }
-
-        console.log(`   🤖 Dependency bot PR - adding "dependencies" label`);
-        await addLabel(pr, 'dependencies');
-        stats.labeledAsDependencies = (stats.labeledAsDependencies || 0) + 1;
-        return;
-    }
-
-    // Skip other bot PRs that aren't dependency bots
-    if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]')) {
+    } else if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]')) {
+        // Skip other bot PRs that aren't dependency bots
         console.log(`   🤖 Skipping bot PR (not a dependency bot)`);
         stats.skippedBots = (stats.skippedBots || 0) + 1;
-        return;
-    }
-
-    // Check if already labeled
-    const existingLabel = getExistingLabel(pr);
-    if (existingLabel) {
-        console.log(`   ⏭️  Already labeled as "${existingLabel}"`);
-        stats.alreadyLabeled++;
-        return;
-    }
-
-    // Check if author is a Ghost Foundation member
-    const isMember = await isGhostFoundationMember(pr.user.login);
-    const label = isMember ? 'core team' : 'community';
-
-    await addLabel(pr, label);
-
-    if (isMember) {
-        stats.labeledAsCore++;
     } else {
-        stats.labeledAsCommunity++;
+        // Check if already labeled
+        const existingLabel = getExistingLabel(pr);
+        if (existingLabel) {
+            console.log(`   ⏭️  Already labeled as "${existingLabel}"`);
+            stats.alreadyLabeled++;
+        } else {
+            // Check if author is a Ghost Foundation member
+            const isMember = await isGhostFoundationMember(pr.user.login);
+            const label = isMember ? 'core team' : 'community';
+
+            await addLabel(pr, label);
+            appliedAuthorLabel = true;
+
+            if (isMember) {
+                stats.labeledAsCore++;
+            } else {
+                stats.labeledAsCommunity++;
+            }
+        }
+    }
+    
+    // Check for locale file changes regardless of author type
+    const existingLabels = pr.labels.map(l => l.name.toLowerCase());
+    if (!existingLabels.includes('affects:i18n')) {
+        const hasLocaleChanges = await containsLocaleChanges(pr.number);
+        if (hasLocaleChanges) {
+            console.log(`   🌐 Contains locale file changes - adding "affects:i18n" label`);
+            await addLabel(pr, 'affects:i18n');
+            stats.labeledAsI18n = (stats.labeledAsI18n || 0) + 1;
+        }
+    } else {
+        console.log(`   ⏭️  Already labeled as "affects:i18n"`);
+        if (!appliedAuthorLabel) {
+            stats.alreadyLabeled++;
+        }
     }
 }
 
@@ -250,6 +294,7 @@ async function main() {
         console.log(`Newly labeled as "dependencies": ${stats.labeledAsDependencies || 0}`);
         console.log(`Newly labeled as "core team": ${stats.labeledAsCore}`);
         console.log(`Newly labeled as "community": ${stats.labeledAsCommunity}`);
+        console.log(`Newly labeled as "affects:i18n": ${stats.labeledAsI18n || 0}`);
         console.log(`Errors: ${stats.errors}`);
 
         if (isDryRun) {

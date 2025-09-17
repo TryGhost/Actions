@@ -265,4 +265,33 @@ module.exports = class Helpers {
             return false;
         }
     }
+
+    /**
+     * Get list of changed files in a pull request
+     * @param {number} pullNumber
+     * @returns {Promise<Array>}
+     */
+    async getPRFiles(pullNumber) {
+        try {
+            const {data: files} = await this.client.rest.pulls.listFiles({
+                ...this.repo,
+                pull_number: pullNumber,
+                per_page: 100
+            });
+            return files;
+        } catch (err) {
+            core.error(`Error fetching PR files: ${err.message}`);
+            return [];
+        }
+    }
+
+    /**
+     * Check if PR contains changes to locale files
+     * @param {number} pullNumber
+     * @returns {Promise<boolean>}
+     */
+    async containsLocaleChanges(pullNumber) {
+        const files = await this.getPRFiles(pullNumber);
+        return files.some(file => file.filename.includes('/locales/'));
+    }
 };

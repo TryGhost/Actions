@@ -9953,6 +9953,35 @@ module.exports = class Helpers {
             return false;
         }
     }
+
+    /**
+     * Get list of changed files in a pull request
+     * @param {number} pullNumber
+     * @returns {Promise<Array>}
+     */
+    async getPRFiles(pullNumber) {
+        try {
+            const {data: files} = await this.client.rest.pulls.listFiles({
+                ...this.repo,
+                pull_number: pullNumber,
+                per_page: 100
+            });
+            return files;
+        } catch (err) {
+            core.error(`Error fetching PR files: ${err.message}`);
+            return [];
+        }
+    }
+
+    /**
+     * Check if PR contains changes to locale files
+     * @param {number} pullNumber
+     * @returns {Promise<boolean>}
+     */
+    async containsLocaleChanges(pullNumber) {
+        const files = await this.getPRFiles(pullNumber);
+        return files.some(file => file.filename.includes('/locales/'));
+    }
 };
 
 
@@ -10218,26 +10247,30 @@ async function main() {
             if (isDependencyBot) {
                 await helpers.addLabel(pullRequest, 'dependencies');
                 core.info(`Labeled PR #${pullRequest.number} by ${author} as dependencies`);
-                return;
-            }
-            
-            // Skip other bot PRs that aren't dependency bots
-            if (pullRequest.user.type === 'Bot' || author.includes('[bot]')) {
+            } else if (pullRequest.user.type === 'Bot' || author.includes('[bot]')) {
+                // Skip other bot PRs that aren't dependency bots
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
-                return;
-            }
-            
-            // Check if the PR author is a member of the Ghost Foundation org
-            const isGhostMember = await helpers.isGhostFoundationMember(author);
-            
-            // Add appropriate label based on membership
-            if (isGhostMember) {
-                await helpers.addLabel(pullRequest, 'core team');
             } else {
-                await helpers.addLabel(pullRequest, 'community');
+                // Check if the PR author is a member of the Ghost Foundation org
+                const isGhostMember = await helpers.isGhostFoundationMember(author);
+                
+                // Add appropriate label based on membership
+                if (isGhostMember) {
+                    await helpers.addLabel(pullRequest, 'core team');
+                } else {
+                    await helpers.addLabel(pullRequest, 'community');
+                }
+                
+                core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
             }
             
-            core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
+            // Check for locale file changes regardless of author type
+            const containsLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
+            if (containsLocaleChanges) {
+                await helpers.addLabel(pullRequest, 'affects:i18n');
+                core.info(`Labeled PR #${pullRequest.number} as affects:i18n (contains locale file changes)`);
+            }
+            
             return;
         }
 

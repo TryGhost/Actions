@@ -73,34 +73,38 @@ async function main() {
         if (payload.action === 'opened') {
             const pullRequest = payload.pull_request;
             const author = pullRequest.user.login;
-
+            
             // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
             const isDependencyBot = (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') &&
                                     (author.includes('renovate') || author.includes('dependabot'));
-
+            
             if (isDependencyBot) {
                 await helpers.addLabel(pullRequest, 'dependencies');
                 core.info(`Labeled PR #${pullRequest.number} by ${author} as dependencies`);
-                return;
-            }
-
-            // Skip other bot PRs that aren't dependency bots
-            if (pullRequest.user.type === 'Bot' || author.includes('[bot]')) {
+            } else if (pullRequest.user.type === 'Bot' || author.includes('[bot]')) {
+                // Skip other bot PRs that aren't dependency bots
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
-                return;
-            }
-
-            // Check if the PR author is a member of the Ghost Foundation org
-            const isGhostMember = await helpers.isGhostFoundationMember(author);
-
-            // Add appropriate label based on membership
-            if (isGhostMember) {
-                await helpers.addLabel(pullRequest, 'core team');
             } else {
-                await helpers.addLabel(pullRequest, 'community');
+                // Check if the PR author is a member of the Ghost Foundation org
+                const isGhostMember = await helpers.isGhostFoundationMember(author);
+                
+                // Add appropriate label based on membership
+                if (isGhostMember) {
+                    await helpers.addLabel(pullRequest, 'core team');
+                } else {
+                    await helpers.addLabel(pullRequest, 'community');
+                }
+                
+                core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
             }
-
-            core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
+            
+            // Check for locale file changes regardless of author type
+            const containsLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
+            if (containsLocaleChanges) {
+                await helpers.addLabel(pullRequest, 'affects:i18n');
+                core.info(`Labeled PR #${pullRequest.number} as affects:i18n (contains locale file changes)`);
+            }
+            
             return;
         }
 

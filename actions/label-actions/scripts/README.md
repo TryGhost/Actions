@@ -18,6 +18,7 @@ This script retroactively labels existing open PRs based on whether the author i
    - `core team` - for PRs from Ghost Foundation members
    - `community` - for PRs from external contributors
    - `dependencies` - for PRs from dependency bots (Renovate, Dependabot)
+   - `affects:i18n` - for PRs that modify files in `/locales/` directories
 
 ### Usage
 
@@ -80,6 +81,11 @@ Mode: DRY RUN
 [5/120] PR #1238 by @some-other-bot[bot]
    🤖 Skipping bot PR (not a dependency bot)
 
+[6/120] PR #1239 by @contributor
+   [DRY RUN] Would add label "community"
+   🌐 Contains locale file changes - adding "affects:i18n" label
+   [DRY RUN] Would add label "affects:i18n"
+
 ...
 
 📈 Summary
@@ -90,6 +96,7 @@ Already labeled: 15
 Newly labeled as "dependencies": 10
 Newly labeled as "core team": 20
 Newly labeled as "community": 70
+Newly labeled as "affects:i18n": 8
 Errors: 0
 
 ⚠️  This was a DRY RUN. No labels were actually added.
@@ -118,6 +125,7 @@ Run without --dry-run to apply the labels.
 - The script only processes open PRs
 - Dependency bot PRs (Renovate, Dependabot) get labeled as "dependencies"
 - Other bot PRs are automatically skipped
+- PRs containing changes to `/locales/` files get labeled as "affects:i18n"
 - PRs that already have appropriate labels are skipped
 - Organization membership is checked against the "TryGhost" organization
 - The script provides progress updates and a summary at the end
