@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Script to retroactively label existing open PRs based on Ghost Foundation membership
+ * Script to retroactively label existing open PRs based on Ghost Foundation team membership
  *
  * Usage:
  *   node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_xxx
@@ -47,14 +47,15 @@ const stats = {
 };
 
 /**
- * Check if a user is a member of the Ghost Foundation organization
+ * Check if a user is a member of the Ghost Foundation team
  * @param {string} username
  * @returns {Promise<boolean>}
  */
 async function isGhostFoundationMember(username) {
     try {
-        await octokit.rest.orgs.checkMembershipForUser({
+        await octokit.rest.teams.getMembershipForUserInOrg({
             org: 'TryGhost',
+            team_slug: 'ghost-foundation',
             username: username
         });
         return true;
@@ -62,7 +63,7 @@ async function isGhostFoundationMember(username) {
         if (err.status === 404) {
             return false;
         }
-        console.error(`⚠️  Error checking org membership for ${username}:`, err.message);
+        console.error(`⚠️  Error checking team membership for ${username}:`, err.message);
         return false;
     }
 }
@@ -219,7 +220,7 @@ async function processPR(pr) {
             console.log(`   ⏭️  Already labeled as "${existingLabel}"`);
             stats.alreadyLabeled++;
         } else {
-            // Check if author is a Ghost Foundation member
+            // Check if author is a Ghost Foundation team member
             const isMember = await isGhostFoundationMember(pr.user.login);
             const label = isMember ? 'core team' : 'community';
 

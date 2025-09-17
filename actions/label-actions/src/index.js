@@ -79,7 +79,7 @@ async function main() {
                 // Skip other bot PRs that aren't dependency bots
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
             } else {
-                // Check if the PR author is a member of the Ghost Foundation org
+                // Check if the PR author is a member of the Ghost Foundation team
                 const isGhostMember = await helpers.isGhostFoundationMember(author);
 
                 // Add appropriate label based on membership
@@ -108,7 +108,7 @@ async function main() {
                 core.info('Ignoring label event, detected a bot');
                 return;
             }
-            
+
             const label = payload.label;
 
             switch (label.name) {
@@ -165,7 +165,7 @@ async function main() {
                 core.info('Ignoring label event, detected a bot');
                 return;
             }
-            
+
             const label = payload.label;
 
             const TRIAGE_WITHOUT_COMMENT_LABELS = ['bug', 'community', 'core team', 'good first issue', 'help wanted'];

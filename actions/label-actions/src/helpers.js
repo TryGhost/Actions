@@ -243,15 +243,16 @@ module.exports = class Helpers {
     }
 
     /**
-     * Check if a user is a member of the Ghost Foundation organization
+     * Check if a user is a member of the Ghost Foundation team
      * @param {string} username
      * @returns {Promise<boolean>}
      */
     async isGhostFoundationMember(username) {
         try {
-            // Check if user is a member of the Ghost Foundation organization
-            await this.client.rest.orgs.checkMembershipForUser({
+            // Check if user is a member of the ghost-foundation team
+            await this.client.rest.teams.getMembershipForUserInOrg({
                 org: 'TryGhost',
+                team_slug: 'ghost-foundation',
                 username: username
             });
             return true;
@@ -261,7 +262,7 @@ module.exports = class Helpers {
                 return false;
             }
             // For other errors, log and assume not a member
-            core.error(`Error checking organization membership for ${username}: ${err.message}`);
+            core.error(`Error checking team membership for ${username}: ${err.message}`);
             return false;
         }
     }

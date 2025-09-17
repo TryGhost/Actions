@@ -4,7 +4,7 @@ This directory contains utility scripts for managing PR labels.
 
 ## label-existing-prs.js
 
-This script retroactively labels existing open PRs based on whether the author is a member of the Ghost Foundation organization.
+This script retroactively labels existing open PRs based on whether the author is a member of the Ghost Foundation team.
 
 ### Prerequisites
 
@@ -15,7 +15,7 @@ This script retroactively labels existing open PRs based on whether the author i
    yarn install
    ```
 3. Create the required labels in your repository:
-   - `core team` - for PRs from Ghost Foundation members
+   - `core team` - for PRs from Ghost Foundation team members
    - `community` - for PRs from external contributors
    - `dependencies` - for PRs from dependency bots (Renovate, Dependabot)
    - `affects:i18n` - for PRs that modify files in `/locales/` directories
@@ -127,5 +127,5 @@ Run without --dry-run to apply the labels.
 - Other bot PRs are automatically skipped
 - PRs containing changes to `/locales/` files get labeled as "affects:i18n"
 - PRs that already have appropriate labels are skipped
-- Organization membership is checked against the "TryGhost" organization
+- Team membership is checked against the "ghost-foundation" team in the TryGhost organization
 - The script provides progress updates and a summary at the end

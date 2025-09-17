@@ -20,8 +20,8 @@ describe('PR Labeling', function () {
         // Mock the GitHub client
         mockClient = {
             rest: {
-                orgs: {
-                    checkMembershipForUser: sandbox.stub()
+                teams: {
+                    getMembershipForUserInOrg: sandbox.stub()
                 },
                 issues: {
                     addLabels: sandbox.stub()
@@ -46,15 +46,16 @@ describe('PR Labeling', function () {
     });
 
     describe('isGhostFoundationMember', function () {
-        it('should return true when user is a member of Ghost Foundation', async function () {
-            mockClient.rest.orgs.checkMembershipForUser.resolves();
+        it('should return true when user is a member of Ghost Foundation team', async function () {
+            mockClient.rest.teams.getMembershipForUserInOrg.resolves();
 
             const isMember = await helpers.isGhostFoundationMember('ghost-member');
 
             isMember.should.be.true();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(mockClient.rest.orgs.checkMembershipForUser, {
+            sinon.assert.calledOnce(mockClient.rest.teams.getMembershipForUserInOrg);
+            sinon.assert.calledWith(mockClient.rest.teams.getMembershipForUserInOrg, {
                 org: 'TryGhost',
+                team_slug: 'ghost-foundation',
                 username: 'ghost-member'
             });
         });
@@ -62,7 +63,7 @@ describe('PR Labeling', function () {
         it('should return false when user is not a member (404 error)', async function () {
             const error = new Error('Not Found');
             error.status = 404;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
+            mockClient.rest.teams.getMembershipForUserInOrg.rejects(error);
 
             const isMember = await helpers.isGhostFoundationMember('external-contributor');
 
@@ -73,14 +74,14 @@ describe('PR Labeling', function () {
         it('should return false and log error for other API errors', async function () {
             const error = new Error('API Error');
             error.status = 500;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
+            mockClient.rest.teams.getMembershipForUserInOrg.rejects(error);
 
             const isMember = await helpers.isGhostFoundationMember('test-user');
 
             isMember.should.be.false();
             sinon.assert.calledOnce(core.error);
             sinon.assert.calledWith(core.error,
-                'Error checking organization membership for test-user: API Error'
+                'Error checking team membership for test-user: API Error'
             );
         });
     });
@@ -94,8 +95,8 @@ describe('PR Labeling', function () {
                 }
             };
 
-            // Mock org membership check to return true
-            mockClient.rest.orgs.checkMembershipForUser.resolves();
+            // Mock team membership check to return true
+            mockClient.rest.teams.getMembershipForUserInOrg.resolves();
 
             // Call addLabel method which should be used in the PR opened handler
             await helpers.addLabel(pullRequest, 'core team');
@@ -118,10 +119,10 @@ describe('PR Labeling', function () {
                 }
             };
 
-            // Mock org membership check to return false (404)
+            // Mock team membership check to return false (404)
             const error = new Error('Not Found');
             error.status = 404;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
+            mockClient.rest.teams.getMembershipForUserInOrg.rejects(error);
 
             // Call addLabel method which should be used in the PR opened handler
             await helpers.addLabel(pullRequest, 'community');
@@ -143,7 +144,7 @@ describe('PR Labeling', function () {
             for (const botUsername of dependencyBots) {
                 // Reset the stub call history
                 mockClient.rest.issues.addLabels.resetHistory();
-                mockClient.rest.orgs.checkMembershipForUser.resetHistory();
+                mockClient.rest.teams.getMembershipForUserInOrg.resetHistory();
 
                 const pullRequest = {
                     number: 789,
@@ -175,7 +176,7 @@ describe('PR Labeling', function () {
                     });
 
                     // Should not check org membership for bots
-                    sinon.assert.notCalled(mockClient.rest.orgs.checkMembershipForUser);
+                    sinon.assert.notCalled(mockClient.rest.teams.getMembershipForUserInOrg);
                 }
             }
         });
@@ -187,7 +188,7 @@ describe('PR Labeling', function () {
             for (const botUsername of nonDependencyBots) {
                 // Reset the stub call history
                 mockClient.rest.issues.addLabels.resetHistory();
-                mockClient.rest.orgs.checkMembershipForUser.resetHistory();
+                mockClient.rest.teams.getMembershipForUserInOrg.resetHistory();
 
                 const pullRequest = {
                     number: 890,
@@ -211,7 +212,7 @@ describe('PR Labeling', function () {
                 // Non-dependency bots should be skipped without any labels
                 if (!isDependencyBot && isBot) {
                     // No API calls should be made
-                    sinon.assert.notCalled(mockClient.rest.orgs.checkMembershipForUser);
+                    sinon.assert.notCalled(mockClient.rest.teams.getMembershipForUserInOrg);
                     sinon.assert.notCalled(mockClient.rest.issues.addLabels);
                 }
             }
@@ -229,9 +230,9 @@ describe('PR Labeling', function () {
             // Mock the API response for listFiles
             mockClient.rest.pulls.listFiles.resolves({
                 data: [
-                    { filename: 'core/server/locales/en/portal.json' },
-                    { filename: 'core/server/locales/fr/portal.json' },
-                    { filename: 'README.md' }
+                    {filename: 'core/server/locales/en/portal.json'},
+                    {filename: 'core/server/locales/fr/portal.json'},
+                    {filename: 'README.md'}
                 ]
             });
 
@@ -264,9 +265,9 @@ describe('PR Labeling', function () {
             // Mock the API response for listFiles without locale changes
             mockClient.rest.pulls.listFiles.resolves({
                 data: [
-                    { filename: 'core/server/api/posts.js' },
-                    { filename: 'test/api/posts.test.js' },
-                    { filename: 'README.md' }
+                    {filename: 'core/server/api/posts.js'},
+                    {filename: 'test/api/posts.test.js'},
+                    {filename: 'README.md'}
                 ]
             });
 
