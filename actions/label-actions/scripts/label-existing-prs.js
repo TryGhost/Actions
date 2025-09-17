@@ -19,7 +19,8 @@ const github = require('@actions/github');
 // Parse command line arguments
 const args = process.argv.slice(2).reduce((acc, arg) => {
     const [key, value] = arg.split('=');
-    acc[key.replace('--', '')] = value;
+    // If no value is provided (e.g., --dry-run), set it to true
+    acc[key.replace('--', '')] = value !== undefined ? value : true;
     return acc;
 }, {});
 
@@ -32,7 +33,8 @@ if (!args.owner || !args.repo || !args.token) {
 
 const octokit = github.getOctokit(args.token);
 
-const isDryRun = args['dry-run'] !== undefined;
+// Check if dry-run mode is enabled (handles --dry-run, --dry-run=true, --dry-run=1, etc.)
+const isDryRun = args['dry-run'] === true || args['dry-run'] === 'true' || args['dry-run'] === '1' || args['dry-run'] === '';
 
 // Statistics tracking
 const stats = {
@@ -155,13 +157,13 @@ async function addLabel(pr, label) {
 async function processPR(pr) {
     stats.processed++;
     const progress = `[${stats.processed}/${stats.total}]`;
-    
+
     console.log(`\n${progress} PR #${pr.number} by @${pr.user.login}`);
-    
+
     // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
     const isDependencyBot = (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') &&
                             (pr.user.login.includes('renovate') || pr.user.login.includes('dependabot'));
-    
+
     if (isDependencyBot) {
         // Check if already has dependencies label
         const existingLabels = pr.labels.map(l => l.name.toLowerCase());
@@ -170,20 +172,20 @@ async function processPR(pr) {
             stats.alreadyLabeled++;
             return;
         }
-        
+
         console.log(`   🤖 Dependency bot PR - adding "dependencies" label`);
         await addLabel(pr, 'dependencies');
         stats.labeledAsDependencies = (stats.labeledAsDependencies || 0) + 1;
         return;
     }
-    
+
     // Skip other bot PRs that aren't dependency bots
     if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]')) {
         console.log(`   🤖 Skipping bot PR (not a dependency bot)`);
         stats.skippedBots = (stats.skippedBots || 0) + 1;
         return;
     }
-    
+
     // Check if already labeled
     const existingLabel = getExistingLabel(pr);
     if (existingLabel) {
@@ -195,9 +197,9 @@ async function processPR(pr) {
     // Check if author is a Ghost Foundation member
     const isMember = await isGhostFoundationMember(pr.user.login);
     const label = isMember ? 'core team' : 'community';
-    
+
     await addLabel(pr, label);
-    
+
     if (isMember) {
         stats.labeledAsCore++;
     } else {
@@ -212,7 +214,11 @@ async function main() {
     console.log('🏷️  Ghost PR Labeling Script');
     console.log('============================');
     console.log(`Repository: ${args.owner}/${args.repo}`);
-    console.log(`Mode: ${isDryRun ? 'DRY RUN' : 'LIVE'}`);
+    console.log(`Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚡ LIVE (labels will be applied)'}`);
+    
+    if (!isDryRun) {
+        console.log('\n⚠️  WARNING: This will modify PR labels. Use --dry-run to preview changes first.');
+    }
     console.log('');
 
     try {

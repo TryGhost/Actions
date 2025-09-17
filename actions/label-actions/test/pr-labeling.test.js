@@ -136,12 +136,12 @@ describe('PR Labeling', function () {
         it('should add dependencies label to Renovate and Dependabot PRs', async function () {
             // Test dependency bot usernames
             const dependencyBots = ['renovate[bot]', 'renovate-bot', 'dependabot[bot]'];
-            
+
             for (const botUsername of dependencyBots) {
                 // Reset the stub call history
                 mockClient.rest.issues.addLabels.resetHistory();
                 mockClient.rest.orgs.checkMembershipForUser.resetHistory();
-                
+
                 const pullRequest = {
                     number: 789,
                     user: {
@@ -149,19 +149,19 @@ describe('PR Labeling', function () {
                         type: 'Bot'
                     }
                 };
-                
+
                 // Simulate the check that would happen in the PR opened handler
-                const isDependencyBot = (pullRequest.user.type === 'Bot' || 
-                                        botUsername.includes('[bot]') || 
+                const isDependencyBot = (pullRequest.user.type === 'Bot' ||
+                                        botUsername.includes('[bot]') ||
                                         botUsername === 'renovate-bot') &&
                                        (botUsername.includes('renovate') || botUsername.includes('dependabot'));
-                
+
                 isDependencyBot.should.be.true();
-                
+
                 // If it's a dependency bot, we should add the dependencies label
                 if (isDependencyBot) {
                     await helpers.addLabel(pullRequest, 'dependencies');
-                    
+
                     // Verify the label was added
                     sinon.assert.calledOnce(mockClient.rest.issues.addLabels);
                     sinon.assert.calledWith(mockClient.rest.issues.addLabels, {
@@ -170,22 +170,22 @@ describe('PR Labeling', function () {
                         issue_number: 789,
                         labels: ['dependencies']
                     });
-                    
+
                     // Should not check org membership for bots
                     sinon.assert.notCalled(mockClient.rest.orgs.checkMembershipForUser);
                 }
             }
         });
-        
+
         it('should skip non-dependency bot PRs without labeling', async function () {
             // Test non-dependency bot usernames
             const nonDependencyBots = ['some-other-bot[bot]', 'github-actions[bot]', 'codecov[bot]'];
-            
+
             for (const botUsername of nonDependencyBots) {
                 // Reset the stub call history
                 mockClient.rest.issues.addLabels.resetHistory();
                 mockClient.rest.orgs.checkMembershipForUser.resetHistory();
-                
+
                 const pullRequest = {
                     number: 890,
                     user: {
@@ -193,18 +193,18 @@ describe('PR Labeling', function () {
                         type: 'Bot'
                     }
                 };
-                
+
                 // Simulate the check that would happen in the PR opened handler
-                const isDependencyBot = (pullRequest.user.type === 'Bot' || 
-                                        botUsername.includes('[bot]') || 
+                const isDependencyBot = (pullRequest.user.type === 'Bot' ||
+                                        botUsername.includes('[bot]') ||
                                         botUsername === 'renovate-bot') &&
                                        (botUsername.includes('renovate') || botUsername.includes('dependabot'));
-                
+
                 const isBot = pullRequest.user.type === 'Bot' || botUsername.includes('[bot]');
-                
+
                 isDependencyBot.should.be.false();
                 isBot.should.be.true();
-                
+
                 // Non-dependency bots should be skipped without any labels
                 if (!isDependencyBot && isBot) {
                     // No API calls should be made

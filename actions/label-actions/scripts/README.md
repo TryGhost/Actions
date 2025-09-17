@@ -25,7 +25,10 @@ This script retroactively labels existing open PRs based on whether the author i
 # Dry run (preview changes without applying)
 node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_YOUR_TOKEN --dry-run
 
-# Apply labels
+# You can also use --dry-run=true or --dry-run=1
+node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_YOUR_TOKEN --dry-run=true
+
+# Apply labels (LIVE MODE - will modify PRs)
 node label-existing-prs.js --owner=TryGhost --repo=Ghost --token=ghp_YOUR_TOKEN
 ```
 
