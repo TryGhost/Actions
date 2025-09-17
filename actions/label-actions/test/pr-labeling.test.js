@@ -26,6 +26,9 @@ describe('PR Labeling', function () {
                 orgs: {
                     checkMembershipForUser: sandbox.stub()
                 },
+                repos: {
+                    getCollaboratorPermissionLevel: sandbox.stub()
+                },
                 issues: {
                     addLabels: sandbox.stub()
                 },
@@ -89,24 +92,77 @@ describe('PR Labeling', function () {
             );
         });
 
-        it('should fall back to org membership when team check returns 403', async function () {
+        it('should fall back to repository permissions when team check returns 403', async function () {
             const teamError = new Error('Forbidden');
             teamError.status = 403;
             mockClient.rest.teams.getMembershipForUserInOrg.rejects(teamError);
-            mockClient.rest.orgs.checkMembershipForUser.resolves();
+            // User has write access to both repos = core team
+            mockClient.rest.repos.getCollaboratorPermissionLevel
+                .onFirstCall().resolves({data: {permission: 'write'}}) // Ghost
+                .onSecondCall().resolves({data: {permission: 'write'}}); // Admin
 
             const isMember = await helpers.isGhostFoundationMember('test-user');
 
             isMember.should.be.true();
             sinon.assert.calledOnce(core.warning);
             sinon.assert.calledWith(core.warning,
-                'Cannot check team membership for test-user (403 Forbidden), falling back to org check'
+                'Cannot check team membership for test-user (403 Forbidden), checking repository permissions'
             );
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(mockClient.rest.orgs.checkMembershipForUser, {
-                org: 'TryGhost',
+            sinon.assert.calledTwice(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(mockClient.rest.repos.getCollaboratorPermissionLevel.firstCall, {
+                owner: 'TryGhost',
+                repo: 'Ghost',
                 username: 'test-user'
             });
+            sinon.assert.calledWith(mockClient.rest.repos.getCollaboratorPermissionLevel.secondCall, {
+                owner: 'TryGhost',
+                repo: 'Admin',
+                username: 'test-user'
+            });
+        });
+
+        it('should return false for community contributors with write to Ghost but read to Admin', async function () {
+            const teamError = new Error('Forbidden');
+            teamError.status = 403;
+            mockClient.rest.teams.getMembershipForUserInOrg.rejects(teamError);
+            // User has write to Ghost but only read to Admin = community
+            mockClient.rest.repos.getCollaboratorPermissionLevel
+                .onFirstCall().resolves({data: {permission: 'write'}}) // Ghost
+                .onSecondCall().resolves({data: {permission: 'read'}}); // Admin
+
+            const isMember = await helpers.isGhostFoundationMember('community-user');
+
+            isMember.should.be.false();
+            sinon.assert.calledOnce(core.warning);
+            sinon.assert.calledWith(core.warning,
+                'Cannot check team membership for community-user (403 Forbidden), checking repository permissions'
+            );
+            sinon.assert.calledTwice(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(core.info,
+                'User community-user has write access to Ghost and read access to Admin - community'
+            );
+        });
+
+        it('should return false for community contributors with read-only access', async function () {
+            const teamError = new Error('Forbidden');
+            teamError.status = 403;
+            mockClient.rest.teams.getMembershipForUserInOrg.rejects(teamError);
+            // User has only read access = community
+            mockClient.rest.repos.getCollaboratorPermissionLevel
+                .onFirstCall().resolves({data: {permission: 'read'}}) // Ghost
+                .onSecondCall().resolves({data: {permission: 'read'}}); // Admin
+
+            const isMember = await helpers.isGhostFoundationMember('pure-community');
+
+            isMember.should.be.false();
+            sinon.assert.calledOnce(core.warning);
+            sinon.assert.calledWith(core.warning,
+                'Cannot check team membership for pure-community (403 Forbidden), checking repository permissions'
+            );
+            sinon.assert.calledTwice(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(core.info,
+                'User pure-community has read access to Ghost and read access to Admin - community'
+            );
         });
     });
 

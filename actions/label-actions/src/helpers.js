@@ -258,27 +258,52 @@ module.exports = class Helpers {
             core.info(`User ${username} is a member of ghost-foundation team`);
             return true;
         } catch (teamErr) {
+            // Log the full error details for debugging
+            core.debug(`Team membership check failed: ${JSON.stringify({
+                status: teamErr.status,
+                message: teamErr.message,
+                username: username,
+                response: teamErr.response?.data
+            })}`);
+
             // If we get a 404, the user is not a member
             if (teamErr.status === 404) {
                 core.info(`User ${username} is not a member of ghost-foundation team (404)`);
                 return false;
             }
 
-            // For other errors (like 403 forbidden), try org membership as fallback
+            // For other errors (like 403 forbidden), check repository permissions as fallback
             if (teamErr.status === 403) {
-                core.warning(`Cannot check team membership for ${username} (403 Forbidden), falling back to org check`);
+                core.warning(`Cannot check team membership for ${username} (403 Forbidden), checking repository permissions`);
                 try {
-                    await this.client.rest.orgs.checkMembershipForUser({
-                        org: 'TryGhost',
-                        username: username
-                    });
-                    core.info(`User ${username} is a member of TryGhost org (using fallback)`);
-                    return true;
-                } catch (orgErr) {
-                    if (orgErr.status === 404) {
+                    // Check permissions for both Ghost and Admin repos
+                    // Core team members have write access to BOTH repos
+                    const [ghostPerm, adminPerm] = await Promise.all([
+                        this.client.rest.repos.getCollaboratorPermissionLevel({
+                            owner: 'TryGhost',
+                            repo: 'Ghost',
+                            username: username
+                        }),
+                        this.client.rest.repos.getCollaboratorPermissionLevel({
+                            owner: 'TryGhost',
+                            repo: 'Admin',
+                            username: username
+                        })
+                    ]);
+
+                    // Core team members must have write or admin access to BOTH repos
+                    const hasGhostWrite = ghostPerm.data.permission === 'write' || ghostPerm.data.permission === 'admin';
+                    const hasAdminWrite = adminPerm.data.permission === 'write' || adminPerm.data.permission === 'admin';
+                    const isCore = hasGhostWrite && hasAdminWrite;
+
+                    core.info(`User ${username} has ${ghostPerm.data.permission} access to Ghost and ${adminPerm.data.permission} access to Admin - ${isCore ? 'core team' : 'community'}`);
+                    return isCore;
+                } catch (permErr) {
+                    if (permErr.status === 404) {
+                        core.info(`User ${username} has no direct access to repos - community`);
                         return false;
                     }
-                    core.error(`Error checking org membership for ${username}: ${orgErr.message}`);
+                    core.error(`Error checking repo permissions for ${username}: ${permErr.message}`);
                     return false;
                 }
             }

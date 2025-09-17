@@ -67,21 +67,38 @@ async function isGhostFoundationMember(username) {
             return false;
         }
 
-        // For 403 errors, try org membership as fallback
+        // For 403 errors, check repository permissions as fallback
         if (teamErr.status === 403) {
-            console.log(`   ⚠️  Cannot check team membership (403), trying org membership...`);
+            console.log(`   ⚠️  Cannot check team membership (403), checking repository permissions...`);
             try {
-                await octokit.rest.orgs.checkMembershipForUser({
-                    org: 'TryGhost',
-                    username: username
-                });
-                console.log(`   ✓ ${username} is a member of TryGhost org (fallback)`);
-                return true;
-            } catch (orgErr) {
-                if (orgErr.status === 404) {
+                // Check permissions for both Ghost and Admin repos
+                // Core team members have write access to BOTH repos
+                const [ghostPerm, adminPerm] = await Promise.all([
+                    octokit.rest.repos.getCollaboratorPermissionLevel({
+                        owner: 'TryGhost',
+                        repo: 'Ghost',
+                        username: username
+                    }),
+                    octokit.rest.repos.getCollaboratorPermissionLevel({
+                        owner: 'TryGhost',
+                        repo: 'Admin',
+                        username: username
+                    })
+                ]);
+
+                // Core team members must have write or admin access to BOTH repos
+                const hasGhostWrite = ghostPerm.data.permission === 'write' || ghostPerm.data.permission === 'admin';
+                const hasAdminWrite = adminPerm.data.permission === 'write' || adminPerm.data.permission === 'admin';
+                const isCore = hasGhostWrite && hasAdminWrite;
+
+                console.log(`   ${isCore ? '✓' : '✗'} ${username} has ${ghostPerm.data.permission} access to Ghost and ${adminPerm.data.permission} access to Admin - ${isCore ? 'core team' : 'community'}`);
+                return isCore;
+            } catch (permErr) {
+                if (permErr.status === 404) {
+                    console.log(`   ✗ ${username} has no direct access to repos - community`);
                     return false;
                 }
-                console.error(`   ❌ Error checking org membership:`, orgErr.message);
+                console.error(`   ❌ Error checking repo permissions:`, permErr.message);
                 return false;
             }
         }
