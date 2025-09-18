@@ -27,9 +27,12 @@ const args = process.argv.slice(2).reduce((acc, arg) => {
 // Validate required arguments
 if (!args.owner || !args.repo || !args.token) {
     console.error('❌ Missing required arguments');
-    console.error('Usage: node label-existing-prs.js --owner=OWNER --repo=REPO --token=TOKEN [--dry-run]');
+    console.error('Usage: node label-existing-prs.js --owner=OWNER --repo=REPO --token=TOKEN [--dry-run] [--start-page=N]');
     process.exit(1);
 }
+
+// Get starting page number
+const startPage = parseInt(args['start-page']) || 1;
 
 const octokit = github.getOctokit(args.token);
 
@@ -99,75 +102,39 @@ async function isGhostFoundationMember(username) {
 }
 
 /**
- * Get all open pull requests
- * @returns {Promise<Array>}
+ * Get a single page of pull requests
+ * @param {number} page Page number to fetch
+ * @returns {Promise<Array>} Array of PRs, empty if no more pages
  */
-async function getAllOpenPRs() {
-    const prs = [];
-    let page = 1;
+async function getPRPage(page) {
     const perPage = 100;
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    console.log(`📋 Fetching open PRs from ${args.owner}/${args.repo}...`);
-
-    while (true) {
-        try {
-            const {data} = await octokit.rest.pulls.list({
-                owner: args.owner,
-                repo: args.repo,
-                state: 'open',
-                per_page: perPage,
-                page: page
-            });
-
-            if (data.length === 0) {
-                break;
-            }
-
-            prs.push(...data);
-            console.log(`   Fetched page ${page} (${data.length} PRs)`);
-            page++;
-
-            // If we got less than perPage results, we've reached the end
-            if (data.length < perPage) {
-                break;
-            }
-        } catch (err) {
-            console.error('❌ Error fetching PRs:', err.message);
-            throw err;
-        }
-    }
-
-    return prs;
-}
-
-/**
- * Get list of changed files in a pull request
- * @param {number} pullNumber
- * @returns {Promise<Array>}
- */
-async function getPRFiles(pullNumber) {
     try {
-        const {data: files} = await octokit.rest.pulls.listFiles({
+        const {data} = await octokit.rest.pulls.list({
             owner: args.owner,
             repo: args.repo,
-            pull_number: pullNumber,
-            per_page: 100
+            state: 'all',
+            sort: 'updated',
+            direction: 'desc',
+            per_page: perPage,
+            page: page
         });
-        return files;
-    } catch (err) {
-        console.error(`   ❌ Error fetching PR files:`, err.message);
-        return [];
-    }
-}
 
-/**
- * Check if PR contains changes to locale files
- * @param {number} pullNumber
- * @returns {Promise<boolean>}
- */
-async function containsLocaleChanges(pullNumber) {
-    const files = await getPRFiles(pullNumber);
-    return files.some(file => file.filename.includes('/locales/'));
+        if (data.length === 0) {
+            return [];
+        }
+
+        // Filter PRs updated after our cutoff date
+        const recentPRs = data.filter(pr => new Date(pr.updated_at) > oneMonthAgo);
+        console.log(`   Fetched page ${page} (${recentPRs.length} recent PRs out of ${data.length} total)`);
+
+        return recentPRs;
+    } catch (err) {
+        console.error('❌ Error fetching PRs:', err.message);
+        throw err;
+    }
 }
 
 /**
@@ -219,9 +186,15 @@ async function processPR(pr) {
     stats.processed++;
     const progress = `[${stats.processed}/${stats.total}]`;
 
-    console.log(`\n${progress} PR #${pr.number} by @${pr.user.login}`);
+    console.log(`\n${progress} PR #${pr.number} by @${pr.user.login} (${pr.state})`);
 
-    let appliedAuthorLabel = false;
+    // Check if already has core team or community label first
+    const existingLabel = getExistingLabel(pr);
+    if (existingLabel) {
+        console.log(`   ⏭️  Already labeled as "${existingLabel}"`);
+        stats.alreadyLabeled++;
+        return; // Skip to next PR
+    }
 
     // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
     const isDependencyBot = (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') &&
@@ -237,47 +210,22 @@ async function processPR(pr) {
             console.log(`   🤖 Dependency bot PR - adding "dependencies" label`);
             await addLabel(pr, 'dependencies');
             stats.labeledAsDependencies = (stats.labeledAsDependencies || 0) + 1;
-            appliedAuthorLabel = true;
         }
     } else if (pr.user.type === 'Bot' || pr.user.login.includes('[bot]')) {
         // Skip other bot PRs that aren't dependency bots
         console.log(`   🤖 Skipping bot PR (not a dependency bot)`);
         stats.skippedBots = (stats.skippedBots || 0) + 1;
     } else {
-        // Check if already labeled
-        const existingLabel = getExistingLabel(pr);
-        if (existingLabel) {
-            console.log(`   ⏭️  Already labeled as "${existingLabel}"`);
-            stats.alreadyLabeled++;
+        // Check if author is a Ghost Foundation team member
+        const isMember = await isGhostFoundationMember(pr.user.login);
+        const label = isMember ? 'core team' : 'community';
+
+        await addLabel(pr, label);
+
+        if (isMember) {
+            stats.labeledAsCore++;
         } else {
-            // Check if author is a Ghost Foundation team member
-            const isMember = await isGhostFoundationMember(pr.user.login);
-            const label = isMember ? 'core team' : 'community';
-
-            await addLabel(pr, label);
-            appliedAuthorLabel = true;
-
-            if (isMember) {
-                stats.labeledAsCore++;
-            } else {
-                stats.labeledAsCommunity++;
-            }
-        }
-    }
-
-    // Check for locale file changes regardless of author type
-    const existingLabels = pr.labels.map(l => l.name.toLowerCase());
-    if (!existingLabels.includes('affects:i18n')) {
-        const hasLocaleChanges = await containsLocaleChanges(pr.number);
-        if (hasLocaleChanges) {
-            console.log(`   🌐 Contains locale file changes - adding "affects:i18n" label`);
-            await addLabel(pr, 'affects:i18n');
-            stats.labeledAsI18n = (stats.labeledAsI18n || 0) + 1;
-        }
-    } else {
-        console.log(`   ⏭️  Already labeled as "affects:i18n"`);
-        if (!appliedAuthorLabel) {
-            stats.alreadyLabeled++;
+            stats.labeledAsCommunity++;
         }
     }
 }
@@ -290,6 +238,7 @@ async function main() {
     console.log('============================');
     console.log(`Repository: ${args.owner}/${args.repo}`);
     console.log(`Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚡ LIVE (labels will be applied)'}`);
+    console.log(`Starting from page: ${startPage}`);
 
     if (!isDryRun) {
         console.log('\n⚠️  WARNING: This will modify PR labels. Use --dry-run to preview changes first.');
@@ -297,35 +246,55 @@ async function main() {
     console.log('');
 
     try {
-        // Get all open PRs
-        const prs = await getAllOpenPRs();
-        stats.total = prs.length;
+        let currentPage = startPage;
+        let keepGoing = true;
 
-        console.log(`\n📊 Found ${stats.total} open PRs\n`);
+        console.log(`📋 Fetching PRs from ${args.owner}/${args.repo}...`);
 
-        if (stats.total === 0) {
-            console.log('No open PRs found. Exiting.');
-            return;
+        while (keepGoing) {
+            // Get one page of PRs
+            const prs = await getPRPage(currentPage);
+
+            if (prs.length === 0) {
+                console.log('\n📊 No more PRs to process');
+                break;
+            }
+
+            // Update stats for this page
+            stats.total = prs.length;
+            stats.processed = 0;
+
+            console.log(`\n📊 Processing ${prs.length} PRs from page ${currentPage}\n`);
+
+            // Process each PR on this page
+            for (const pr of prs) {
+                await processPR(pr);
+
+                // Add a small delay to avoid hitting rate limits
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Ask if user wants to continue to next page
+            console.log(`\n✅ Finished processing page ${currentPage}`);
+            console.log('Press Ctrl+C to stop, or wait 5 seconds to continue to next page...');
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                currentPage++;
+            } catch (e) {
+                keepGoing = false;
+            }
         }
 
-        // Process each PR
-        for (const pr of prs) {
-            await processPR(pr);
-
-            // Add a small delay to avoid hitting rate limits
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        // Print summary
-        console.log('\n\n📈 Summary');
-        console.log('==========');
-        console.log(`Total PRs processed: ${stats.processed}`);
-        console.log(`Non-dependency bot PRs skipped: ${stats.skippedBots || 0}`);
+        // Print summary for all pages processed
+        console.log('\n\n📈 Final Summary');
+        console.log('==============');
+        console.log(`Pages processed: ${currentPage - startPage + 1}`);
         console.log(`Already labeled: ${stats.alreadyLabeled}`);
+        console.log(`Non-dependency bot PRs skipped: ${stats.skippedBots || 0}`);
         console.log(`Newly labeled as "dependencies": ${stats.labeledAsDependencies || 0}`);
         console.log(`Newly labeled as "core team": ${stats.labeledAsCore}`);
         console.log(`Newly labeled as "community": ${stats.labeledAsCommunity}`);
-        console.log(`Newly labeled as "affects:i18n": ${stats.labeledAsI18n || 0}`);
         console.log(`Errors: ${stats.errors}`);
 
         if (isDryRun) {
