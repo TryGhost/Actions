@@ -243,73 +243,29 @@ module.exports = class Helpers {
     }
 
     /**
-     * Check if a user is a member of the Ghost Foundation team
+     * Check if a GitHub user is a member of the Ghost Foundation
+     *
+     * Note: We use organization membership instead of team membership because
+     * the GITHUB_TOKEN used in Actions cannot access team membership data,
+     * even for "visible" (non-secret) teams. This is a GitHub limitation.
+     *
      * @param {string} username
      * @returns {Promise<boolean>}
      */
     async isGhostFoundationMember(username) {
         try {
-            // First try to check team membership directly
-            await this.client.rest.teams.getMembershipForUserInOrg({
+            await this.client.rest.orgs.checkMembershipForUser({
                 org: 'TryGhost',
-                team_slug: 'ghost-foundation',
                 username: username
             });
-            core.info(`User ${username} is a member of ghost-foundation team`);
+            core.info(`User ${username} is a member of TryGhost org`);
             return true;
-        } catch (teamErr) {
-            // Log the full error details for debugging
-            core.debug(`Team membership check failed: ${JSON.stringify({
-                status: teamErr.status,
-                message: teamErr.message,
-                username: username,
-                response: teamErr.response?.data
-            })}`);
-
-            // If we get a 404, the user is not a member
-            if (teamErr.status === 404) {
-                core.info(`User ${username} is not a member of ghost-foundation team (404)`);
+        } catch (err) {
+            if (err.status === 404) {
+                core.info(`User ${username} is not a member of TryGhost org`);
                 return false;
             }
-
-            // For other errors (like 403 forbidden), check repository permissions as fallback
-            if (teamErr.status === 403) {
-                core.warning(`Cannot check team membership for ${username} (403 Forbidden), checking repository permissions`);
-                try {
-                    // Check permissions for both Ghost and Admin repos
-                    // Core team members have write access to BOTH repos
-                    const [ghostPerm, adminPerm] = await Promise.all([
-                        this.client.rest.repos.getCollaboratorPermissionLevel({
-                            owner: 'TryGhost',
-                            repo: 'Ghost',
-                            username: username
-                        }),
-                        this.client.rest.repos.getCollaboratorPermissionLevel({
-                            owner: 'TryGhost',
-                            repo: 'Admin',
-                            username: username
-                        })
-                    ]);
-
-                    // Core team members must have write or admin access to BOTH repos
-                    const hasGhostWrite = ghostPerm.data.permission === 'write' || ghostPerm.data.permission === 'admin';
-                    const hasAdminWrite = adminPerm.data.permission === 'write' || adminPerm.data.permission === 'admin';
-                    const isCore = hasGhostWrite && hasAdminWrite;
-
-                    core.info(`User ${username} has ${ghostPerm.data.permission} access to Ghost and ${adminPerm.data.permission} access to Admin - ${isCore ? 'core team' : 'community'}`);
-                    return isCore;
-                } catch (permErr) {
-                    if (permErr.status === 404) {
-                        core.info(`User ${username} has no direct access to repos - community`);
-                        return false;
-                    }
-                    core.error(`Error checking repo permissions for ${username}: ${permErr.message}`);
-                    return false;
-                }
-            }
-
-            // For other errors, log and assume not a member
-            core.error(`Error checking team membership for ${username}: Status ${teamErr.status} - ${teamErr.message}`);
+            core.error(`Error checking org membership for ${username}: ${err.message}`);
             return false;
         }
     }

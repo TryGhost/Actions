@@ -47,65 +47,27 @@ const stats = {
 };
 
 /**
- * Check if a user is a member of the Ghost Foundation team
+ * Check if a user is a member of the Ghost Foundation
  * @param {string} username
  * @returns {Promise<boolean>}
  */
 async function isGhostFoundationMember(username) {
     try {
-        // First try to check team membership directly
-        await octokit.rest.teams.getMembershipForUserInOrg({
+        await octokit.rest.orgs.checkMembershipForUser({
             org: 'TryGhost',
-            team_slug: 'ghost-foundation',
             username: username
         });
-        console.log(`   ✓ ${username} is a member of ghost-foundation team`);
+        console.log(`   ✓ ${username} is a member of TryGhost org`);
         return true;
-    } catch (teamErr) {
-        if (teamErr.status === 404) {
-            console.log(`   ✗ ${username} is not a member of ghost-foundation team`);
+    } catch (err) {
+        if (err.status === 404) {
+            console.log(`   ✗ ${username} is not a member of TryGhost org`);
             return false;
         }
-
-        // For 403 errors, check repository permissions as fallback
-        if (teamErr.status === 403) {
-            console.log(`   ⚠️  Cannot check team membership (403), checking repository permissions...`);
-            try {
-                // Check permissions for both Ghost and Admin repos
-                // Core team members have write access to BOTH repos
-                const [ghostPerm, adminPerm] = await Promise.all([
-                    octokit.rest.repos.getCollaboratorPermissionLevel({
-                        owner: 'TryGhost',
-                        repo: 'Ghost',
-                        username: username
-                    }),
-                    octokit.rest.repos.getCollaboratorPermissionLevel({
-                        owner: 'TryGhost',
-                        repo: 'Admin',
-                        username: username
-                    })
-                ]);
-
-                // Core team members must have write or admin access to BOTH repos
-                const hasGhostWrite = ghostPerm.data.permission === 'write' || ghostPerm.data.permission === 'admin';
-                const hasAdminWrite = adminPerm.data.permission === 'write' || adminPerm.data.permission === 'admin';
-                const isCore = hasGhostWrite && hasAdminWrite;
-
-                console.log(`   ${isCore ? '✓' : '✗'} ${username} has ${ghostPerm.data.permission} access to Ghost and ${adminPerm.data.permission} access to Admin - ${isCore ? 'core team' : 'community'}`);
-                return isCore;
-            } catch (permErr) {
-                if (permErr.status === 404) {
-                    console.log(`   ✗ ${username} has no direct access to repos - community`);
-                    return false;
-                }
-                console.error(`   ❌ Error checking repo permissions:`, permErr.message);
-                return false;
-            }
-        }
-
-        console.error(`   ❌ Error checking team membership for ${username}: ${teamErr.status} - ${teamErr.message}`);
+        console.error(`   ❌ Error checking org membership:`, err.message);
         return false;
     }
+}
 }
 
 /**
