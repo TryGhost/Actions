@@ -243,29 +243,53 @@ module.exports = class Helpers {
     }
 
     /**
-     * Check if a GitHub user is a member of the Ghost Foundation
+     * Check if a GitHub user is a core team member
      *
-     * Note: We use organization membership instead of team membership because
-     * the GITHUB_TOKEN used in Actions cannot access team membership data,
-     * even for "visible" (non-secret) teams. This is a GitHub limitation.
+     * Note: We previously tried using team membership checks, but the GITHUB_TOKEN
+     * used in Actions cannot access team membership data, even for "visible"
+     * (non-secret) teams. This is a GitHub limitation.
+     *
+     * Instead, we identify core team members by:
+     * 1. Being a member of the TryGhost organization AND
+     * 2. Having write or admin access to the Admin repository
+     *
+     * This approach correctly distinguishes between:
+     * - Core team (org member + write access to Admin)
+     * - Contributors (org member + read access to Admin)
+     * - Community (not org member)
      *
      * @param {string} username
      * @returns {Promise<boolean>}
      */
     async isGhostFoundationMember(username) {
         try {
-            await this.client.rest.orgs.checkMembershipForUser({
-                org: 'TryGhost',
+            // First check org membership
+            try {
+                await this.client.rest.orgs.checkMembershipForUser({
+                    org: 'TryGhost',
+                    username: username
+                });
+                core.info(`User ${username} is a member of TryGhost org`);
+            } catch (err) {
+                if (err.status === 404) {
+                    core.info(`User ${username} is not a member of TryGhost org`);
+                    return false;
+                }
+                throw err;
+            }
+
+            // If they're an org member, check Admin repo permissions
+            const {data} = await this.client.rest.repos.getCollaboratorPermissionLevel({
+                owner: 'TryGhost',
+                repo: 'Admin',
                 username: username
             });
-            core.info(`User ${username} is a member of TryGhost org`);
-            return true;
+
+            const isCore = data.permission === 'write' || data.permission === 'admin';
+            core.info(`User ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`);
+            return isCore;
         } catch (err) {
-            if (err.status === 404) {
-                core.info(`User ${username} is not a member of TryGhost org`);
-                return false;
-            }
-            core.error(`Error checking org membership for ${username}: ${err.message}`);
+            core.error(`Error checking permissions for ${username}: ${err.message}`);
             return false;
         }
     }

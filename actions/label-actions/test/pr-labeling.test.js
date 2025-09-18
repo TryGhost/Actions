@@ -53,58 +53,37 @@ describe('PR Labeling', function () {
     });
 
     describe('isGhostFoundationMember', function () {
-        it('should return true when user is a member of Ghost Foundation', async function () {
+        it('should return true for core team members (org member + admin write)', async function () {
             mockClient.rest.orgs.checkMembershipForUser.resolves();
+            mockClient.rest.repos.getCollaboratorPermissionLevel.resolves({
+                data: {permission: 'write'}
+            });
 
-            const isMember = await helpers.isGhostFoundationMember('ghost-member');
+            const isMember = await helpers.isGhostFoundationMember('core-member');
 
             isMember.should.be.true();
             sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(mockClient.rest.orgs.checkMembershipForUser, {
-                org: 'TryGhost',
-                username: 'ghost-member'
+            sinon.assert.calledOnce(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(mockClient.rest.repos.getCollaboratorPermissionLevel, {
+                owner: 'TryGhost',
+                repo: 'Admin',
+                username: 'core-member'
             });
-            sinon.assert.calledWith(core.info, 'User ghost-member is a member of TryGhost org');
+            sinon.assert.calledWith(core.info, 'User core-member has write access to Admin repo - core team');
         });
 
-        it('should return false when user is not a member (404 error)', async function () {
-            const error = new Error('Not Found');
-            error.status = 404;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
-
-            const isMember = await helpers.isGhostFoundationMember('external-contributor');
-
-            isMember.should.be.false();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(core.info, 'User external-contributor is not a member of TryGhost org');
-        });
-
-        it('should return false and log error for other API errors', async function () {
-            const error = new Error('API Error');
-            error.status = 500;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
-
-            const isMember = await helpers.isGhostFoundationMember('test-user');
-
-            isMember.should.be.false();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(core.error,
-                'Error checking org membership for test-user: API Error'
-            );
-        });
-
-        it('should return true for org members', async function () {
+        it('should return false for contributors (org member + admin read)', async function () {
             mockClient.rest.orgs.checkMembershipForUser.resolves();
-
-            const isMember = await helpers.isGhostFoundationMember('test-user');
-
-            isMember.should.be.true();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(mockClient.rest.orgs.checkMembershipForUser, {
-                org: 'TryGhost',
-                username: 'test-user'
+            mockClient.rest.repos.getCollaboratorPermissionLevel.resolves({
+                data: {permission: 'read'}
             });
-            sinon.assert.calledWith(core.info, 'User test-user is a member of TryGhost org');
+
+            const isMember = await helpers.isGhostFoundationMember('contributor');
+
+            isMember.should.be.false();
+            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
+            sinon.assert.calledOnce(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(core.info, 'User contributor has read access to Admin repo - contributor');
         });
 
         it('should return false for non-org members', async function () {
@@ -112,11 +91,22 @@ describe('PR Labeling', function () {
             error.status = 404;
             mockClient.rest.orgs.checkMembershipForUser.rejects(error);
 
-            const isMember = await helpers.isGhostFoundationMember('external-user');
+            const isMember = await helpers.isGhostFoundationMember('community-member');
 
             isMember.should.be.false();
             sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(core.info, 'User external-user is not a member of TryGhost org');
+            sinon.assert.calledWith(core.info, 'User community-member is not a member of TryGhost org');
+        });
+
+        it('should return false and log error for API errors', async function () {
+            const error = new Error('API Error');
+            error.status = 500;
+            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
+
+            const isMember = await helpers.isGhostFoundationMember('test-user');
+
+            isMember.should.be.false();
+            sinon.assert.calledWith(core.error, 'Error checking permissions for test-user: API Error');
         });
     });
 
