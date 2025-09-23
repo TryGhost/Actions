@@ -67,6 +67,7 @@ async function main() {
         if (payload.action === 'opened') {
             const pullRequest = payload.pull_request;
             const author = pullRequest.user.login;
+            core.info(`PR opened #${pullRequest.number} by ${author} (${pullRequest.state}, ${pullRequest.author_association})`);
 
             // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
             const isDependencyBot = (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') &&
@@ -80,7 +81,7 @@ async function main() {
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
             } else {
                 // Check if the PR author is a member of the Ghost Foundation team
-                const isGhostMember = await helpers.isGhostFoundationMember(author);
+                const isGhostMember = await helpers.isGhostFoundationMember(author, pullRequest.author_association);
 
                 // Add appropriate label based on membership
                 if (isGhostMember) {

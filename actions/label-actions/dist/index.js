@@ -9933,12 +9933,8 @@ module.exports = class Helpers {
     /**
      * Check if a GitHub user is a core team member
      *
-     * Note: We previously tried using team membership checks, but the GITHUB_TOKEN
-     * used in Actions cannot access team membership data, even for "visible"
-     * (non-secret) teams. This is a GitHub limitation.
-     *
-     * Instead, we identify core team members by:
-     * 1. Being a member of the TryGhost organization AND
+     * We identify core team members by:
+     * 1. Being a member of the TryGhost organization (checked via author_association)
      * 2. Having write or admin access to the Admin repository
      *
      * This approach correctly distinguishes between:
@@ -9947,23 +9943,18 @@ module.exports = class Helpers {
      * - Community (not org member)
      *
      * @param {string} username
+     * @param {string} authorAssociation The PR author's association with the repository
      * @returns {Promise<boolean>}
      */
-    async isGhostFoundationMember(username) {
+    async isGhostFoundationMember(username, authorAssociation) {
         try {
-            // First check org membership
-            try {
-                await this.client.rest.orgs.checkMembershipForUser({
-                    org: 'TryGhost',
-                    username: username
-                });
-                core.info(`User ${username} is a member of TryGhost org`);
-            } catch (err) {
-                if (err.status === 404) {
-                    core.info(`User ${username} is not a member of TryGhost org`);
-                    return false;
-                }
-                throw err;
+            // First check if they're an org member using author_association
+            const isOrgMember = ['OWNER', 'MEMBER'].includes(authorAssociation);
+            core.info(`User ${username} has ${authorAssociation} association with the repository`);
+
+            if (!isOrgMember) {
+                core.info('User is not an organization member');
+                return false;
             }
 
             // If they're an org member, check Admin repo permissions
@@ -10261,6 +10252,7 @@ async function main() {
         if (payload.action === 'opened') {
             const pullRequest = payload.pull_request;
             const author = pullRequest.user.login;
+            core.info(`PR opened #${pullRequest.number} by ${author} (${pullRequest.state}, ${pullRequest.author_association})`);
 
             // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
             const isDependencyBot = (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') &&
@@ -10274,7 +10266,7 @@ async function main() {
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
             } else {
                 // Check if the PR author is a member of the Ghost Foundation team
-                const isGhostMember = await helpers.isGhostFoundationMember(author);
+                const isGhostMember = await helpers.isGhostFoundationMember(author, pullRequest.author_association);
 
                 // Add appropriate label based on membership
                 if (isGhostMember) {
