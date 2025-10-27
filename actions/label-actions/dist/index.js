@@ -10268,12 +10268,12 @@ async function main() {
                 // Check if the PR author is a member of the Ghost Foundation team
                 const isGhostMember = await helpers.isGhostFoundationMember(author, pullRequest.author_association);
 
-                // Add appropriate label based on membership
-                if (isGhostMember) {
-                    await helpers.addLabel(pullRequest, 'core team');
-                } else {
-                    await helpers.addLabel(pullRequest, 'community');
-                }
+                // Don't label until we get the correct org membership data
+                // if (isGhostMember) {
+                //     await helpers.addLabel(pullRequest, 'core team');
+                // } else {
+                //     await helpers.addLabel(pullRequest, 'community');
+                // }
 
                 core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
             }
