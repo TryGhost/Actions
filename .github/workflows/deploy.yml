@@ -39,7 +39,7 @@ jobs:
         echo "ENVIRONMENT=production" >> $GITHUB_ENV
 
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Check for folder existence
       id: checkfolder
