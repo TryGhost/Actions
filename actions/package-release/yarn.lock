@@ -1084,10 +1084,10 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
-gitmojis@3.13.5:
-  version "3.13.5"
-  resolved "https://registry.yarnpkg.com/gitmojis/-/gitmojis-3.13.5.tgz#989371de98d79a42bd42394b1c6a142ed56f77fd"
-  integrity sha512-MLM88QAaWpYWlvtBjHBxshI9AGRH+LLluD6NbhymeWp0EQ1Sew8SgC0BpiQuQ4DCYGKs9LcX4zRL3lDlwOPA5g==
+gitmojis@3.15.0:
+  version "3.15.0"
+  resolved "https://registry.yarnpkg.com/gitmojis/-/gitmojis-3.15.0.tgz#a6fa1dc02bd05d05c698f986197c10308543f4b8"
+  integrity sha512-28sothO0+6UuXx0fnJXi4kqy2/dKeFN3xL2Ss5k5K5ECBJMi5T2kZLY92xys3/+YD+AgKHgeiw7YQpYKnkCLMg==
 
 glob-parent@^6.0.2:
   version "6.0.2"
