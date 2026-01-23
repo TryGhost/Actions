@@ -17,7 +17,7 @@
   "devDependencies": {
     "@vercel/ncc": "0.36.1",
     "eslint": "8.42.0",
-    "eslint-plugin-ghost": "3.1.0"
+    "eslint-plugin-ghost": "3.4.4"
   },
   "dependencies": {
     "@slack/webhook": "6.1.0",
