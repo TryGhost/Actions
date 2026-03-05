@@ -117,17 +117,6 @@ const ghostVersion = ghostPackageInfo.version;
             });
         }
 
-        await client.rest.actions.createWorkflowDispatch({
-            owner: 'TryGhost',
-            repo: 'Ghost-Moya',
-            workflow_id: '.github/workflows/deploy.yml',
-            ref: 'main',
-            inputs: {
-                version: 'ref',
-                version_extra: `refs/tags/${ghostVersionTagged}`,
-                environment: 'both'
-            }
-        });
     } catch (err) {
         console.error(err); // eslint-disable-line no-console
         process.exit(1);
