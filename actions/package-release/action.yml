@@ -1,5 +1,0 @@
-name: 'Ghost Package Release'
-description: 'Tasks to do when a new Ghost package is released'
-runs:
-  using: 'node16'
-  main: 'dist/index.js'
