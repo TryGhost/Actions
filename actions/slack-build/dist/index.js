@@ -6063,32 +6063,22 @@ let actorLink = githubActor;
 
 const githubActorToSlackId = {
     ErisDS: 'U02563SGY',
-
-    daniellockyer: 'URZENL0V7',
     'sam-lord': 'U017YUER0HL',
     JoeeGrigg: 'U02LNNXJKGA',
-
     aileen: 'U04D59TH6',
     peterzimon: 'U7L3K6GM7',
-
-    SimonBackx: 'U033YGE89JN',
-    'sanne-san': 'U019N6Y2PB2',
     allouis: 'UCCEPHM39',
     vershwal: 'U05N8BNBAQ3',
     mike182uk: 'U052YFMMJQL',
     cmraible: 'U04ETKA5E3D',
     minimaluminium: 'U019YHN4WSG',
-    rishabhgrg: 'UCB9U7X99',
-    naz: 'UCBHY29PX',
-    dvdwinden: 'U067DTGJXEX',
-
-    'binary-koan': 'U0556P426LF',
-    lenabaidakova: 'U043VFG46HY',
     '9larsons': 'U04HMKJDA79',
     kevinansfield: 'U051KGJR2',
     sagzy: 'U04RLV7E6F8',
-    ronaldlangeveld: 'U03MV5LH4F5',
-    djordjevlais: 'U02KQRQH3GS',
+    EvanHahn: 'U0A7KLGCHEW',
+    troyciesco: 'U090DT54Y4B',
+    'rob-ghost': 'U09E99K63JN',
+    jonatansberg: 'U099U6NCFCN',
 };
 
 if (githubActorToSlackId[githubActor]) {

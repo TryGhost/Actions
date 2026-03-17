@@ -1,7 +1,6 @@
 const sinon = require('sinon');
-const should = require('should');
+require('should');
 const core = require('@actions/core');
-const github = require('@actions/github');
 
 // Require test utils
 require('./utils');
@@ -54,56 +53,50 @@ describe('PR Labeling', function () {
 
     describe('isGhostFoundationMember', function () {
         it('should return true for core team members (org member + admin write)', async function () {
-            mockClient.rest.orgs.checkMembershipForUser.resolves();
             mockClient.rest.repos.getCollaboratorPermissionLevel.resolves({
                 data: {permission: 'write'}
             });
 
-            const isMember = await helpers.isGhostFoundationMember('core-member');
+            const isMember = await helpers.isGhostFoundationMember('core-member', 'MEMBER');
 
             isMember.should.be.true();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
             sinon.assert.calledOnce(mockClient.rest.repos.getCollaboratorPermissionLevel);
             sinon.assert.calledWith(mockClient.rest.repos.getCollaboratorPermissionLevel, {
                 owner: 'TryGhost',
                 repo: 'Admin',
                 username: 'core-member'
             });
+            sinon.assert.calledWith(core.info, 'User core-member has MEMBER association with the repository');
             sinon.assert.calledWith(core.info, 'User core-member has write access to Admin repo - core team');
         });
 
         it('should return false for contributors (org member + admin read)', async function () {
-            mockClient.rest.orgs.checkMembershipForUser.resolves();
             mockClient.rest.repos.getCollaboratorPermissionLevel.resolves({
                 data: {permission: 'read'}
             });
 
-            const isMember = await helpers.isGhostFoundationMember('contributor');
+            const isMember = await helpers.isGhostFoundationMember('contributor', 'MEMBER');
 
             isMember.should.be.false();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
             sinon.assert.calledOnce(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(core.info, 'User contributor has MEMBER association with the repository');
             sinon.assert.calledWith(core.info, 'User contributor has read access to Admin repo - contributor');
         });
 
         it('should return false for non-org members', async function () {
-            const error = new Error('Not Found');
-            error.status = 404;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
-
-            const isMember = await helpers.isGhostFoundationMember('community-member');
+            const isMember = await helpers.isGhostFoundationMember('community-member', 'CONTRIBUTOR');
 
             isMember.should.be.false();
-            sinon.assert.calledOnce(mockClient.rest.orgs.checkMembershipForUser);
-            sinon.assert.calledWith(core.info, 'User community-member is not a member of TryGhost org');
+            sinon.assert.notCalled(mockClient.rest.repos.getCollaboratorPermissionLevel);
+            sinon.assert.calledWith(core.info, 'User community-member has CONTRIBUTOR association with the repository');
+            sinon.assert.calledWith(core.info, 'User is not an organization member');
         });
 
         it('should return false and log error for API errors', async function () {
             const error = new Error('API Error');
-            error.status = 500;
-            mockClient.rest.orgs.checkMembershipForUser.rejects(error);
+            mockClient.rest.repos.getCollaboratorPermissionLevel.rejects(error);
 
-            const isMember = await helpers.isGhostFoundationMember('test-user');
+            const isMember = await helpers.isGhostFoundationMember('test-user', 'MEMBER');
 
             isMember.should.be.false();
             sinon.assert.calledWith(core.error, 'Error checking permissions for test-user: API Error');

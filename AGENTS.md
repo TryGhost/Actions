@@ -9,7 +9,8 @@
 - `actions/ghost-release`: single-file action with source in `index.js` and compiled output in `dist/index.js`.
 - `actions/label-actions`: multi-file action with source in `src/`, tests in `test/`, helper scripts in `scripts/`, and compiled output in `dist/index.js`.
 - `actions/slack-build`: single-file action with source in `index.js` and compiled output in `dist/index.js`.
-- `.github/workflows/`: shared CI workflows; current CI runs on Node `20` and `22`.
+- `.github/workflows/repo-ci.yml`: validates this repository on pull requests and pushes using Node `22`.
+- `.github/workflows/test.yml` and `.github/workflows/lint-only.yml`: reusable workflows for other repositories; current reusable CI runs on Node `20` and `22`.
 
 ## Working Rules
 - Scope changes to the action being modified. Do not introduce a root workspace or root package tooling unless explicitly requested.
@@ -22,8 +23,9 @@
 - `actions/ghost-release`: `yarn && yarn lint && yarn build`
 - `actions/label-actions`: `yarn && yarn test && yarn build`
 - `actions/slack-build`: `yarn && yarn build`
-- If you touch lint or CI behavior, also review `.github/workflows/test.yml` and `.github/workflows/lint-only.yml`.
+- If you touch lint or CI behavior, also review `.github/workflows/repo-ci.yml`, `.github/workflows/test.yml`, and `.github/workflows/lint-only.yml`.
 
 ## Notes
 - `label-actions` is the only action with an automated test suite in this repository.
-- The shared CI workflow expects Yarn-based installs and commands.
+- The CI workflows expect Yarn-based installs and commands.
+- Packaged action manifests currently target the GitHub Actions `node20` runtime.
