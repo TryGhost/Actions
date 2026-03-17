@@ -1,14 +1,15 @@
-const core = require('@actions/core');
 const github = require('@actions/github');
 
 require('./utils');
 
+const {setCoreForTests} = require('../src/actions-core');
 const Helpers = require('../src/helpers');
 
 describe('Helpers', function () {
     let sandbox;
     let helpers;
     let mockClient;
+    let mockCore;
 
     beforeEach(function () {
         sandbox = sinon.createSandbox();
@@ -35,14 +36,19 @@ describe('Helpers', function () {
             }
         };
 
+        mockCore = {
+            info: sandbox.stub(),
+            error: sandbox.stub()
+        };
+
         sandbox.stub(github, 'getOctokit').returns(mockClient);
-        sandbox.stub(core, 'info');
-        sandbox.stub(core, 'error');
+        setCoreForTests(mockCore);
 
         helpers = new Helpers('fake-token', {owner: 'test-owner', repo: 'test-repo'});
     });
 
     afterEach(function () {
+        setCoreForTests(null);
         sandbox.restore();
     });
 
@@ -352,7 +358,7 @@ describe('Helpers', function () {
         const files = await helpers.getPRFiles(99);
 
         files.should.deepEqual([]);
-        sinon.assert.calledWith(core.error, 'Error fetching PR files: boom');
+        sinon.assert.calledWith(mockCore.error, 'Error fetching PR files: boom');
     });
 
     it('detects locale changes from PR files', async function () {

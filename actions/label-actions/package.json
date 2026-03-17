@@ -26,7 +26,7 @@
     "sinon": "21.0.2"
   },
   "dependencies": {
-    "@actions/core": "1.11.1",
+    "@actions/core": "3.0.0",
     "@actions/github": "5.1.1"
   }
 }

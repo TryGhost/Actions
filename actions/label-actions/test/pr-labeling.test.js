@@ -1,10 +1,10 @@
 const sinon = require('sinon');
 require('should');
-const core = require('@actions/core');
 
 // Require test utils
 require('./utils');
 
+const {setCoreForTests} = require('../src/actions-core');
 // Require the helpers class we're testing
 const Helpers = require('../src/helpers');
 
@@ -12,6 +12,7 @@ describe('PR Labeling', function () {
     let sandbox;
     let helpers;
     let mockClient;
+    let mockCore;
 
     beforeEach(function () {
         sandbox = sinon.createSandbox();
@@ -37,17 +38,20 @@ describe('PR Labeling', function () {
             }
         };
 
-        // Create helpers instance with mocked client
-        helpers = new Helpers('fake-token', {owner: 'test-owner', repo: 'test-repo'});
-        helpers.client = mockClient;
+        mockCore = {
+            error: sandbox.stub(),
+            info: sandbox.stub(),
+            warning: sandbox.stub()
+        };
 
-        // Mock core logging functions
-        sandbox.stub(core, 'error');
-        sandbox.stub(core, 'info');
-        sandbox.stub(core, 'warning');
+        setCoreForTests(mockCore);
+
+        // Create helpers instance with mocked client
+        helpers = new Helpers('fake-token', {owner: 'test-owner', repo: 'test-repo'}, mockClient);
     });
 
     afterEach(function () {
+        setCoreForTests(null);
         sandbox.restore();
     });
 
@@ -66,8 +70,8 @@ describe('PR Labeling', function () {
                 repo: 'Admin',
                 username: 'core-member'
             });
-            sinon.assert.calledWith(core.info, 'User core-member has MEMBER association with the repository');
-            sinon.assert.calledWith(core.info, 'User core-member has write access to Admin repo - core team');
+            sinon.assert.calledWith(mockCore.info, 'User core-member has MEMBER association with the repository');
+            sinon.assert.calledWith(mockCore.info, 'User core-member has write access to Admin repo - core team');
         });
 
         it('should return false for contributors (org member + admin read)', async function () {
@@ -79,8 +83,8 @@ describe('PR Labeling', function () {
 
             isMember.should.be.false();
             sinon.assert.calledOnce(mockClient.rest.repos.getCollaboratorPermissionLevel);
-            sinon.assert.calledWith(core.info, 'User contributor has MEMBER association with the repository');
-            sinon.assert.calledWith(core.info, 'User contributor has read access to Admin repo - contributor');
+            sinon.assert.calledWith(mockCore.info, 'User contributor has MEMBER association with the repository');
+            sinon.assert.calledWith(mockCore.info, 'User contributor has read access to Admin repo - contributor');
         });
 
         it('should return false for non-org members', async function () {
@@ -88,8 +92,8 @@ describe('PR Labeling', function () {
 
             isMember.should.be.false();
             sinon.assert.notCalled(mockClient.rest.repos.getCollaboratorPermissionLevel);
-            sinon.assert.calledWith(core.info, 'User community-member has CONTRIBUTOR association with the repository');
-            sinon.assert.calledWith(core.info, 'User is not an organization member');
+            sinon.assert.calledWith(mockCore.info, 'User community-member has CONTRIBUTOR association with the repository');
+            sinon.assert.calledWith(mockCore.info, 'User is not an organization member');
         });
 
         it('should return false and log error for API errors', async function () {
@@ -99,7 +103,7 @@ describe('PR Labeling', function () {
             const isMember = await helpers.isGhostFoundationMember('test-user', 'MEMBER');
 
             isMember.should.be.false();
-            sinon.assert.calledWith(core.error, 'Error checking permissions for test-user: API Error');
+            sinon.assert.calledWith(mockCore.error, 'Error checking permissions for test-user: API Error');
         });
     });
 
