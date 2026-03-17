@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 /**
  * Script to retroactively label existing open PRs based on Ghost Foundation team membership
@@ -32,7 +33,7 @@ if (!args.owner || !args.repo || !args.token) {
 }
 
 // Get starting page number
-const startPage = parseInt(args['start-page']) || 1;
+const startPage = Number.parseInt(args['start-page'], 10) || 1;
 
 const octokit = github.getOctokit(args.token);
 
@@ -174,7 +175,7 @@ async function addLabel(pr, label) {
         console.log(`   ✅ Added label "${label}"`);
     } catch (err) {
         console.error(`   ❌ Failed to add label:`, err.message);
-        stats.errors++;
+        stats.errors += 1;
     }
 }
 
@@ -183,7 +184,7 @@ async function addLabel(pr, label) {
  * @param {Object} pr
  */
 async function processPR(pr) {
-    stats.processed++;
+    stats.processed += 1;
     const progress = `[${stats.processed}/${stats.total}]`;
 
     console.log(`\n${progress} PR #${pr.number} by @${pr.user.login} (${pr.state})`);
@@ -192,7 +193,7 @@ async function processPR(pr) {
     const existingLabel = getExistingLabel(pr);
     if (existingLabel) {
         console.log(`   ⏭️  Already labeled as "${existingLabel}"`);
-        stats.alreadyLabeled++;
+        stats.alreadyLabeled += 1;
         return; // Skip to next PR
     }
 
@@ -205,7 +206,7 @@ async function processPR(pr) {
         const existingLabels = pr.labels.map(l => l.name.toLowerCase());
         if (existingLabels.includes('dependencies')) {
             console.log(`   ⏭️  Already labeled as "dependencies"`);
-            stats.alreadyLabeled++;
+            stats.alreadyLabeled += 1;
         } else {
             console.log(`   🤖 Dependency bot PR - adding "dependencies" label`);
             await addLabel(pr, 'dependencies');
@@ -223,9 +224,9 @@ async function processPR(pr) {
         await addLabel(pr, label);
 
         if (isMember) {
-            stats.labeledAsCore++;
+            stats.labeledAsCore += 1;
         } else {
-            stats.labeledAsCommunity++;
+            stats.labeledAsCommunity += 1;
         }
     }
 }
@@ -271,7 +272,9 @@ async function main() {
                 await processPR(pr);
 
                 // Add a small delay to avoid hitting rate limits
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 100);
+                });
             }
 
             // Ask if user wants to continue to next page
@@ -279,8 +282,10 @@ async function main() {
             console.log('Press Ctrl+C to stop, or wait 5 seconds to continue to next page...');
 
             try {
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                currentPage++;
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 5000);
+                });
+                currentPage += 1;
             } catch (e) {
                 keepGoing = false;
             }

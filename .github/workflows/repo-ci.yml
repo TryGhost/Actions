@@ -1,46 +1,62 @@
-name: Test
+name: Repo CI
+
 on:
-  workflow_call:
-    secrets:
-      CODECOV_TOKEN:
-        required: false
-      SLACK_WEBHOOK_URL:
-        required: false
+  pull_request:
+  push:
+
 permissions:
   contents: read
+
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && !startsWith(github.head_ref, 'renovate/'))
     strategy:
       fail-fast: false
       matrix:
-        node: [ 20, 22 ]
+        include:
+          - action_name: ghost-release
+            action_path: actions/ghost-release
+            lint: true
+            test: false
+          - action_name: label-actions
+            action_path: actions/label-actions
+            lint: false
+            test: true
+          - action_name: slack-build
+            action_path: actions/slack-build
+            lint: false
+            test: false
     env:
       FORCE_COLOR: 1
-    name: Node ${{ matrix.node }}
+    name: ${{ matrix.action_name }} / Node 22
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
       - uses: actions/setup-node@v6
         env:
           FORCE_COLOR: 0
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 22
           cache: yarn
-
-      - run: |
-          if [ -f lerna.json ]; then
-            yarn global add lerna@^4
-          fi
+          cache-dependency-path: ${{ matrix.action_path }}/yarn.lock
 
       - run: yarn --prefer-offline --frozen-lockfile
-      - run: yarn test
+        working-directory: ${{ matrix.action_path }}
 
-      - uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - run: yarn lint
+        if: ${{ matrix.lint }}
+        working-directory: ${{ matrix.action_path }}
+
+      - run: yarn test
+        if: ${{ matrix.test }}
+        working-directory: ${{ matrix.action_path }}
+
+      - run: yarn build
+        working-directory: ${{ matrix.action_path }}
+
+      - run: git diff --exit-code -- ${{ matrix.action_path }}/dist
 
       - name: Notify Slack on failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
