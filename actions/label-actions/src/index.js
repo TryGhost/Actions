@@ -10,7 +10,8 @@ async function main() {
     const githubToken = core.getInput('github-token');
 
     if (!githubToken) {
-        throw new Error('github-token is missing');
+        core.setFailed('github-token is missing');
+        return;
     }
 
     const {payload} = github.context;
