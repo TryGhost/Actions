@@ -320,7 +320,10 @@ describe('Helpers', function () {
     });
 
     it('ignores missing needs:triage label removal errors', async function () {
-        const removeLabel = sandbox.stub(helpers, 'removeLabel').rejects(new Error('missing label'));
+        const error = new Error('Not Found');
+        error.status = 404;
+
+        const removeLabel = sandbox.stub(helpers, 'removeLabel').rejects(error);
 
         await helpers.removeNeedsTriageLabel({number: 44});
 
