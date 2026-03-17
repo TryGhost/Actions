@@ -17,7 +17,7 @@
   "devDependencies": {
     "@vercel/ncc": "0.36.0",
     "c8": "11.0.0",
-    "eslint": "8.57.1",
+    "eslint": "10.0.3",
     "eslint-plugin-ghost": "2.18.1",
     "mocha": "10.8.2",
     "should": "13.2.3",
