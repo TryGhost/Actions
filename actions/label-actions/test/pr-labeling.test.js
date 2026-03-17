@@ -5,6 +5,7 @@ require('should');
 require('./utils');
 
 const {setCoreForTests} = require('../src/actions-core');
+const {setGitHubForTests} = require('../src/actions-github');
 // Require the helpers class we're testing
 const Helpers = require('../src/helpers');
 
@@ -52,6 +53,7 @@ describe('PR Labeling', function () {
 
     afterEach(function () {
         setCoreForTests(null);
+        setGitHubForTests(null);
         sandbox.restore();
     });
 
