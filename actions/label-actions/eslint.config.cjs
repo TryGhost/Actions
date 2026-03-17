@@ -5,6 +5,19 @@ const globals = require('globals');
 const baseConfig = require(require.resolve('eslint-plugin-ghost/lib/config/base.js'));
 const nodeConfig = ghost.configs.node;
 const testConfig = ghost.configs.test;
+const {
+    ['ghost/node/no-restricted-require']: _noRestrictedRequire,
+    ['ghost/filenames/match-exported-class']: _matchExportedClass,
+    ['ghost/filenames/match-regex']: _matchRegex,
+    ...nodeRules
+} = nodeConfig.rules;
+const {
+    ['ghost/mocha/no-global-tests']: _noGlobalTests,
+    ['ghost/mocha/max-top-level-suites']: _maxTopLevelSuites,
+    ['ghost/mocha/no-mocha-arrows']: _noMochaArrows,
+    ['ghost/mocha/no-async-describe']: _noAsyncDescribe,
+    ...testRules
+} = testConfig.rules;
 
 module.exports = [
     {
@@ -31,7 +44,7 @@ module.exports = [
     {
         files: ['src/**/*.js', 'scripts/**/*.js'],
         rules: {
-            ...nodeConfig.rules
+            ...nodeRules
         }
     },
     {
@@ -45,7 +58,7 @@ module.exports = [
                 sinon: 'readonly'
             }
         },
-        rules: testConfig.rules
+        rules: testRules
     },
     {
         files: ['src/helpers.js'],

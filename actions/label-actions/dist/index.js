@@ -10631,7 +10631,7 @@ module.exports = class Helpers {
     async removeNeedsTriageLabel(issue) {
         try {
             await this.removeLabel(issue, 'needs:triage');
-        } catch (err) {
+        } catch {
             // It might not exist, that's ok for now.
         }
     }
@@ -10911,8 +10911,6 @@ module.exports = /*#__PURE__*/JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-/* eslint-disable max-lines, no-restricted-syntax */
-
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
 
