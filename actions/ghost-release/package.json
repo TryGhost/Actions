@@ -15,7 +15,7 @@
   "devDependencies": {
     "@eslint/js": "8.57.1",
     "@vercel/ncc": "0.38.4",
-    "eslint": "8.57.1",
+    "eslint": "10.0.3",
     "eslint-plugin-ghost": "3.5.0",
     "globals": "13.24.0"
   },
