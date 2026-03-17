@@ -1,4 +1,4 @@
-const core = require('@actions/core');
+const {getCore} = require('./actions-core');
 const github = require('@actions/github');
 
 module.exports = class Helpers {
@@ -12,8 +12,8 @@ module.exports = class Helpers {
      * @param {string} repo.owner
      * @param {string} repo.repo
      */
-    constructor(token, repo) {
-        this.client = github.getOctokit(token);
+    constructor(token, repo, client = null) {
+        this.client = client ?? github.getOctokit(token);
         this.repo = repo;
     }
 
@@ -259,6 +259,8 @@ module.exports = class Helpers {
      * @returns {Promise<boolean>}
      */
     async isGhostFoundationMember(username, authorAssociation) {
+        const core = await getCore();
+
         try {
             // First check if they're an org member using author_association
             const isOrgMember = ['OWNER', 'MEMBER'].includes(authorAssociation);
@@ -291,6 +293,8 @@ module.exports = class Helpers {
      * @returns {Promise<Array>}
      */
     async getPRFiles(pullNumber) {
+        const core = await getCore();
+
         try {
             const {data: files} = await this.client.rest.pulls.listFiles({
                 ...this.repo,

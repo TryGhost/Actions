@@ -1,10 +1,11 @@
-const core = require('@actions/core');
+const {getCore} = require('./actions-core');
 const github = require('@actions/github');
 
 const Helpers = require('./helpers');
 const comments = require('./comments');
 
 async function main() {
+    const core = await getCore();
     const githubToken = core.getInput('github-token');
 
     if (!githubToken) {
@@ -214,6 +215,7 @@ async function main() {
     try {
         await main();
     } catch (err) {
+        const core = await getCore();
         core.setFailed(err);
     }
 })();
