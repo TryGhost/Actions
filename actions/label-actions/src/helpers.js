@@ -237,7 +237,7 @@ module.exports = class Helpers {
     async removeNeedsTriageLabel(issue) {
         try {
             await this.removeLabel(issue, 'needs:triage');
-        } catch (err) {
+        } catch {
             // It might not exist, that's ok for now.
         }
     }

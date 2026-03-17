@@ -286,7 +286,7 @@ async function main() {
                     setTimeout(resolve, 5000);
                 });
                 currentPage += 1;
-            } catch (e) {
+            } catch {
                 keepGoing = false;
             }
         }

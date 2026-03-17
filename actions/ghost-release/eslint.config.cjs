@@ -4,6 +4,12 @@ const globals = require('globals');
 
 const baseConfig = require(require.resolve('eslint-plugin-ghost/lib/config/base.js'));
 const nodeConfig = ghost.configs.node;
+const {
+    ['ghost/node/no-restricted-require']: _noRestrictedRequire,
+    ['ghost/filenames/match-exported-class']: _matchExportedClass,
+    ['ghost/filenames/match-regex']: _matchRegex,
+    ...nodeRules
+} = nodeConfig.rules;
 
 module.exports = [
     {
@@ -25,11 +31,17 @@ module.exports = [
         rules: {
             ...js.configs.recommended.rules,
             ...baseConfig.rules,
-            ...nodeConfig.rules
+            ...nodeRules
         }
     },
     {
         files: ['**/index.js'],
-        rules: nodeConfig.overrides[0].rules
+        rules: {
+            'max-lines': ['error', {
+                skipBlankLines: true,
+                skipComments: true,
+                max: 50
+            }]
+        }
     }
 ];

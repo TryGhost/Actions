@@ -1,5 +1,3 @@
-/* eslint-disable max-lines, no-restricted-syntax */
-
 const core = require('@actions/core');
 const github = require('@actions/github');
 
