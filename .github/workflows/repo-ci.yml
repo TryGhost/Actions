@@ -38,7 +38,7 @@ jobs:
         env:
           FORCE_COLOR: 0
         with:
-          node-version: 22
+          node-version: 24
           cache: yarn
           cache-dependency-path: ${{ matrix.action_path }}/yarn.lock
 
