@@ -21,7 +21,7 @@
     "eslint-plugin-ghost": "2.16.0",
     "mocha": "10.8.2",
     "should": "13.2.3",
-    "sinon": "15.2.0"
+    "sinon": "21.0.2"
   },
   "dependencies": {
     "@actions/core": "1.10.0",
