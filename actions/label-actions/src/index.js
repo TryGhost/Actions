@@ -1,11 +1,12 @@
 const {getCore} = require('./actions-core');
-const github = require('@actions/github');
+const {getGitHub} = require('./actions-github');
 
 const Helpers = require('./helpers');
 const comments = require('./comments');
 
 async function main() {
     const core = await getCore();
+    const github = await getGitHub();
     const githubToken = core.getInput('github-token');
 
     if (!githubToken) {

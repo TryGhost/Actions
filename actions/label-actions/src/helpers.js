@@ -1,5 +1,5 @@
 const {getCore} = require('./actions-core');
-const github = require('@actions/github');
+const {getGitHub} = require('./actions-github');
 
 module.exports = class Helpers {
     static CORE_TEAM_TRIAGERS = [
@@ -13,12 +13,26 @@ module.exports = class Helpers {
      * @param {string} repo.repo
      */
     constructor(token, repo, client = null) {
-        this.client = client ?? github.getOctokit(token);
+        this.token = token;
+        this.client = client;
         this.repo = repo;
     }
 
+    async getClient() {
+        if (this.client) {
+            return this.client;
+        }
+
+        const github = await getGitHub();
+        this.client = github.getOctokit(this.token);
+
+        return this.client;
+    }
+
     async enablePRAutoMerge(pullRequest) {
-        await this.client.graphql(`
+        const client = await this.getClient();
+
+        await client.graphql(`
             mutation enablePRAutoMerge($pullRequestId: ID!) {
                 enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: REBASE}) {
                     pullRequest {
@@ -72,7 +86,8 @@ module.exports = class Helpers {
      * @param {object} [options]
      */
     async addIssueToProject(issue, projectId, options = {}) {
-        const addResponse = await this.client.graphql(`
+        const client = await this.getClient();
+        const addResponse = await client.graphql(`
             mutation addIssueToProject($projectId: ID!, $issueId: ID!) {
                 addProjectV2ItemById(input: {contentId: $issueId, projectId: $projectId}) {
                     item {
@@ -86,7 +101,7 @@ module.exports = class Helpers {
 
         if (addResponse?.addProjectV2ItemById?.item?.id) {
             for (const option of Object.keys(options)) {
-                await this.client.graphql(`
+                await client.graphql(`
                     mutation moveItemToColumn($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
                         updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: {singleSelectOptionId: $optionId}}) {
                             projectV2Item {
@@ -120,7 +135,8 @@ module.exports = class Helpers {
      * @returns {Promise<Array>}
      */
     async listOpenNeedsInfoIssues() {
-        const {data: needsInfoIssues} = await this.client.rest.issues.listForRepo({
+        const client = await this.getClient();
+        const {data: needsInfoIssues} = await client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
             labels: 'needs:info'
@@ -132,7 +148,8 @@ module.exports = class Helpers {
      * @returns {Promise<Array>}
      */
     async listOpenPullRequests() {
-        const {data: needsInfoPullRequests} = await this.client.rest.pulls.list({
+        const client = await this.getClient();
+        const {data: needsInfoPullRequests} = await client.rest.pulls.list({
             ...this.repo,
             state: 'open'
         });
@@ -145,7 +162,8 @@ module.exports = class Helpers {
      * @returns {Promise<Array>}
      */
     async listTimelineEvents(issue) {
-        let {data: events} = await this.client.rest.issues.listEventsForTimeline({
+        const client = await this.getClient();
+        let {data: events} = await client.rest.issues.listEventsForTimeline({
             ...this.repo,
             issue_number: issue.number,
             per_page: 100
@@ -162,7 +180,8 @@ module.exports = class Helpers {
      * @returns {Promise<Array>}
      */
     async listLabels(issue) {
-        const {data: labels} = await this.client.rest.issues.listLabelsOnIssue({
+        const client = await this.getClient();
+        const {data: labels} = await client.rest.issues.listLabelsOnIssue({
             ...this.repo,
             issue_number: issue.number
         });
@@ -187,7 +206,9 @@ module.exports = class Helpers {
             }
         }
 
-        await this.client.rest.issues.createComment({
+        const client = await this.getClient();
+
+        await client.rest.issues.createComment({
             ...this.repo,
             issue_number: issue.number,
             body
@@ -199,7 +220,9 @@ module.exports = class Helpers {
      * @param {('completed'|'not_planned')} [stateReason]
      */
     async closeIssue(issue, stateReason = 'completed') {
-        await this.client.rest.issues.update({
+        const client = await this.getClient();
+
+        await client.rest.issues.update({
             ...this.repo,
             issue_number: issue.number,
             state: 'closed',
@@ -212,7 +235,9 @@ module.exports = class Helpers {
      * @param {String} name
      */
     async addLabel(issue, name) {
-        await this.client.rest.issues.addLabels({
+        const client = await this.getClient();
+
+        await client.rest.issues.addLabels({
             ...this.repo,
             issue_number: issue.number,
             labels: [name]
@@ -224,7 +249,9 @@ module.exports = class Helpers {
      * @param {String} name
      */
     async removeLabel(issue, name) {
-        await this.client.rest.issues.removeLabel({
+        const client = await this.getClient();
+
+        await client.rest.issues.removeLabel({
             ...this.repo,
             issue_number: issue.number,
             name
@@ -272,7 +299,8 @@ module.exports = class Helpers {
             }
 
             // If they're an org member, check Admin repo permissions
-            const {data} = await this.client.rest.repos.getCollaboratorPermissionLevel({
+            const client = await this.getClient();
+            const {data} = await client.rest.repos.getCollaboratorPermissionLevel({
                 owner: 'TryGhost',
                 repo: 'Admin',
                 username: username
@@ -296,7 +324,8 @@ module.exports = class Helpers {
         const core = await getCore();
 
         try {
-            const {data: files} = await this.client.rest.pulls.listFiles({
+            const client = await this.getClient();
+            const {data: files} = await client.rest.pulls.listFiles({
                 ...this.repo,
                 pull_number: pullNumber,
                 per_page: 100

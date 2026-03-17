@@ -15,7 +15,7 @@
  *   --dry-run  Preview changes without applying labels (optional)
  */
 
-const github = require('@actions/github');
+const {getGitHub} = require('../src/actions-github');
 
 // Parse command line arguments
 const args = process.argv.slice(2).reduce((acc, arg) => {
@@ -35,7 +35,7 @@ if (!args.owner || !args.repo || !args.token) {
 // Get starting page number
 const startPage = Number.parseInt(args['start-page'], 10) || 1;
 
-const octokit = github.getOctokit(args.token);
+let octokit;
 
 // Check if dry-run mode is enabled (handles --dry-run, --dry-run=true, --dry-run=1, etc.)
 const isDryRun = args['dry-run'] === true || args['dry-run'] === 'true' || args['dry-run'] === '1' || args['dry-run'] === '';
@@ -247,6 +247,9 @@ async function main() {
     console.log('');
 
     try {
+        const github = await getGitHub();
+        octokit = github.getOctokit(args.token);
+
         let currentPage = startPage;
         let keepGoing = true;
 

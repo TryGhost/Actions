@@ -1,8 +1,7 @@
-const github = require('@actions/github');
-
 require('./utils');
 
 const {setCoreForTests} = require('../src/actions-core');
+const {setGitHubForTests} = require('../src/actions-github');
 const Helpers = require('../src/helpers');
 
 describe('Helpers', function () {
@@ -41,14 +40,17 @@ describe('Helpers', function () {
             error: sandbox.stub()
         };
 
-        sandbox.stub(github, 'getOctokit').returns(mockClient);
         setCoreForTests(mockCore);
+        setGitHubForTests({
+            getOctokit: sandbox.stub().returns(mockClient)
+        });
 
         helpers = new Helpers('fake-token', {owner: 'test-owner', repo: 'test-repo'});
     });
 
     afterEach(function () {
         setCoreForTests(null);
+        setGitHubForTests(null);
         sandbox.restore();
     });
 
