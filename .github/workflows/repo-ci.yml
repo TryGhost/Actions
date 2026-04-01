@@ -14,10 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - action_name: ghost-release
-            action_path: actions/ghost-release
-            lint: true
-            test: false
           - action_name: label-actions
             action_path: actions/label-actions
             lint: false

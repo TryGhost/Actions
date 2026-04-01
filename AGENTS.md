@@ -6,7 +6,6 @@
 - There is no root `package.json`; installs, builds, and tests are run from the specific action directory you are changing.
 
 ## Repository Layout
-- `actions/ghost-release`: single-file action with source in `index.js` and compiled output in `dist/index.js`.
 - `actions/label-actions`: multi-file action with source in `src/`, tests in `test/`, helper scripts in `scripts/`, and compiled output in `dist/index.js`.
 - `actions/slack-build`: single-file action with source in `index.js` and compiled output in `dist/index.js`.
 - `.github/workflows/repo-ci.yml`: validates this repository on pull requests and pushes using Node `22`.
@@ -20,7 +19,6 @@
 - Do not hand-edit generated `dist/` files unless regeneration is impossible.
 
 ## Validation
-- `actions/ghost-release`: `yarn && yarn lint && yarn build`
 - `actions/label-actions`: `yarn && yarn test && yarn build`
 - `actions/slack-build`: `yarn && yarn build`
 - If you touch lint or CI behavior, also review `.github/workflows/repo-ci.yml`, `.github/workflows/test.yml`, and `.github/workflows/lint-only.yml`.
