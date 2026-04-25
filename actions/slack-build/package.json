@@ -10,7 +10,7 @@
     },
     "devDependencies": {
         "@actions/core": "3.0.1",
-        "@slack/webhook": "7.0.8",
+        "@slack/webhook": "7.0.9",
         "@vercel/ncc": "0.38.4"
     }
 }
