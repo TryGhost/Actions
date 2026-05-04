@@ -20,7 +20,7 @@
     "c8": "11.0.0",
     "eslint": "10.3.0",
     "eslint-plugin-ghost": "3.5.0",
-    "globals": "17.5.0",
+    "globals": "17.6.0",
     "mocha": "11.7.5",
     "should": "13.2.3",
     "sinon": "21.1.2"
