@@ -21,7 +21,7 @@
     "eslint": "10.4.0",
     "eslint-plugin-ghost": "3.5.0",
     "globals": "17.6.0",
-    "mocha": "11.7.5",
+    "mocha": "11.7.6",
     "should": "13.2.3",
     "sinon": "22.0.0"
   },
