@@ -338,12 +338,64 @@ module.exports = class Helpers {
     }
 
     /**
-     * Check if PR contains changes to locale files
+     * Check if PR contains translation changes worth flagging for review.
+     *
+     * Only non-English locale files count, and only when they introduce at
+     * least one non-empty value. English source files and `context.json` hold
+     * English copy (not translations), and empty `""` lines are placeholders
+     * seeded by `pnpm translate` when new keys are added — neither gives a
+     * translation reviewer anything to act on, so they must not trip the label.
+     *
      * @param {number} pullNumber
      * @returns {Promise<boolean>}
      */
     async containsLocaleChanges(pullNumber) {
         const files = await this.getPRFiles(pullNumber);
-        return files.some(file => file.filename.includes('/locales/'));
+        return files.some((file) => {
+            const filename = file.filename || '';
+            if (!filename.includes('/locales/')) {
+                return false;
+            }
+            // English source copy and context descriptions are not translations.
+            if (isEnglishLocaleFile(filename) || isContextFile(filename)) {
+                return false;
+            }
+            // GitHub omits `patch` for very large or binary diffs — we can't
+            // inspect the contents, so fall back to labelling to stay safe.
+            if (!file.patch) {
+                return true;
+            }
+            // Otherwise only label when a real (non-empty) value is added.
+            return patchAddsNonEmptyValue(file.patch);
+        });
     }
 };
+
+// Matches the `en` locale in both nested (`.../locales/en/ghost.json`) and
+// flat (`.../locales/en.json`) layouts used across Ghost repos.
+function isEnglishLocaleFile(filename) {
+    return /\/locales\/en\//.test(filename) || /\/locales\/en\.json$/.test(filename);
+}
+
+function isContextFile(filename) {
+    return /\/locales\/context\.json$/.test(filename);
+}
+
+// A JSON entry whose value has at least one character, e.g. `  "Key": "Wert",`.
+// Empty placeholders (`"Key": ""`) deliberately do not match.
+const NON_EMPTY_VALUE_PATTERN = /:\s*"(?:[^"\\]|\\.)+"\s*,?\s*$/;
+
+// True when the unified-diff patch adds at least one line carrying a non-empty
+// JSON string value. Only added lines (`+`, excluding the `+++` file header)
+// are considered.
+function patchAddsNonEmptyValue(patch) {
+    if (!patch || typeof patch !== 'string') {
+        return false;
+    }
+    return patch.split('\n').some((line) => {
+        if (!line.startsWith('+') || line.startsWith('+++')) {
+            return false;
+        }
+        return NON_EMPTY_VALUE_PATTERN.test(line.slice(1));
+    });
+}
