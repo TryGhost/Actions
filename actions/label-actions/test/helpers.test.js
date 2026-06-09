@@ -363,10 +363,36 @@ describe('Helpers', function () {
         sinon.assert.calledWith(mockCore.error, 'Error fetching PR files: boom');
     });
 
-    it('detects locale changes from PR files', async function () {
+    it('detects a non-English locale change that adds a real value', async function () {
         sandbox.stub(helpers, 'getPRFiles').resolves([
-            {filename: 'ghost/core/locales/en.json'},
+            {filename: 'ghost/i18n/locales/de/ghost.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "Neu"\n }'},
             {filename: 'package.json'}
+        ]);
+
+        (await helpers.containsLocaleChanges(50)).should.be.true();
+    });
+
+    it('ignores non-English locale changes that only add empty placeholders', async function () {
+        sandbox.stub(helpers, 'getPRFiles').resolves([
+            {filename: 'ghost/i18n/locales/de/ghost.json', patch: '@@ -1,1 +1,3 @@\n {\n+  "New one": "",\n+  "New two": ""\n }'}
+        ]);
+
+        (await helpers.containsLocaleChanges(50)).should.be.false();
+    });
+
+    it('ignores English source and context.json changes', async function () {
+        sandbox.stub(helpers, 'getPRFiles').resolves([
+            {filename: 'ghost/i18n/locales/en/ghost.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "New"\n }'},
+            {filename: 'ghost/i18n/locales/context.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "Where it appears"\n }'},
+            {filename: 'ghost/core/locales/en.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "New"\n }'}
+        ]);
+
+        (await helpers.containsLocaleChanges(50)).should.be.false();
+    });
+
+    it('labels a non-English locale change when the patch is unavailable', async function () {
+        sandbox.stub(helpers, 'getPRFiles').resolves([
+            {filename: 'ghost/i18n/locales/de/ghost.json'}
         ]);
 
         (await helpers.containsLocaleChanges(50)).should.be.true();
