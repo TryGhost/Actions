@@ -8,7 +8,7 @@
   "scripts": {
     "build": "ncc build src/index.js -o dist",
     "dev": "echo \"Implement me!\"",
-    "test": "NODE_ENV=testing c8 --check-coverage mocha './test/**/*.test.js'",
+    "test": "NODE_ENV=testing vitest run --coverage",
     "lint": "eslint . --cache",
     "posttest": "yarn lint",
     "preship": "yarn test",
@@ -17,22 +17,17 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@vercel/ncc": "0.44.0",
-    "c8": "11.0.0",
     "eslint": "10.5.0",
     "eslint-plugin-ghost": "3.5.0",
     "globals": "17.7.0",
-    "mocha": "11.7.6",
     "should": "13.2.3",
-    "sinon": "22.0.0"
+    "sinon": "22.0.0",
+    "@vitest/coverage-v8": "4.1.9",
+    "vite": "8.1.0",
+    "vitest": "4.1.9"
   },
   "dependencies": {
     "@actions/core": "3.0.1",
     "@actions/github": "9.1.1"
-  },
-  "c8": {
-    "branches": 80,
-    "functions": 80,
-    "lines": 80,
-    "statements": 80
   }
 }
