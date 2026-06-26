@@ -2,7 +2,7 @@
 
 ## Overview
 - This repository contains reusable GitHub Actions under `actions/*`.
-- Each action is a standalone Node package with its own `package.json` and `yarn.lock`.
+- Each action is a standalone Node package with its own `package.json` and `pnpm-lock.yaml`.
 - There is no root `package.json`; installs, builds, and tests are run from the specific action directory you are changing.
 
 ## Repository Layout
@@ -19,11 +19,11 @@
 - Do not hand-edit generated `dist/` files unless regeneration is impossible.
 
 ## Validation
-- `actions/label-actions`: `yarn && yarn test && yarn build`
-- `actions/slack-build`: `yarn && yarn build`
+- `actions/label-actions`: `pnpm install --frozen-lockfile && pnpm test && pnpm build`
+- `actions/slack-build`: `pnpm install --frozen-lockfile && pnpm test && pnpm build`
 - If you touch lint or CI behavior, also review `.github/workflows/repo-ci.yml`, `.github/workflows/test.yml`, and `.github/workflows/lint-only.yml`.
 
 ## Notes
 - `label-actions` is the only action with an automated test suite in this repository.
-- The CI workflows expect Yarn-based installs and commands.
+- The repository CI expects pnpm-based installs and commands for local action packages; reusable workflows may still use Yarn for downstream repositories.
 - Packaged action manifests currently target the GitHub Actions `node20` runtime.

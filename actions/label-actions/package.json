@@ -5,14 +5,15 @@
   "author": "Ghost Foundation",
   "license": "MIT",
   "main": "src/index.js",
+  "packageManager": "pnpm@10.34.4",
   "scripts": {
     "build": "ncc build src/index.js -o dist",
     "dev": "echo \"Implement me!\"",
     "test": "NODE_ENV=testing vitest run --coverage",
     "lint": "eslint . --cache",
-    "posttest": "yarn lint",
-    "preship": "yarn test",
-    "ship": "STATUS=$(git status --porcelain); echo $STATUS; if [ -z \"$STATUS\" ]; then yarn version && git push --follow-tags; fi"
+    "posttest": "pnpm lint",
+    "preship": "pnpm test",
+    "ship": "STATUS=$(git status --porcelain); echo $STATUS; if [ -z \"$STATUS\" ]; then pnpm version && git push --follow-tags; fi"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

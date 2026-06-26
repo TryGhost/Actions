@@ -12,7 +12,7 @@ This script retroactively labels existing open PRs based on whether the author i
 2. Install dependencies from the parent directory:
    ```bash
    cd ../
-   yarn install
+   pnpm install
    ```
 3. Create the required labels in your repository:
    - `core team` - for PRs from Ghost Foundation team members
