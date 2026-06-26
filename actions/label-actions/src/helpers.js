@@ -1,10 +1,8 @@
-const {getCore} = require('./actions-core');
-const {getGitHub} = require('./actions-github');
+const { getCore } = require('./actions-core');
+const { getGitHub } = require('./actions-github');
 
 module.exports = class Helpers {
-    static CORE_TEAM_TRIAGERS = [
-        'ErisDS'
-    ];
+    static CORE_TEAM_TRIAGERS = ['ErisDS'];
 
     /**
      * @param {string} token
@@ -32,16 +30,19 @@ module.exports = class Helpers {
     async enablePRAutoMerge(pullRequest) {
         const client = await this.getClient();
 
-        await client.graphql(`
+        await client.graphql(
+            `
             mutation enablePRAutoMerge($pullRequestId: ID!) {
                 enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: REBASE}) {
                     pullRequest {
                         id
                     }
                 }
-            }`, {
-            pullRequestId: pullRequest.node_id
-        });
+            }`,
+            {
+                pullRequestId: pullRequest.node_id,
+            },
+        );
     }
 
     /**
@@ -49,7 +50,7 @@ module.exports = class Helpers {
      * @param {Object} labelEvent
      */
     isPendingOnInternal(existingTimelineEvents, labelEvent) {
-        const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
+        const lastComment = existingTimelineEvents.find((l) => l.event === 'commented');
 
         // If there's no comment, we probably need to come and do something
         if (!lastComment) {
@@ -62,12 +63,12 @@ module.exports = class Helpers {
             }
         }
 
-        return (lastComment // we have a comment in the timeline events
-            && new Date(lastComment.created_at) > new Date(labelEvent.created_at) // that comment is newer than the label
-            && (
-                lastComment.actor.type === 'Bot' // the comment was by a bot
-                && !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
-            )
+        return (
+            lastComment && // we have a comment in the timeline events
+            new Date(lastComment.created_at) > new Date(labelEvent.created_at) &&
+            // that comment is newer than the label
+            lastComment.actor.type === 'Bot' && // the comment was by a bot
+            !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
         );
     }
 
@@ -77,7 +78,7 @@ module.exports = class Helpers {
      */
     isOlderThanXWeeks(date, weeks) {
         const oneWeek = 7 * 24 * 60 * 60 * 1000;
-        return (Date.now() - new Date(date).getTime()) > (weeks * oneWeek);
+        return Date.now() - new Date(date).getTime() > weeks * oneWeek;
     }
 
     /**
@@ -87,33 +88,39 @@ module.exports = class Helpers {
      */
     async addIssueToProject(issue, projectId, options = {}) {
         const client = await this.getClient();
-        const addResponse = await client.graphql(`
+        const addResponse = await client.graphql(
+            `
             mutation addIssueToProject($projectId: ID!, $issueId: ID!) {
                 addProjectV2ItemById(input: {contentId: $issueId, projectId: $projectId}) {
                     item {
                         id
                     }
                     }
-            }`, {
-            projectId,
-            issueId: issue.node_id
-        });
+            }`,
+            {
+                projectId,
+                issueId: issue.node_id,
+            },
+        );
 
         if (addResponse?.addProjectV2ItemById?.item?.id) {
             for (const option of Object.keys(options)) {
-                await client.graphql(`
+                await client.graphql(
+                    `
                     mutation moveItemToColumn($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
                         updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: {singleSelectOptionId: $optionId}}) {
                             projectV2Item {
                                 id
                             }
                         }
-                    }`, {
-                    projectId,
-                    itemId: addResponse.addProjectV2ItemById.item.id,
-                    fieldId: option,
-                    optionId: options[option]
-                });
+                    }`,
+                    {
+                        projectId,
+                        itemId: addResponse.addProjectV2ItemById.item.id,
+                        fieldId: option,
+                        optionId: options[option],
+                    },
+                );
             }
         }
     }
@@ -125,7 +132,9 @@ module.exports = class Helpers {
         // check if the issue was opened with one of these labels AFTER we added `needs:triage`
         // if so, we want to remove the `needs:triage` label
         const existingTimelineEvents = await this.listTimelineEvents(issue);
-        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
+        const existingNeedsTriageLabel = existingTimelineEvents.find(
+            (l) => l.event === 'labeled' && l.label?.name === 'needs:triage',
+        );
         if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
@@ -136,10 +145,10 @@ module.exports = class Helpers {
      */
     async listOpenNeedsInfoIssues() {
         const client = await this.getClient();
-        const {data: needsInfoIssues} = await client.rest.issues.listForRepo({
+        const { data: needsInfoIssues } = await client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
-            labels: 'needs:info'
+            labels: 'needs:info',
         });
         return needsInfoIssues;
     }
@@ -149,9 +158,9 @@ module.exports = class Helpers {
      */
     async listOpenPullRequests() {
         const client = await this.getClient();
-        const {data: needsInfoPullRequests} = await client.rest.pulls.list({
+        const { data: needsInfoPullRequests } = await client.rest.pulls.list({
             ...this.repo,
-            state: 'open'
+            state: 'open',
         });
 
         return needsInfoPullRequests;
@@ -163,13 +172,13 @@ module.exports = class Helpers {
      */
     async listTimelineEvents(issue) {
         const client = await this.getClient();
-        let {data: events} = await client.rest.issues.listEventsForTimeline({
+        let { data: events } = await client.rest.issues.listEventsForTimeline({
             ...this.repo,
             issue_number: issue.number,
-            per_page: 100
+            per_page: 100,
         });
 
-        events = events.filter(e => e);
+        events = events.filter((e) => e);
         events.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         return events;
@@ -181,9 +190,9 @@ module.exports = class Helpers {
      */
     async listLabels(issue) {
         const client = await this.getClient();
-        const {data: labels} = await client.rest.issues.listLabelsOnIssue({
+        const { data: labels } = await client.rest.issues.listLabelsOnIssue({
             ...this.repo,
-            issue_number: issue.number
+            issue_number: issue.number,
         });
         return labels;
     }
@@ -211,7 +220,7 @@ module.exports = class Helpers {
         await client.rest.issues.createComment({
             ...this.repo,
             issue_number: issue.number,
-            body
+            body,
         });
     }
 
@@ -226,7 +235,7 @@ module.exports = class Helpers {
             ...this.repo,
             issue_number: issue.number,
             state: 'closed',
-            state_reason: stateReason
+            state_reason: stateReason,
         });
     }
 
@@ -240,7 +249,7 @@ module.exports = class Helpers {
         await client.rest.issues.addLabels({
             ...this.repo,
             issue_number: issue.number,
-            labels: [name]
+            labels: [name],
         });
     }
 
@@ -254,7 +263,7 @@ module.exports = class Helpers {
         await client.rest.issues.removeLabel({
             ...this.repo,
             issue_number: issue.number,
-            name
+            name,
         });
     }
 
@@ -300,14 +309,16 @@ module.exports = class Helpers {
 
             // If they're an org member, check Admin repo permissions
             const client = await this.getClient();
-            const {data} = await client.rest.repos.getCollaboratorPermissionLevel({
+            const { data } = await client.rest.repos.getCollaboratorPermissionLevel({
                 owner: 'TryGhost',
                 repo: 'Admin',
-                username: username
+                username: username,
             });
 
             const isCore = data.permission === 'write' || data.permission === 'admin';
-            core.info(`User ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`);
+            core.info(
+                `User ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`,
+            );
             return isCore;
         } catch (err) {
             core.error(`Error checking permissions for ${username}: ${err.message}`);
@@ -325,10 +336,10 @@ module.exports = class Helpers {
 
         try {
             const client = await this.getClient();
-            const {data: files} = await client.rest.pulls.listFiles({
+            const { data: files } = await client.rest.pulls.listFiles({
                 ...this.repo,
                 pull_number: pullNumber,
-                per_page: 100
+                per_page: 100,
             });
             return files;
         } catch (err) {
@@ -374,11 +385,11 @@ module.exports = class Helpers {
 // Matches the `en` locale in both nested (`.../locales/en/ghost.json`) and
 // flat (`.../locales/en.json`) layouts used across Ghost repos.
 function isEnglishLocaleFile(filename) {
-    return /\/locales\/en\//.test(filename) || /\/locales\/en\.json$/.test(filename);
+    return /\/locales\/en\//.test(filename) || filename.endsWith('/locales/en.json');
 }
 
 function isContextFile(filename) {
-    return /\/locales\/context\.json$/.test(filename);
+    return filename.endsWith('/locales/context.json');
 }
 
 // A JSON entry whose value has at least one character, e.g. `  "Key": "Wert",`.

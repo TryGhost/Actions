@@ -7,7 +7,7 @@ async function getCore() {
     }
 
     if (!corePromise) {
-        corePromise = import('@actions/core').then(core => core.default ?? core);
+        corePromise = import('@actions/core').then((core) => core.default ?? core);
     }
 
     return corePromise;
@@ -20,5 +20,5 @@ function setCoreForTests(core) {
 
 module.exports = {
     getCore,
-    setCoreForTests
+    setCoreForTests,
 };

@@ -19,8 +19,8 @@
 - Do not hand-edit generated `dist/` files unless regeneration is impossible.
 
 ## Validation
-- `actions/label-actions`: `pnpm install --frozen-lockfile && pnpm test && pnpm build`
-- `actions/slack-build`: `pnpm install --frozen-lockfile && pnpm test && pnpm build`
+- `actions/label-actions`: `pnpm install --frozen-lockfile && pnpm lint && pnpm test && pnpm build`
+- `actions/slack-build`: `pnpm install --frozen-lockfile && pnpm lint && pnpm test && pnpm build`
 - If you touch lint or CI behavior, also review `.github/workflows/repo-ci.yml`, `.github/workflows/test.yml`, and `.github/workflows/lint-only.yml`.
 
 ## Notes

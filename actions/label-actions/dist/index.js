@@ -13,7 +13,7 @@ async function getCore() {
     }
 
     if (!corePromise) {
-        corePromise = Promise.all(/* import() */[__nccwpck_require__.e(356), __nccwpck_require__.e(77)]).then(__nccwpck_require__.bind(__nccwpck_require__, 77)).then(core => core.default ?? core);
+        corePromise = Promise.all(/* import() */[__nccwpck_require__.e(356), __nccwpck_require__.e(77)]).then(__nccwpck_require__.bind(__nccwpck_require__, 77)).then((core) => core.default ?? core);
     }
 
     return corePromise;
@@ -26,7 +26,7 @@ function setCoreForTests(core) {
 
 module.exports = {
     getCore,
-    setCoreForTests
+    setCoreForTests,
 };
 
 
@@ -44,7 +44,7 @@ async function getGitHub() {
     }
 
     if (!githubPromise) {
-        githubPromise = Promise.all(/* import() */[__nccwpck_require__.e(356), __nccwpck_require__.e(626)]).then(__nccwpck_require__.bind(__nccwpck_require__, 626)).then(github => github.default ?? github);
+        githubPromise = Promise.all(/* import() */[__nccwpck_require__.e(356), __nccwpck_require__.e(626)]).then(__nccwpck_require__.bind(__nccwpck_require__, 626)).then((github) => github.default ?? github);
     }
 
     return githubPromise;
@@ -57,7 +57,7 @@ function setGitHubForTests(github) {
 
 module.exports = {
     getGitHub,
-    setGitHubForTests
+    setGitHubForTests,
 };
 
 
@@ -109,7 +109,7 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 
     PR_CHANGES_REQUESTED: `Note from our bot: Some changes have been requested on this pull request. Updating your code is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've made the changes. Thank you 🙏`,
 
-    PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`
+    PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`,
 };
 
 
@@ -118,13 +118,11 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 /***/ 3080:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {getCore} = __nccwpck_require__(1948);
-const {getGitHub} = __nccwpck_require__(9028);
+const { getCore } = __nccwpck_require__(1948);
+const { getGitHub } = __nccwpck_require__(9028);
 
 module.exports = class Helpers {
-    static CORE_TEAM_TRIAGERS = [
-        'ErisDS'
-    ];
+    static CORE_TEAM_TRIAGERS = ['ErisDS'];
 
     /**
      * @param {string} token
@@ -152,16 +150,19 @@ module.exports = class Helpers {
     async enablePRAutoMerge(pullRequest) {
         const client = await this.getClient();
 
-        await client.graphql(`
+        await client.graphql(
+            `
             mutation enablePRAutoMerge($pullRequestId: ID!) {
                 enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId, mergeMethod: REBASE}) {
                     pullRequest {
                         id
                     }
                 }
-            }`, {
-            pullRequestId: pullRequest.node_id
-        });
+            }`,
+            {
+                pullRequestId: pullRequest.node_id,
+            },
+        );
     }
 
     /**
@@ -169,7 +170,7 @@ module.exports = class Helpers {
      * @param {Object} labelEvent
      */
     isPendingOnInternal(existingTimelineEvents, labelEvent) {
-        const lastComment = existingTimelineEvents.find(l => l.event === 'commented');
+        const lastComment = existingTimelineEvents.find((l) => l.event === 'commented');
 
         // If there's no comment, we probably need to come and do something
         if (!lastComment) {
@@ -182,12 +183,12 @@ module.exports = class Helpers {
             }
         }
 
-        return (lastComment // we have a comment in the timeline events
-            && new Date(lastComment.created_at) > new Date(labelEvent.created_at) // that comment is newer than the label
-            && (
-                lastComment.actor.type === 'Bot' // the comment was by a bot
-                && !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
-            )
+        return (
+            lastComment && // we have a comment in the timeline events
+            new Date(lastComment.created_at) > new Date(labelEvent.created_at) &&
+            // that comment is newer than the label
+            lastComment.actor.type === 'Bot' && // the comment was by a bot
+            !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
         );
     }
 
@@ -197,7 +198,7 @@ module.exports = class Helpers {
      */
     isOlderThanXWeeks(date, weeks) {
         const oneWeek = 7 * 24 * 60 * 60 * 1000;
-        return (Date.now() - new Date(date).getTime()) > (weeks * oneWeek);
+        return Date.now() - new Date(date).getTime() > weeks * oneWeek;
     }
 
     /**
@@ -207,33 +208,39 @@ module.exports = class Helpers {
      */
     async addIssueToProject(issue, projectId, options = {}) {
         const client = await this.getClient();
-        const addResponse = await client.graphql(`
+        const addResponse = await client.graphql(
+            `
             mutation addIssueToProject($projectId: ID!, $issueId: ID!) {
                 addProjectV2ItemById(input: {contentId: $issueId, projectId: $projectId}) {
                     item {
                         id
                     }
                     }
-            }`, {
-            projectId,
-            issueId: issue.node_id
-        });
+            }`,
+            {
+                projectId,
+                issueId: issue.node_id,
+            },
+        );
 
         if (addResponse?.addProjectV2ItemById?.item?.id) {
             for (const option of Object.keys(options)) {
-                await client.graphql(`
+                await client.graphql(
+                    `
                     mutation moveItemToColumn($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
                         updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: {singleSelectOptionId: $optionId}}) {
                             projectV2Item {
                                 id
                             }
                         }
-                    }`, {
-                    projectId,
-                    itemId: addResponse.addProjectV2ItemById.item.id,
-                    fieldId: option,
-                    optionId: options[option]
-                });
+                    }`,
+                    {
+                        projectId,
+                        itemId: addResponse.addProjectV2ItemById.item.id,
+                        fieldId: option,
+                        optionId: options[option],
+                    },
+                );
             }
         }
     }
@@ -245,7 +252,9 @@ module.exports = class Helpers {
         // check if the issue was opened with one of these labels AFTER we added `needs:triage`
         // if so, we want to remove the `needs:triage` label
         const existingTimelineEvents = await this.listTimelineEvents(issue);
-        const existingNeedsTriageLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:triage');
+        const existingNeedsTriageLabel = existingTimelineEvents.find(
+            (l) => l.event === 'labeled' && l.label?.name === 'needs:triage',
+        );
         if (existingNeedsTriageLabel) {
             await this.removeNeedsTriageLabel(issue);
         }
@@ -256,10 +265,10 @@ module.exports = class Helpers {
      */
     async listOpenNeedsInfoIssues() {
         const client = await this.getClient();
-        const {data: needsInfoIssues} = await client.rest.issues.listForRepo({
+        const { data: needsInfoIssues } = await client.rest.issues.listForRepo({
             ...this.repo,
             state: 'open',
-            labels: 'needs:info'
+            labels: 'needs:info',
         });
         return needsInfoIssues;
     }
@@ -269,9 +278,9 @@ module.exports = class Helpers {
      */
     async listOpenPullRequests() {
         const client = await this.getClient();
-        const {data: needsInfoPullRequests} = await client.rest.pulls.list({
+        const { data: needsInfoPullRequests } = await client.rest.pulls.list({
             ...this.repo,
-            state: 'open'
+            state: 'open',
         });
 
         return needsInfoPullRequests;
@@ -283,13 +292,13 @@ module.exports = class Helpers {
      */
     async listTimelineEvents(issue) {
         const client = await this.getClient();
-        let {data: events} = await client.rest.issues.listEventsForTimeline({
+        let { data: events } = await client.rest.issues.listEventsForTimeline({
             ...this.repo,
             issue_number: issue.number,
-            per_page: 100
+            per_page: 100,
         });
 
-        events = events.filter(e => e);
+        events = events.filter((e) => e);
         events.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         return events;
@@ -301,9 +310,9 @@ module.exports = class Helpers {
      */
     async listLabels(issue) {
         const client = await this.getClient();
-        const {data: labels} = await client.rest.issues.listLabelsOnIssue({
+        const { data: labels } = await client.rest.issues.listLabelsOnIssue({
             ...this.repo,
-            issue_number: issue.number
+            issue_number: issue.number,
         });
         return labels;
     }
@@ -331,7 +340,7 @@ module.exports = class Helpers {
         await client.rest.issues.createComment({
             ...this.repo,
             issue_number: issue.number,
-            body
+            body,
         });
     }
 
@@ -346,7 +355,7 @@ module.exports = class Helpers {
             ...this.repo,
             issue_number: issue.number,
             state: 'closed',
-            state_reason: stateReason
+            state_reason: stateReason,
         });
     }
 
@@ -360,7 +369,7 @@ module.exports = class Helpers {
         await client.rest.issues.addLabels({
             ...this.repo,
             issue_number: issue.number,
-            labels: [name]
+            labels: [name],
         });
     }
 
@@ -374,7 +383,7 @@ module.exports = class Helpers {
         await client.rest.issues.removeLabel({
             ...this.repo,
             issue_number: issue.number,
-            name
+            name,
         });
     }
 
@@ -420,14 +429,16 @@ module.exports = class Helpers {
 
             // If they're an org member, check Admin repo permissions
             const client = await this.getClient();
-            const {data} = await client.rest.repos.getCollaboratorPermissionLevel({
+            const { data } = await client.rest.repos.getCollaboratorPermissionLevel({
                 owner: 'TryGhost',
                 repo: 'Admin',
-                username: username
+                username: username,
             });
 
             const isCore = data.permission === 'write' || data.permission === 'admin';
-            core.info(`User ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`);
+            core.info(
+                `User ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`,
+            );
             return isCore;
         } catch (err) {
             core.error(`Error checking permissions for ${username}: ${err.message}`);
@@ -445,10 +456,10 @@ module.exports = class Helpers {
 
         try {
             const client = await this.getClient();
-            const {data: files} = await client.rest.pulls.listFiles({
+            const { data: files } = await client.rest.pulls.listFiles({
                 ...this.repo,
                 pull_number: pullNumber,
-                per_page: 100
+                per_page: 100,
             });
             return files;
         } catch (err) {
@@ -494,11 +505,11 @@ module.exports = class Helpers {
 // Matches the `en` locale in both nested (`.../locales/en/ghost.json`) and
 // flat (`.../locales/en.json`) layouts used across Ghost repos.
 function isEnglishLocaleFile(filename) {
-    return /\/locales\/en\//.test(filename) || /\/locales\/en\.json$/.test(filename);
+    return /\/locales\/en\//.test(filename) || filename.endsWith('/locales/en.json');
 }
 
 function isContextFile(filename) {
-    return /\/locales\/context\.json$/.test(filename);
+    return filename.endsWith('/locales/context.json');
 }
 
 // A JSON entry whose value has at least one character, e.g. `  "Key": "Wert",`.
@@ -959,8 +970,8 @@ module.exports = require("util");
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-const {getCore} = __nccwpck_require__(1948);
-const {getGitHub} = __nccwpck_require__(9028);
+const { getCore } = __nccwpck_require__(1948);
+const { getGitHub } = __nccwpck_require__(9028);
 
 const Helpers = __nccwpck_require__(3080);
 const comments = __nccwpck_require__(55);
@@ -975,16 +986,21 @@ async function main() {
         return;
     }
 
-    const {payload} = github.context;
+    const { payload } = github.context;
     const helpers = new Helpers(githubToken, github.context.repo);
 
     if (payload.schedule) {
         const openNeedsInfoIssues = await helpers.listOpenNeedsInfoIssues();
         for (const openIssue of openNeedsInfoIssues) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openIssue);
-            const needsInfoLabelEvent = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:info');
+            const needsInfoLabelEvent = existingTimelineEvents.find(
+                (l) => l.event === 'labeled' && l.label?.name === 'needs:info',
+            );
 
-            if (needsInfoLabelEvent && helpers.isOlderThanXWeeks(needsInfoLabelEvent.created_at, 2)) {
+            if (
+                needsInfoLabelEvent &&
+                helpers.isOlderThanXWeeks(needsInfoLabelEvent.created_at, 2)
+            ) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabelEvent)) {
                     continue;
                 }
@@ -999,7 +1015,9 @@ async function main() {
         for (const openPullRequest of openPullRequests) {
             const existingTimelineEvents = await helpers.listTimelineEvents(openPullRequest);
 
-            const needsInfoLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'needs:info');
+            const needsInfoLabel = existingTimelineEvents.find(
+                (l) => l.event === 'labeled' && l.label?.name === 'needs:info',
+            );
             if (needsInfoLabel && helpers.isOlderThanXWeeks(needsInfoLabel.created_at, 4)) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, needsInfoLabel)) {
                     continue;
@@ -1010,8 +1028,13 @@ async function main() {
                 continue;
             }
 
-            const changesRequestedLabel = existingTimelineEvents.find(l => l.event === 'labeled' && l.label?.name === 'changes requested');
-            if (changesRequestedLabel && helpers.isOlderThanXWeeks(changesRequestedLabel.created_at, 12)) {
+            const changesRequestedLabel = existingTimelineEvents.find(
+                (l) => l.event === 'labeled' && l.label?.name === 'changes requested',
+            );
+            if (
+                changesRequestedLabel &&
+                helpers.isOlderThanXWeeks(changesRequestedLabel.created_at, 12)
+            ) {
                 if (helpers.isPendingOnInternal(existingTimelineEvents, changesRequestedLabel)) {
                     continue;
                 }
@@ -1029,11 +1052,16 @@ async function main() {
         if (payload.action === 'opened') {
             const pullRequest = payload.pull_request;
             const author = pullRequest.user.login;
-            core.info(`PR opened #${pullRequest.number} by ${author} (${pullRequest.state}, ${pullRequest.author_association})`);
+            core.info(
+                `PR opened #${pullRequest.number} by ${author} (${pullRequest.state}, ${pullRequest.author_association})`,
+            );
 
             // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
-            const isDependencyBot = (pullRequest.user.type === 'Bot' || author.includes('[bot]') || author === 'renovate-bot') &&
-                                    (author.includes('renovate') || author.includes('dependabot'));
+            const isDependencyBot =
+                (pullRequest.user.type === 'Bot' ||
+                    author.includes('[bot]') ||
+                    author === 'renovate-bot') &&
+                (author.includes('renovate') || author.includes('dependabot'));
 
             if (isDependencyBot) {
                 await helpers.addLabel(pullRequest, 'dependencies');
@@ -1043,7 +1071,10 @@ async function main() {
                 core.info(`Skipping labeling for bot PR #${pullRequest.number} by ${author}`);
             } else {
                 // Check if the PR author is a member of the Ghost Foundation team
-                const isGhostMember = await helpers.isGhostFoundationMember(author, pullRequest.author_association);
+                const isGhostMember = await helpers.isGhostFoundationMember(
+                    author,
+                    pullRequest.author_association,
+                );
 
                 // Don't label until we get the correct org membership data
                 // if (isGhostMember) {
@@ -1052,14 +1083,18 @@ async function main() {
                 //     await helpers.addLabel(pullRequest, 'community');
                 // }
 
-                core.info(`Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`);
+                core.info(
+                    `Labeled PR #${pullRequest.number} by ${author} as ${isGhostMember ? 'core team' : 'community'}`,
+                );
             }
 
             // Check for locale file changes regardless of author type
             const containsLocaleChanges = await helpers.containsLocaleChanges(pullRequest.number);
             if (containsLocaleChanges) {
                 await helpers.addLabel(pullRequest, 'affects:i18n');
-                core.info(`Labeled PR #${pullRequest.number} as affects:i18n (contains locale file changes)`);
+                core.info(
+                    `Labeled PR #${pullRequest.number} as affects:i18n (contains locale file changes)`,
+                );
             }
 
             return;
@@ -1075,18 +1110,18 @@ async function main() {
             const label = payload.label;
 
             switch (label.name) {
-            case 'auto-merge':
-                await helpers.enablePRAutoMerge(payload.pull_request);
-                break;
-            case 'needs:info':
-                await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
-                break;
-            case 'changes requested':
-                await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
-                break;
-            default:
-                core.info(`Encountered an unhandled label: ${label.name}`);
-                break;
+                case 'auto-merge':
+                    await helpers.enablePRAutoMerge(payload.pull_request);
+                    break;
+                case 'needs:info':
+                    await helpers.leaveComment(payload.pull_request, comments.PR_NEEDS_INFO);
+                    break;
+                case 'changes requested':
+                    await helpers.leaveComment(payload.pull_request, comments.PR_CHANGES_REQUESTED);
+                    break;
+                default:
+                    core.info(`Encountered an unhandled label: ${label.name}`);
+                    break;
             }
             return;
         }
@@ -1101,17 +1136,20 @@ async function main() {
             const CLOSEABLE_LABELS = ['support request', 'feature request'];
             const existingLabels = await helpers.listLabels(issue);
 
-            const shouldIgnore = existingLabels.find(l => CLOSEABLE_LABELS.includes(l.name));
+            const shouldIgnore = existingLabels.find((l) => CLOSEABLE_LABELS.includes(l.name));
             if (shouldIgnore) {
                 return;
             }
 
             // Ignore labelled issues from Ghost core team triagers on external repos
-            if (Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) && existingLabels.length > 0) {
+            if (
+                Helpers.CORE_TEAM_TRIAGERS.includes(issue.user.login) &&
+                existingLabels.length > 0
+            ) {
                 return;
             }
 
-            if (!existingLabels.find(l => l.name === 'needs:triage')) {
+            if (!existingLabels.find((l) => l.name === 'needs:triage')) {
                 await helpers.addLabel(issue, 'needs:triage');
             }
             return;
@@ -1131,7 +1169,13 @@ async function main() {
 
             const label = payload.label;
 
-            const TRIAGE_WITHOUT_COMMENT_LABELS = ['bug', 'community', 'core team', 'good first issue', 'help wanted'];
+            const TRIAGE_WITHOUT_COMMENT_LABELS = [
+                'bug',
+                'community',
+                'core team',
+                'good first issue',
+                'help wanted',
+            ];
 
             if (label.name === 'Ghost(Pro)') {
                 await helpers.removeNeedsTriageLabel(issue);

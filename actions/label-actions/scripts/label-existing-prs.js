@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
 
 /**
  * Script to retroactively label existing open PRs based on Ghost Foundation team membership
@@ -15,7 +14,7 @@
  *   --dry-run  Preview changes without applying labels (optional)
  */
 
-const {getGitHub} = require('../src/actions-github');
+const { getGitHub } = require('../src/actions-github');
 
 // Parse command line arguments
 const args = process.argv.slice(2).reduce((acc, arg) => {
@@ -28,7 +27,9 @@ const args = process.argv.slice(2).reduce((acc, arg) => {
 // Validate required arguments
 if (!args.owner || !args.repo || !args.token) {
     console.error('❌ Missing required arguments');
-    console.error('Usage: node label-existing-prs.js --owner=OWNER --repo=REPO --token=TOKEN [--dry-run] [--start-page=N]');
+    console.error(
+        'Usage: node label-existing-prs.js --owner=OWNER --repo=REPO --token=TOKEN [--dry-run] [--start-page=N]',
+    );
     process.exit(1);
 }
 
@@ -38,7 +39,11 @@ const startPage = Number.parseInt(args['start-page'], 10) || 1;
 let octokit;
 
 // Check if dry-run mode is enabled (handles --dry-run, --dry-run=true, --dry-run=1, etc.)
-const isDryRun = args['dry-run'] === true || args['dry-run'] === 'true' || args['dry-run'] === '1' || args['dry-run'] === '';
+const isDryRun =
+    args['dry-run'] === true ||
+    args['dry-run'] === 'true' ||
+    args['dry-run'] === '1' ||
+    args['dry-run'] === '';
 
 // Statistics tracking
 const stats = {
@@ -47,7 +52,7 @@ const stats = {
     labeledAsCore: 0,
     labeledAsCommunity: 0,
     errors: 0,
-    processed: 0
+    processed: 0,
 };
 
 /**
@@ -75,7 +80,7 @@ async function isGhostFoundationMember(username) {
         try {
             await octokit.rest.orgs.checkMembershipForUser({
                 org: 'TryGhost',
-                username: username
+                username: username,
             });
             console.log(`   ✓ ${username} is a member of TryGhost org`);
         } catch (err) {
@@ -87,14 +92,16 @@ async function isGhostFoundationMember(username) {
         }
 
         // If they're an org member, check Admin repo permissions
-        const {data} = await octokit.rest.repos.getCollaboratorPermissionLevel({
+        const { data } = await octokit.rest.repos.getCollaboratorPermissionLevel({
             owner: 'TryGhost',
             repo: 'Admin',
-            username: username
+            username: username,
         });
 
         const isCore = data.permission === 'write' || data.permission === 'admin';
-        console.log(`   ${isCore ? '✓' : '✗'} ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`);
+        console.log(
+            `   ${isCore ? '✓' : '✗'} ${username} has ${data.permission} access to Admin repo - ${isCore ? 'core team' : 'contributor'}`,
+        );
         return isCore;
     } catch (err) {
         console.error(`   ❌ Error checking permissions:`, err.message);
@@ -113,14 +120,14 @@ async function getPRPage(page) {
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
     try {
-        const {data} = await octokit.rest.pulls.list({
+        const { data } = await octokit.rest.pulls.list({
             owner: args.owner,
             repo: args.repo,
             state: 'all',
             sort: 'updated',
             direction: 'desc',
             per_page: perPage,
-            page: page
+            page: page,
         });
 
         if (data.length === 0) {
@@ -128,8 +135,10 @@ async function getPRPage(page) {
         }
 
         // Filter PRs updated after our cutoff date
-        const recentPRs = data.filter(pr => new Date(pr.updated_at) > oneMonthAgo);
-        console.log(`   Fetched page ${page} (${recentPRs.length} recent PRs out of ${data.length} total)`);
+        const recentPRs = data.filter((pr) => new Date(pr.updated_at) > oneMonthAgo);
+        console.log(
+            `   Fetched page ${page} (${recentPRs.length} recent PRs out of ${data.length} total)`,
+        );
 
         return recentPRs;
     } catch (err) {
@@ -144,7 +153,7 @@ async function getPRPage(page) {
  * @returns {string|null} Returns the existing label name or null
  */
 function getExistingLabel(pr) {
-    const labels = pr.labels.map(l => l.name.toLowerCase());
+    const labels = pr.labels.map((l) => l.name.toLowerCase());
     if (labels.includes('core team')) {
         return 'core team';
     }
@@ -170,7 +179,7 @@ async function addLabel(pr, label) {
             owner: args.owner,
             repo: args.repo,
             issue_number: pr.number,
-            labels: [label]
+            labels: [label],
         });
         console.log(`   ✅ Added label "${label}"`);
     } catch (err) {
@@ -198,12 +207,15 @@ async function processPR(pr) {
     }
 
     // Check if this is a dependency bot PR (e.g., Renovate, Dependabot)
-    const isDependencyBot = (pr.user.type === 'Bot' || pr.user.login.includes('[bot]') || pr.user.login === 'renovate-bot') &&
-                            (pr.user.login.includes('renovate') || pr.user.login.includes('dependabot'));
+    const isDependencyBot =
+        (pr.user.type === 'Bot' ||
+            pr.user.login.includes('[bot]') ||
+            pr.user.login === 'renovate-bot') &&
+        (pr.user.login.includes('renovate') || pr.user.login.includes('dependabot'));
 
     if (isDependencyBot) {
         // Check if already has dependencies label
-        const existingLabels = pr.labels.map(l => l.name.toLowerCase());
+        const existingLabels = pr.labels.map((l) => l.name.toLowerCase());
         if (existingLabels.includes('dependencies')) {
             console.log(`   ⏭️  Already labeled as "dependencies"`);
             stats.alreadyLabeled += 1;
@@ -238,11 +250,15 @@ async function main() {
     console.log('🏷️  Ghost PR Labeling Script');
     console.log('============================');
     console.log(`Repository: ${args.owner}/${args.repo}`);
-    console.log(`Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚡ LIVE (labels will be applied)'}`);
+    console.log(
+        `Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚡ LIVE (labels will be applied)'}`,
+    );
     console.log(`Starting from page: ${startPage}`);
 
     if (!isDryRun) {
-        console.log('\n⚠️  WARNING: This will modify PR labels. Use --dry-run to preview changes first.');
+        console.log(
+            '\n⚠️  WARNING: This will modify PR labels. Use --dry-run to preview changes first.',
+        );
     }
     console.log('');
 

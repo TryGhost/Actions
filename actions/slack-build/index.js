@@ -1,4 +1,4 @@
-const {IncomingWebhook} = require('@slack/webhook');
+const { IncomingWebhook } = require('@slack/webhook');
 
 function getStatusColor(statusInput) {
     if (statusInput === 'cancelled') {
@@ -54,10 +54,12 @@ function buildSlackMessage(statusInput, env = process.env) {
     }
 
     return {
-        attachments: [{
-            color: getStatusColor(statusInput),
-            text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${actorLink} - ${openLink}`,
-        }]
+        attachments: [
+            {
+                color: getStatusColor(statusInput),
+                text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${actorLink} - ${openLink}`,
+            },
+        ],
     };
 }
 
@@ -70,13 +72,13 @@ async function getCore() {
 async function run(options = {}) {
     const env = options.env || process.env;
     const loadCore = options.getCore || getCore;
-    const core = options.core || await loadCore();
+    const core = options.core || (await loadCore());
     if (!env.SLACK_WEBHOOK_URL) {
         throw new Error('SLACK_WEBHOOK_URL is required');
     }
     const Webhook = options.IncomingWebhook || IncomingWebhook;
     const webhook = new Webhook(env.SLACK_WEBHOOK_URL);
-    const statusInput = core.getInput('status', {required: true});
+    const statusInput = core.getInput('status', { required: true });
 
     await webhook.send(buildSlackMessage(statusInput, env));
 }
@@ -88,5 +90,5 @@ if (process.env.NODE_ENV !== 'testing') {
 module.exports = {
     buildSlackMessage,
     getStatusColor,
-    run
+    run,
 };

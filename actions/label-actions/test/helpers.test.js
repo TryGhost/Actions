@@ -1,7 +1,7 @@
 require('./utils');
 
-const {setCoreForTests} = require('../src/actions-core');
-const {setGitHubForTests} = require('../src/actions-github');
+const { setCoreForTests } = require('../src/actions-core');
+const { setGitHubForTests } = require('../src/actions-github');
 const Helpers = require('../src/helpers');
 
 describe('Helpers', function () {
@@ -17,11 +17,11 @@ describe('Helpers', function () {
             graphql: sandbox.stub(),
             rest: {
                 repos: {
-                    getCollaboratorPermissionLevel: sandbox.stub()
+                    getCollaboratorPermissionLevel: sandbox.stub(),
                 },
                 pulls: {
                     list: sandbox.stub(),
-                    listFiles: sandbox.stub()
+                    listFiles: sandbox.stub(),
                 },
                 issues: {
                     listForRepo: sandbox.stub(),
@@ -30,22 +30,22 @@ describe('Helpers', function () {
                     createComment: sandbox.stub(),
                     update: sandbox.stub(),
                     addLabels: sandbox.stub(),
-                    removeLabel: sandbox.stub()
-                }
-            }
+                    removeLabel: sandbox.stub(),
+                },
+            },
         };
 
         mockCore = {
             info: sandbox.stub(),
-            error: sandbox.stub()
+            error: sandbox.stub(),
         };
 
         setCoreForTests(mockCore);
         setGitHubForTests({
-            getOctokit: sandbox.stub().returns(mockClient)
+            getOctokit: sandbox.stub().returns(mockClient),
         });
 
-        helpers = new Helpers('fake-token', {owner: 'test-owner', repo: 'test-repo'});
+        helpers = new Helpers('fake-token', { owner: 'test-owner', repo: 'test-repo' });
     });
 
     afterEach(function () {
@@ -55,216 +55,238 @@ describe('Helpers', function () {
     });
 
     it('enables PR auto merge via GraphQL', async function () {
-        await helpers.enablePRAutoMerge({node_id: 'pr-node-id'});
+        await helpers.enablePRAutoMerge({ node_id: 'pr-node-id' });
 
         sinon.assert.calledOnce(mockClient.graphql);
         sinon.assert.calledWithMatch(
             mockClient.graphql,
             sinon.match(/enablePullRequestAutoMerge/),
-            {pullRequestId: 'pr-node-id'}
+            { pullRequestId: 'pr-node-id' },
         );
     });
 
     it('treats missing comments as pending on internal', function () {
-        helpers.isPendingOnInternal([], {created_at: '2026-03-17T00:00:00.000Z'}).should.be.true();
+        helpers
+            .isPendingOnInternal([], { created_at: '2026-03-17T00:00:00.000Z' })
+            .should.be.true();
     });
 
     it('treats Ghost-Slimer replies on needs:triage as pending on internal', function () {
-        const existingTimelineEvents = [{
-            event: 'commented',
-            created_at: '2026-03-18T00:00:00.000Z',
-            actor: {
-                login: 'Ghost-Slimer',
-                type: 'Bot'
-            }
-        }];
+        const existingTimelineEvents = [
+            {
+                event: 'commented',
+                created_at: '2026-03-18T00:00:00.000Z',
+                actor: {
+                    login: 'Ghost-Slimer',
+                    type: 'Bot',
+                },
+            },
+        ];
 
         const labelEvent = {
             created_at: '2026-03-17T00:00:00.000Z',
             label: {
-                name: 'needs:triage'
-            }
+                name: 'needs:triage',
+            },
         };
 
         helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.true();
     });
 
     it('detects newer bot comments from non-triagers as pending on internal', function () {
-        const existingTimelineEvents = [{
-            event: 'commented',
-            created_at: '2026-03-18T00:00:00.000Z',
-            actor: {
-                login: 'helpful-bot',
-                type: 'Bot'
-            }
-        }];
+        const existingTimelineEvents = [
+            {
+                event: 'commented',
+                created_at: '2026-03-18T00:00:00.000Z',
+                actor: {
+                    login: 'helpful-bot',
+                    type: 'Bot',
+                },
+            },
+        ];
 
         const labelEvent = {
             created_at: '2026-03-17T00:00:00.000Z',
             label: {
-                name: 'bug'
-            }
+                name: 'bug',
+            },
         };
 
         helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.true();
     });
 
     it('does not mark human comments as pending on internal', function () {
-        const existingTimelineEvents = [{
-            event: 'commented',
-            created_at: '2026-03-18T00:00:00.000Z',
-            actor: {
-                login: 'person',
-                type: 'User'
-            }
-        }];
+        const existingTimelineEvents = [
+            {
+                event: 'commented',
+                created_at: '2026-03-18T00:00:00.000Z',
+                actor: {
+                    login: 'person',
+                    type: 'User',
+                },
+            },
+        ];
 
         const labelEvent = {
             created_at: '2026-03-17T00:00:00.000Z',
             label: {
-                name: 'bug'
-            }
+                name: 'bug',
+            },
         };
 
         helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.false();
     });
 
     it('checks whether dates are older than the requested number of weeks', function () {
-        helpers.isOlderThanXWeeks(new Date(Date.now() - (15 * 24 * 60 * 60 * 1000)), 2).should.be.true();
-        helpers.isOlderThanXWeeks(new Date(Date.now() - (3 * 24 * 60 * 60 * 1000)), 2).should.be.false();
+        helpers
+            .isOlderThanXWeeks(new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), 2)
+            .should.be.true();
+        helpers
+            .isOlderThanXWeeks(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 2)
+            .should.be.false();
     });
 
     it('adds an issue to a project and applies option fields', async function () {
         mockClient.graphql.onFirstCall().resolves({
             addProjectV2ItemById: {
                 item: {
-                    id: 'project-item-id'
-                }
-            }
+                    id: 'project-item-id',
+                },
+            },
         });
         mockClient.graphql.onSecondCall().resolves({});
         mockClient.graphql.onThirdCall().resolves({});
 
-        await helpers.addIssueToProject(
-            {node_id: 'issue-node-id'},
-            'project-id',
-            {
-                fieldA: 'option-1',
-                fieldB: 'option-2'
-            }
-        );
+        await helpers.addIssueToProject({ node_id: 'issue-node-id' }, 'project-id', {
+            fieldA: 'option-1',
+            fieldB: 'option-2',
+        });
 
         sinon.assert.callCount(mockClient.graphql, 3);
         sinon.assert.calledWithMatch(
             mockClient.graphql.firstCall,
             sinon.match(/addProjectV2ItemById/),
-            {projectId: 'project-id', issueId: 'issue-node-id'}
+            { projectId: 'project-id', issueId: 'issue-node-id' },
         );
         sinon.assert.calledWithMatch(
             mockClient.graphql.secondCall,
             sinon.match(/updateProjectV2ItemFieldValue/),
-            {projectId: 'project-id', itemId: 'project-item-id', fieldId: 'fieldA', optionId: 'option-1'}
+            {
+                projectId: 'project-id',
+                itemId: 'project-item-id',
+                fieldId: 'fieldA',
+                optionId: 'option-1',
+            },
         );
         sinon.assert.calledWithMatch(
             mockClient.graphql.thirdCall,
             sinon.match(/updateProjectV2ItemFieldValue/),
-            {projectId: 'project-id', itemId: 'project-item-id', fieldId: 'fieldB', optionId: 'option-2'}
+            {
+                projectId: 'project-id',
+                itemId: 'project-item-id',
+                fieldId: 'fieldB',
+                optionId: 'option-2',
+            },
         );
     });
 
     it('skips project option updates when no project item is returned', async function () {
         mockClient.graphql.resolves({
             addProjectV2ItemById: {
-                item: null
-            }
+                item: null,
+            },
         });
 
-        await helpers.addIssueToProject({node_id: 'issue-node-id'}, 'project-id', {fieldA: 'option-1'});
+        await helpers.addIssueToProject({ node_id: 'issue-node-id' }, 'project-id', {
+            fieldA: 'option-1',
+        });
 
         sinon.assert.calledOnce(mockClient.graphql);
     });
 
     it('removes needs triage when the label exists in the timeline', async function () {
-        sandbox.stub(helpers, 'listTimelineEvents').resolves([
-            {event: 'commented'},
-            {event: 'labeled', label: {name: 'needs:triage'}}
-        ]);
+        sandbox
+            .stub(helpers, 'listTimelineEvents')
+            .resolves([
+                { event: 'commented' },
+                { event: 'labeled', label: { name: 'needs:triage' } },
+            ]);
         const removeNeedsTriageLabel = sandbox.stub(helpers, 'removeNeedsTriageLabel').resolves();
 
-        await helpers.removeNeedsTriageLabelIfOlder({number: 123});
+        await helpers.removeNeedsTriageLabelIfOlder({ number: 123 });
 
         sinon.assert.calledOnce(removeNeedsTriageLabel);
     });
 
     it('does not remove needs triage when the label is absent from the timeline', async function () {
-        sandbox.stub(helpers, 'listTimelineEvents').resolves([{event: 'commented'}]);
+        sandbox.stub(helpers, 'listTimelineEvents').resolves([{ event: 'commented' }]);
         const removeNeedsTriageLabel = sandbox.stub(helpers, 'removeNeedsTriageLabel').resolves();
 
-        await helpers.removeNeedsTriageLabelIfOlder({number: 123});
+        await helpers.removeNeedsTriageLabelIfOlder({ number: 123 });
 
         sinon.assert.notCalled(removeNeedsTriageLabel);
     });
 
     it('lists open needs:info issues', async function () {
         mockClient.rest.issues.listForRepo.resolves({
-            data: [{number: 1}]
+            data: [{ number: 1 }],
         });
 
         const result = await helpers.listOpenNeedsInfoIssues();
 
-        result.should.deepEqual([{number: 1}]);
+        result.should.deepEqual([{ number: 1 }]);
         sinon.assert.calledWith(mockClient.rest.issues.listForRepo, {
             owner: 'test-owner',
             repo: 'test-repo',
             state: 'open',
-            labels: 'needs:info'
+            labels: 'needs:info',
         });
     });
 
     it('lists open pull requests', async function () {
         mockClient.rest.pulls.list.resolves({
-            data: [{number: 2}]
+            data: [{ number: 2 }],
         });
 
         const result = await helpers.listOpenPullRequests();
 
-        result.should.deepEqual([{number: 2}]);
+        result.should.deepEqual([{ number: 2 }]);
         sinon.assert.calledWith(mockClient.rest.pulls.list, {
             owner: 'test-owner',
             repo: 'test-repo',
-            state: 'open'
+            state: 'open',
         });
     });
 
     it('filters null timeline events and sorts newest first', async function () {
         mockClient.rest.issues.listEventsForTimeline.resolves({
             data: [
-                {event: 'commented', created_at: '2026-03-16T00:00:00.000Z'},
+                { event: 'commented', created_at: '2026-03-16T00:00:00.000Z' },
                 null,
-                {event: 'labeled', created_at: '2026-03-17T00:00:00.000Z'}
-            ]
+                { event: 'labeled', created_at: '2026-03-17T00:00:00.000Z' },
+            ],
         });
 
-        const result = await helpers.listTimelineEvents({number: 321});
+        const result = await helpers.listTimelineEvents({ number: 321 });
 
         result.should.deepEqual([
-            {event: 'labeled', created_at: '2026-03-17T00:00:00.000Z'},
-            {event: 'commented', created_at: '2026-03-16T00:00:00.000Z'}
+            { event: 'labeled', created_at: '2026-03-17T00:00:00.000Z' },
+            { event: 'commented', created_at: '2026-03-16T00:00:00.000Z' },
         ]);
     });
 
     it('lists labels on an issue', async function () {
         mockClient.rest.issues.listLabelsOnIssue.resolves({
-            data: [{name: 'bug'}]
+            data: [{ name: 'bug' }],
         });
 
-        const result = await helpers.listLabels({number: 22});
+        const result = await helpers.listLabels({ number: 22 });
 
-        result.should.deepEqual([{name: 'bug'}]);
+        result.should.deepEqual([{ name: 'bug' }]);
         sinon.assert.calledWith(mockClient.rest.issues.listLabelsOnIssue, {
             owner: 'test-owner',
             repo: 'test-repo',
-            issue_number: 22
+            issue_number: 22,
         });
     });
 
@@ -273,57 +295,57 @@ describe('Helpers', function () {
             {
                 number: 9,
                 user: {
-                    login: 'author-name'
-                }
+                    login: 'author-name',
+                },
             },
             'Hi {issue-author} from {repository-name}. TOKEN',
-            {TOKEN: 'done'}
+            { TOKEN: 'done' },
         );
 
         sinon.assert.calledWith(mockClient.rest.issues.createComment, {
             owner: 'test-owner',
             repo: 'test-repo',
             issue_number: 9,
-            body: 'Hi author-name from test-owner/test-repo. done'
+            body: 'Hi author-name from test-owner/test-repo. done',
         });
     });
 
     it('closes an issue with the default state reason', async function () {
-        await helpers.closeIssue({number: 18});
+        await helpers.closeIssue({ number: 18 });
 
         sinon.assert.calledWith(mockClient.rest.issues.update, {
             owner: 'test-owner',
             repo: 'test-repo',
             issue_number: 18,
             state: 'closed',
-            state_reason: 'completed'
+            state_reason: 'completed',
         });
     });
 
     it('closes an issue with a custom state reason', async function () {
-        await helpers.closeIssue({number: 19}, 'not_planned');
+        await helpers.closeIssue({ number: 19 }, 'not_planned');
 
         sinon.assert.calledWithMatch(mockClient.rest.issues.update, {
             issue_number: 19,
-            state_reason: 'not_planned'
+            state_reason: 'not_planned',
         });
     });
 
     it('adds and removes issue labels', async function () {
-        await helpers.addLabel({number: 11}, 'community');
-        await helpers.removeLabel({number: 11}, 'needs:triage');
+        await helpers.addLabel({ number: 11 }, 'community');
+        await helpers.removeLabel({ number: 11 }, 'needs:triage');
 
         sinon.assert.calledWith(mockClient.rest.issues.addLabels, {
             owner: 'test-owner',
             repo: 'test-repo',
             issue_number: 11,
-            labels: ['community']
+            labels: ['community'],
         });
         sinon.assert.calledWith(mockClient.rest.issues.removeLabel, {
             owner: 'test-owner',
             repo: 'test-repo',
             issue_number: 11,
-            name: 'needs:triage'
+            name: 'needs:triage',
         });
     });
 
@@ -333,24 +355,24 @@ describe('Helpers', function () {
 
         const removeLabel = sandbox.stub(helpers, 'removeLabel').rejects(error);
 
-        await helpers.removeNeedsTriageLabel({number: 44});
+        await helpers.removeNeedsTriageLabel({ number: 44 });
 
         sinon.assert.calledOnce(removeLabel);
     });
 
     it('returns PR files when the GitHub call succeeds', async function () {
         mockClient.rest.pulls.listFiles.resolves({
-            data: [{filename: 'ghost/core/locales/en.json'}]
+            data: [{ filename: 'ghost/core/locales/en.json' }],
         });
 
         const files = await helpers.getPRFiles(99);
 
-        files.should.deepEqual([{filename: 'ghost/core/locales/en.json'}]);
+        files.should.deepEqual([{ filename: 'ghost/core/locales/en.json' }]);
         sinon.assert.calledWith(mockClient.rest.pulls.listFiles, {
             owner: 'test-owner',
             repo: 'test-repo',
             pull_number: 99,
-            per_page: 100
+            per_page: 100,
         });
     });
 
@@ -365,8 +387,11 @@ describe('Helpers', function () {
 
     it('detects a non-English locale change that adds a real value', async function () {
         sandbox.stub(helpers, 'getPRFiles').resolves([
-            {filename: 'ghost/i18n/locales/de/ghost.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "Neu"\n }'},
-            {filename: 'package.json'}
+            {
+                filename: 'ghost/i18n/locales/de/ghost.json',
+                patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "Neu"\n }',
+            },
+            { filename: 'package.json' },
         ]);
 
         (await helpers.containsLocaleChanges(50)).should.be.true();
@@ -374,7 +399,10 @@ describe('Helpers', function () {
 
     it('ignores non-English locale changes that only add empty placeholders', async function () {
         sandbox.stub(helpers, 'getPRFiles').resolves([
-            {filename: 'ghost/i18n/locales/de/ghost.json', patch: '@@ -1,1 +1,3 @@\n {\n+  "New one": "",\n+  "New two": ""\n }'}
+            {
+                filename: 'ghost/i18n/locales/de/ghost.json',
+                patch: '@@ -1,1 +1,3 @@\n {\n+  "New one": "",\n+  "New two": ""\n }',
+            },
         ]);
 
         (await helpers.containsLocaleChanges(50)).should.be.false();
@@ -382,26 +410,33 @@ describe('Helpers', function () {
 
     it('ignores English source and context.json changes', async function () {
         sandbox.stub(helpers, 'getPRFiles').resolves([
-            {filename: 'ghost/i18n/locales/en/ghost.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "New"\n }'},
-            {filename: 'ghost/i18n/locales/context.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "Where it appears"\n }'},
-            {filename: 'ghost/core/locales/en.json', patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "New"\n }'}
+            {
+                filename: 'ghost/i18n/locales/en/ghost.json',
+                patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "New"\n }',
+            },
+            {
+                filename: 'ghost/i18n/locales/context.json',
+                patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "Where it appears"\n }',
+            },
+            {
+                filename: 'ghost/core/locales/en.json',
+                patch: '@@ -1,1 +1,2 @@\n {\n+  "New": "New"\n }',
+            },
         ]);
 
         (await helpers.containsLocaleChanges(50)).should.be.false();
     });
 
     it('labels a non-English locale change when the patch is unavailable', async function () {
-        sandbox.stub(helpers, 'getPRFiles').resolves([
-            {filename: 'ghost/i18n/locales/de/ghost.json'}
-        ]);
+        sandbox
+            .stub(helpers, 'getPRFiles')
+            .resolves([{ filename: 'ghost/i18n/locales/de/ghost.json' }]);
 
         (await helpers.containsLocaleChanges(50)).should.be.true();
     });
 
     it('returns false when no locale changes are present', async function () {
-        sandbox.stub(helpers, 'getPRFiles').resolves([
-            {filename: 'README.md'}
-        ]);
+        sandbox.stub(helpers, 'getPRFiles').resolves([{ filename: 'README.md' }]);
 
         (await helpers.containsLocaleChanges(50)).should.be.false();
     });
