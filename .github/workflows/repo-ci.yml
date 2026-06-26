@@ -127,3 +127,13 @@ jobs:
               throw new Error(`Slack webhook failed with ${response.status}`);
           }
           EOF
+
+  all-tests-pass:
+    name: All tests pass
+    if: always()
+    needs: [validate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all required jobs succeeded
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
