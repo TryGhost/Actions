@@ -1,25 +1,23 @@
 const {IncomingWebhook} = require('@slack/webhook');
 
-(async () => {
-    const coreModule = await import('@actions/core');
-    const core = coreModule.default ?? coreModule;
-    const url = process.env.SLACK_WEBHOOK_URL;
-    const webhook = new IncomingWebhook(url);
-    const statusInput = core.getInput('status', {required: true});
-
-    let statusColor = 'good';
-
+function getStatusColor(statusInput) {
     if (statusInput === 'cancelled') {
-        statusColor = 'warning';
-    } else if (statusInput === 'failure') {
-        statusColor = 'danger';
+        return 'warning';
     }
 
-    const githubRepo = process.env.GITHUB_REPOSITORY;
-    const githubSha = process.env.GITHUB_SHA || 'unknown';
-    const githubActor = process.env.GITHUB_ACTOR;
-    const githubRef = process.env.GITHUB_REF || 'unknown';
-    const githubRunId = process.env.GITHUB_RUN_ID;
+    if (statusInput === 'failure') {
+        return 'danger';
+    }
+
+    return 'good';
+}
+
+function buildSlackMessage(statusInput, env = process.env) {
+    const githubRepo = env.GITHUB_REPOSITORY;
+    const githubSha = env.GITHUB_SHA || 'unknown';
+    const githubActor = env.GITHUB_ACTOR;
+    const githubRef = env.GITHUB_REF || 'unknown';
+    const githubRunId = env.GITHUB_RUN_ID;
 
     const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
     const linkifiedGithubRepo = `<https://github.com/${githubRepo}|${githubRepo}>`;
@@ -55,10 +53,48 @@ const {IncomingWebhook} = require('@slack/webhook');
         actorLink = `<@${githubActorToSlackId[githubActor]}>`;
     }
 
-    await webhook.send({
+    return {
         attachments: [{
-            color: statusColor,
+            color: getStatusColor(statusInput),
             text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${actorLink} - ${openLink}`,
         }]
-    });
-})();
+    };
+}
+
+async function getCore() {
+    const coreModule = await import('@actions/core');
+
+    return coreModule.default ?? coreModule;
+}
+
+function getWebhookFactory(options = {}) {
+    if (options.webhookFactory) {
+        return options.webhookFactory;
+    }
+
+    const Webhook = options.IncomingWebhook || IncomingWebhook;
+
+    return url => new Webhook(url);
+}
+
+async function run(options = {}) {
+    const env = options.env || process.env;
+    const loadCore = options.getCore || getCore;
+    const core = options.core || await loadCore();
+    const webhookFactory = getWebhookFactory(options);
+    const webhook = webhookFactory(env.SLACK_WEBHOOK_URL);
+    const statusInput = core.getInput('status', {required: true});
+
+    await webhook.send(buildSlackMessage(statusInput, env));
+}
+
+if (process.env.NODE_ENV !== 'testing') {
+    run();
+}
+
+module.exports = {
+    buildSlackMessage,
+    getWebhookFactory,
+    getStatusColor,
+    run
+};

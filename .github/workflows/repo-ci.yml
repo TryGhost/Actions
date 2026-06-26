@@ -21,7 +21,7 @@ jobs:
           - action_name: slack-build
             action_path: actions/slack-build
             lint: false
-            test: false
+            test: true
     env:
       FORCE_COLOR: 1
     name: ${{ matrix.action_name }} / Node 22
