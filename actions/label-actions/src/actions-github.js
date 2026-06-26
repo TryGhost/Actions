@@ -7,7 +7,7 @@ async function getGitHub() {
     }
 
     if (!githubPromise) {
-        githubPromise = import('@actions/github').then(github => github.default ?? github);
+        githubPromise = import('@actions/github').then((github) => github.default ?? github);
     }
 
     return githubPromise;
@@ -20,5 +20,5 @@ function setGitHubForTests(github) {
 
 module.exports = {
     getGitHub,
-    setGitHubForTests
+    setGitHubForTests,
 };

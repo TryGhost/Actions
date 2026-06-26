@@ -1,0 +1,18 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "categories": {
+        "correctness": "error",
+        "suspicious": "warn"
+    },
+    "env": {
+        "node": true,
+        "vitest": true,
+        "es2024": true
+    },
+    "ignorePatterns": [
+        "dist/**"
+    ],
+    "rules": {
+        "no-console": "error"
+    }
+}

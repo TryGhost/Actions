@@ -4,8 +4,8 @@ require('should');
 // Require test utils
 require('./utils');
 
-const {setCoreForTests} = require('../src/actions-core');
-const {setGitHubForTests} = require('../src/actions-github');
+const { setCoreForTests } = require('../src/actions-core');
+const { setGitHubForTests } = require('../src/actions-github');
 // Require the helpers class we're testing
 const Helpers = require('../src/helpers');
 
@@ -22,33 +22,33 @@ describe('PR Labeling', function () {
         mockClient = {
             rest: {
                 teams: {
-                    getMembershipForUserInOrg: sandbox.stub()
+                    getMembershipForUserInOrg: sandbox.stub(),
                 },
                 orgs: {
-                    checkMembershipForUser: sandbox.stub()
+                    checkMembershipForUser: sandbox.stub(),
                 },
                 repos: {
-                    getCollaboratorPermissionLevel: sandbox.stub()
+                    getCollaboratorPermissionLevel: sandbox.stub(),
                 },
                 issues: {
-                    addLabels: sandbox.stub()
+                    addLabels: sandbox.stub(),
                 },
                 pulls: {
-                    listFiles: sandbox.stub()
-                }
-            }
+                    listFiles: sandbox.stub(),
+                },
+            },
         };
 
         mockCore = {
             error: sandbox.stub(),
             info: sandbox.stub(),
-            warning: sandbox.stub()
+            warning: sandbox.stub(),
         };
 
         setCoreForTests(mockCore);
 
         // Create helpers instance with mocked client
-        helpers = new Helpers('fake-token', {owner: 'test-owner', repo: 'test-repo'}, mockClient);
+        helpers = new Helpers('fake-token', { owner: 'test-owner', repo: 'test-repo' }, mockClient);
     });
 
     afterEach(function () {
@@ -60,7 +60,7 @@ describe('PR Labeling', function () {
     describe('isGhostFoundationMember', function () {
         it('should return true for core team members (org member + admin write)', async function () {
             mockClient.rest.repos.getCollaboratorPermissionLevel.resolves({
-                data: {permission: 'write'}
+                data: { permission: 'write' },
             });
 
             const isMember = await helpers.isGhostFoundationMember('core-member', 'MEMBER');
@@ -70,31 +70,49 @@ describe('PR Labeling', function () {
             sinon.assert.calledWith(mockClient.rest.repos.getCollaboratorPermissionLevel, {
                 owner: 'TryGhost',
                 repo: 'Admin',
-                username: 'core-member'
+                username: 'core-member',
             });
-            sinon.assert.calledWith(mockCore.info, 'User core-member has MEMBER association with the repository');
-            sinon.assert.calledWith(mockCore.info, 'User core-member has write access to Admin repo - core team');
+            sinon.assert.calledWith(
+                mockCore.info,
+                'User core-member has MEMBER association with the repository',
+            );
+            sinon.assert.calledWith(
+                mockCore.info,
+                'User core-member has write access to Admin repo - core team',
+            );
         });
 
         it('should return false for contributors (org member + admin read)', async function () {
             mockClient.rest.repos.getCollaboratorPermissionLevel.resolves({
-                data: {permission: 'read'}
+                data: { permission: 'read' },
             });
 
             const isMember = await helpers.isGhostFoundationMember('contributor', 'MEMBER');
 
             isMember.should.be.false();
             sinon.assert.calledOnce(mockClient.rest.repos.getCollaboratorPermissionLevel);
-            sinon.assert.calledWith(mockCore.info, 'User contributor has MEMBER association with the repository');
-            sinon.assert.calledWith(mockCore.info, 'User contributor has read access to Admin repo - contributor');
+            sinon.assert.calledWith(
+                mockCore.info,
+                'User contributor has MEMBER association with the repository',
+            );
+            sinon.assert.calledWith(
+                mockCore.info,
+                'User contributor has read access to Admin repo - contributor',
+            );
         });
 
         it('should return false for non-org members', async function () {
-            const isMember = await helpers.isGhostFoundationMember('community-member', 'CONTRIBUTOR');
+            const isMember = await helpers.isGhostFoundationMember(
+                'community-member',
+                'CONTRIBUTOR',
+            );
 
             isMember.should.be.false();
             sinon.assert.notCalled(mockClient.rest.repos.getCollaboratorPermissionLevel);
-            sinon.assert.calledWith(mockCore.info, 'User community-member has CONTRIBUTOR association with the repository');
+            sinon.assert.calledWith(
+                mockCore.info,
+                'User community-member has CONTRIBUTOR association with the repository',
+            );
             sinon.assert.calledWith(mockCore.info, 'User is not an organization member');
         });
 
@@ -105,7 +123,10 @@ describe('PR Labeling', function () {
             const isMember = await helpers.isGhostFoundationMember('test-user', 'MEMBER');
 
             isMember.should.be.false();
-            sinon.assert.calledWith(mockCore.error, 'Error checking permissions for test-user: API Error');
+            sinon.assert.calledWith(
+                mockCore.error,
+                'Error checking permissions for test-user: API Error',
+            );
         });
     });
 
@@ -114,8 +135,8 @@ describe('PR Labeling', function () {
             const pullRequest = {
                 number: 123,
                 user: {
-                    login: 'ghost-member'
-                }
+                    login: 'ghost-member',
+                },
             };
 
             // Mock team membership check to return true
@@ -130,7 +151,7 @@ describe('PR Labeling', function () {
                 owner: 'test-owner',
                 repo: 'test-repo',
                 issue_number: 123,
-                labels: ['core team']
+                labels: ['core team'],
             });
         });
 
@@ -138,8 +159,8 @@ describe('PR Labeling', function () {
             const pullRequest = {
                 number: 456,
                 user: {
-                    login: 'external-contributor'
-                }
+                    login: 'external-contributor',
+                },
             };
 
             // Mock team membership check to return false (404)
@@ -156,7 +177,7 @@ describe('PR Labeling', function () {
                 owner: 'test-owner',
                 repo: 'test-repo',
                 issue_number: 456,
-                labels: ['community']
+                labels: ['community'],
             });
         });
 
@@ -173,15 +194,16 @@ describe('PR Labeling', function () {
                     number: 789,
                     user: {
                         login: botUsername,
-                        type: 'Bot'
-                    }
+                        type: 'Bot',
+                    },
                 };
 
                 // Simulate the check that would happen in the PR opened handler
-                const isDependencyBot = (pullRequest.user.type === 'Bot' ||
-                                        botUsername.includes('[bot]') ||
-                                        botUsername === 'renovate-bot') &&
-                                       (botUsername.includes('renovate') || botUsername.includes('dependabot'));
+                const isDependencyBot =
+                    (pullRequest.user.type === 'Bot' ||
+                        botUsername.includes('[bot]') ||
+                        botUsername === 'renovate-bot') &&
+                    (botUsername.includes('renovate') || botUsername.includes('dependabot'));
 
                 isDependencyBot.should.be.true();
 
@@ -195,7 +217,7 @@ describe('PR Labeling', function () {
                         owner: 'test-owner',
                         repo: 'test-repo',
                         issue_number: 789,
-                        labels: ['dependencies']
+                        labels: ['dependencies'],
                     });
 
                     // Should not check org membership for bots
@@ -206,7 +228,11 @@ describe('PR Labeling', function () {
 
         it('should skip non-dependency bot PRs without labeling', async function () {
             // Test non-dependency bot usernames
-            const nonDependencyBots = ['some-other-bot[bot]', 'github-actions[bot]', 'codecov[bot]'];
+            const nonDependencyBots = [
+                'some-other-bot[bot]',
+                'github-actions[bot]',
+                'codecov[bot]',
+            ];
 
             for (const botUsername of nonDependencyBots) {
                 // Reset the stub call history
@@ -217,15 +243,16 @@ describe('PR Labeling', function () {
                     number: 890,
                     user: {
                         login: botUsername,
-                        type: 'Bot'
-                    }
+                        type: 'Bot',
+                    },
                 };
 
                 // Simulate the check that would happen in the PR opened handler
-                const isDependencyBot = (pullRequest.user.type === 'Bot' ||
-                                        botUsername.includes('[bot]') ||
-                                        botUsername === 'renovate-bot') &&
-                                       (botUsername.includes('renovate') || botUsername.includes('dependabot'));
+                const isDependencyBot =
+                    (pullRequest.user.type === 'Bot' ||
+                        botUsername.includes('[bot]') ||
+                        botUsername === 'renovate-bot') &&
+                    (botUsername.includes('renovate') || botUsername.includes('dependabot'));
 
                 const isBot = pullRequest.user.type === 'Bot' || botUsername.includes('[bot]');
 
@@ -246,17 +273,17 @@ describe('PR Labeling', function () {
                 number: 999,
                 user: {
                     login: 'test-user',
-                    type: 'User'
-                }
+                    type: 'User',
+                },
             };
 
             // Mock the API response for listFiles
             mockClient.rest.pulls.listFiles.resolves({
                 data: [
-                    {filename: 'core/server/locales/en/portal.json'},
-                    {filename: 'core/server/locales/fr/portal.json'},
-                    {filename: 'README.md'}
-                ]
+                    { filename: 'core/server/locales/en/portal.json' },
+                    { filename: 'core/server/locales/fr/portal.json' },
+                    { filename: 'README.md' },
+                ],
             });
 
             // Check containsLocaleChanges method
@@ -272,7 +299,7 @@ describe('PR Labeling', function () {
                 owner: 'test-owner',
                 repo: 'test-repo',
                 issue_number: 999,
-                labels: ['affects:i18n']
+                labels: ['affects:i18n'],
             });
         });
 
@@ -281,17 +308,17 @@ describe('PR Labeling', function () {
                 number: 1000,
                 user: {
                     login: 'test-user',
-                    type: 'User'
-                }
+                    type: 'User',
+                },
             };
 
             // Mock the API response for listFiles without locale changes
             mockClient.rest.pulls.listFiles.resolves({
                 data: [
-                    {filename: 'core/server/api/posts.js'},
-                    {filename: 'test/api/posts.test.js'},
-                    {filename: 'README.md'}
-                ]
+                    { filename: 'core/server/api/posts.js' },
+                    { filename: 'test/api/posts.test.js' },
+                    { filename: 'README.md' },
+                ],
             });
 
             // Check containsLocaleChanges method

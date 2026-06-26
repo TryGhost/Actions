@@ -1,10 +1,6 @@
 const assert = require('assert/strict');
 
-const {
-    buildSlackMessage,
-    getStatusColor,
-    run
-} = require('../index');
+const { buildSlackMessage, getStatusColor, run } = require('../index');
 
 describe('slack-build', function () {
     const env = {
@@ -13,7 +9,7 @@ describe('slack-build', function () {
         GITHUB_REPOSITORY: 'TryGhost/Actions',
         GITHUB_RUN_ID: '12345',
         GITHUB_SHA: 'abcdef1234567890',
-        SLACK_WEBHOOK_URL: 'https://hooks.slack.test/example'
+        SLACK_WEBHOOK_URL: 'https://hooks.slack.test/example',
     };
 
     it('maps build statuses to Slack attachment colors', function () {
@@ -26,10 +22,12 @@ describe('slack-build', function () {
         const message = buildSlackMessage('failure', env);
 
         assert.deepEqual(message, {
-            attachments: [{
-                color: 'danger',
-                text: 'Test failure at <https://github.com/TryGhost/Actions/commit/abcdef1234567890|abcdef1234> on `main` of <https://github.com/TryGhost/Actions|TryGhost/Actions> by <@U09E99K63JN> - <https://github.com/TryGhost/Actions/actions/runs/12345/|view>'
-            }]
+            attachments: [
+                {
+                    color: 'danger',
+                    text: 'Test failure at <https://github.com/TryGhost/Actions/commit/abcdef1234567890|abcdef1234> on `main` of <https://github.com/TryGhost/Actions|TryGhost/Actions> by <@U09E99K63JN> - <https://github.com/TryGhost/Actions/actions/runs/12345/|view>',
+                },
+            ],
         });
     });
 
@@ -37,18 +35,18 @@ describe('slack-build', function () {
         const message = buildSlackMessage('success', {
             GITHUB_ACTOR: 'external-user',
             GITHUB_REPOSITORY: 'TryGhost/Actions',
-            GITHUB_RUN_ID: '67890'
+            GITHUB_RUN_ID: '67890',
         });
 
         assert.equal(message.attachments[0].color, 'good');
         assert.equal(
             message.attachments[0].text,
-            'Test success at <https://github.com/TryGhost/Actions/commit/unknown|unknown> on `unknown` of <https://github.com/TryGhost/Actions|TryGhost/Actions> by external-user - <https://github.com/TryGhost/Actions/actions/runs/67890/|view>'
+            'Test success at <https://github.com/TryGhost/Actions/commit/unknown|unknown> on `unknown` of <https://github.com/TryGhost/Actions|TryGhost/Actions> by external-user - <https://github.com/TryGhost/Actions/actions/runs/67890/|view>',
         );
     });
 
     it('uses process.env as the default GitHub Actions environment', function () {
-        const originalEnv = {...process.env};
+        const originalEnv = { ...process.env };
 
         process.env.GITHUB_ACTOR = env.GITHUB_ACTOR;
         process.env.GITHUB_REF = env.GITHUB_REF;
@@ -71,10 +69,10 @@ describe('slack-build', function () {
         const core = {
             getInput(name, options) {
                 assert.equal(name, 'status');
-                assert.deepEqual(options, {required: true});
+                assert.deepEqual(options, { required: true });
 
                 return 'cancelled';
-            }
+            },
         };
 
         await run({
@@ -88,7 +86,7 @@ describe('slack-build', function () {
                 async send(message) {
                     sentMessages.push(message);
                 }
-            }
+            },
         });
 
         assert.equal(sentMessages.length, 1);
@@ -100,7 +98,7 @@ describe('slack-build', function () {
         const core = {
             getInput() {
                 return 'success';
-            }
+            },
         };
 
         await assert.rejects(
@@ -108,10 +106,10 @@ describe('slack-build', function () {
                 core,
                 env: {
                     ...env,
-                    SLACK_WEBHOOK_URL: ''
-                }
+                    SLACK_WEBHOOK_URL: '',
+                },
             }),
-            /SLACK_WEBHOOK_URL is required/
+            /SLACK_WEBHOOK_URL is required/,
         );
     });
 
@@ -151,9 +149,9 @@ describe('slack-build', function () {
                 return {
                     getInput() {
                         return 'failure';
-                    }
+                    },
                 };
-            }
+            },
         });
 
         assert.equal(sentMessages.length, 1);
@@ -167,14 +165,14 @@ describe('slack-build', function () {
             core: {
                 getInput() {
                     return 'success';
-                }
+                },
             },
             env,
             IncomingWebhook: class TestWebhook {
                 async send(message) {
                     sentMessages.push(message);
                 }
-            }
+            },
         });
 
         assert.equal(sentMessages.length, 1);

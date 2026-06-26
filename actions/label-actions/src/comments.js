@@ -41,5 +41,5 @@ We've reviewed your bug report and believe the issue is environment specific, ra
 
     PR_CHANGES_REQUESTED: `Note from our bot: Some changes have been requested on this pull request. Updating your code is great, but won't notify us, so please leave a comment so that we (and our bot) can see when you've made the changes. Thank you 🙏`,
 
-    PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`
+    PR_CHANGES_REQUESTED_CLOSED: `This PR wasn't quite ready for prime time, and we've not heard back from you. We're going to close this PR for now, but let us know if you'd like to work on it some more and we will reopen. Thank you 🙏`,
 };
