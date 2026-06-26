@@ -7,7 +7,9 @@ Loosely inspired by [Label Actions](https://github.com/dessant/label-actions) by
 ## Develop
 
 1. `git clone` this repo & `cd` into it as usual
-2. Run `pnpm install` to install top-level dependencies.
+2. `cd actions/label-actions`
+3. Run `pnpm install --frozen-lockfile` to install this action's dependencies.
+4. Run `pnpm lint` and `pnpm test` before changing packaged behavior.
 
 ## Building
 

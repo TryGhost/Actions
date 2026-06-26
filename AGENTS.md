@@ -24,6 +24,6 @@
 - If you touch lint or CI behavior, also review `.github/workflows/repo-ci.yml`, `.github/workflows/test.yml`, and `.github/workflows/lint-only.yml`.
 
 ## Notes
-- `label-actions` is the only action with an automated test suite in this repository.
+- Both action packages have automated Vitest coverage.
 - The repository CI expects pnpm-based installs and commands for local action packages; reusable workflows may still use Yarn for downstream repositories.
 - Packaged action manifests currently target the GitHub Actions `node20` runtime.
