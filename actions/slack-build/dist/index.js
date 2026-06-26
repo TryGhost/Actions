@@ -1,6 +1,113 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 6136:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const {IncomingWebhook} = __nccwpck_require__(4443);
+
+function getStatusColor(statusInput) {
+    if (statusInput === 'cancelled') {
+        return 'warning';
+    }
+
+    if (statusInput === 'failure') {
+        return 'danger';
+    }
+
+    return 'good';
+}
+
+function buildSlackMessage(statusInput, env = process.env) {
+    const githubRepo = env.GITHUB_REPOSITORY;
+    const githubSha = env.GITHUB_SHA || 'unknown';
+    const githubActor = env.GITHUB_ACTOR;
+    const githubRef = env.GITHUB_REF || 'unknown';
+    const githubRunId = env.GITHUB_RUN_ID;
+
+    const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
+    const linkifiedGithubRepo = `<https://github.com/${githubRepo}|${githubRepo}>`;
+    const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
+    const branchParts = githubRef.split('/');
+    const branch = branchParts[branchParts.length - 1];
+
+    const openLink = `<https://github.com/${githubRepo}/actions/runs/${githubRunId}/|view>`;
+
+    let actorLink = githubActor;
+
+    const githubActorToSlackId = {
+        ErisDS: 'U02563SGY',
+        'sam-lord': 'U017YUER0HL',
+        JoeeGrigg: 'U02LNNXJKGA',
+        aileen: 'U04D59TH6',
+        peterzimon: 'U7L3K6GM7',
+        allouis: 'UCCEPHM39',
+        vershwal: 'U05N8BNBAQ3',
+        mike182uk: 'U052YFMMJQL',
+        cmraible: 'U04ETKA5E3D',
+        minimaluminium: 'U019YHN4WSG',
+        '9larsons': 'U04HMKJDA79',
+        kevinansfield: 'U051KGJR2',
+        sagzy: 'U04RLV7E6F8',
+        EvanHahn: 'U0A7KLGCHEW',
+        troyciesco: 'U090DT54Y4B',
+        'rob-ghost': 'U09E99K63JN',
+        jonatansberg: 'U099U6NCFCN',
+    };
+
+    if (githubActorToSlackId[githubActor]) {
+        actorLink = `<@${githubActorToSlackId[githubActor]}>`;
+    }
+
+    return {
+        attachments: [{
+            color: getStatusColor(statusInput),
+            text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${actorLink} - ${openLink}`,
+        }]
+    };
+}
+
+async function getCore() {
+    const coreModule = await __nccwpck_require__.e(/* import() */ 421).then(__nccwpck_require__.bind(__nccwpck_require__, 6421));
+
+    return coreModule.default ?? coreModule;
+}
+
+function getWebhookFactory(options = {}) {
+    if (options.webhookFactory) {
+        return options.webhookFactory;
+    }
+
+    const Webhook = options.IncomingWebhook || IncomingWebhook;
+
+    return url => new Webhook(url);
+}
+
+async function run(options = {}) {
+    const env = options.env || process.env;
+    const loadCore = options.getCore || getCore;
+    const core = options.core || await loadCore();
+    const webhookFactory = getWebhookFactory(options);
+    const webhook = webhookFactory(env.SLACK_WEBHOOK_URL);
+    const statusInput = core.getInput('status', {required: true});
+
+    await webhook.send(buildSlackMessage(statusInput, env));
+}
+
+if (process.env.NODE_ENV !== 'testing') {
+    run();
+}
+
+module.exports = {
+    buildSlackMessage,
+    getWebhookFactory,
+    getStatusColor,
+    run
+};
+
+
+/***/ }),
+
 /***/ 3894:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -1818,7 +1925,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __nccwpck_require__(75);
+	const supportsColor = __nccwpck_require__(1450);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -4224,6 +4331,22 @@ module.exports = $gOPD;
 
 /***/ }),
 
+/***/ 3813:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = (flag, argv = process.argv) => {
+	const prefix = flag.startsWith('-') ? '' : (flag.length === 1 ? '-' : '--');
+	const position = argv.indexOf(prefix + flag);
+	const terminatorPosition = argv.indexOf('--');
+	return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+};
+
+
+/***/ }),
+
 /***/ 3336:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -5098,10 +5221,145 @@ function plural(ms, msAbs, n, name) {
 
 /***/ }),
 
-/***/ 75:
-/***/ ((module) => {
+/***/ 1450:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = eval("require")("supports-color");
+"use strict";
+
+const os = __nccwpck_require__(857);
+const tty = __nccwpck_require__(2018);
+const hasFlag = __nccwpck_require__(3813);
+
+const {env} = process;
+
+let forceColor;
+if (hasFlag('no-color') ||
+	hasFlag('no-colors') ||
+	hasFlag('color=false') ||
+	hasFlag('color=never')) {
+	forceColor = 0;
+} else if (hasFlag('color') ||
+	hasFlag('colors') ||
+	hasFlag('color=true') ||
+	hasFlag('color=always')) {
+	forceColor = 1;
+}
+
+if ('FORCE_COLOR' in env) {
+	if (env.FORCE_COLOR === 'true') {
+		forceColor = 1;
+	} else if (env.FORCE_COLOR === 'false') {
+		forceColor = 0;
+	} else {
+		forceColor = env.FORCE_COLOR.length === 0 ? 1 : Math.min(parseInt(env.FORCE_COLOR, 10), 3);
+	}
+}
+
+function translateLevel(level) {
+	if (level === 0) {
+		return false;
+	}
+
+	return {
+		level,
+		hasBasic: true,
+		has256: level >= 2,
+		has16m: level >= 3
+	};
+}
+
+function supportsColor(haveStream, streamIsTTY) {
+	if (forceColor === 0) {
+		return 0;
+	}
+
+	if (hasFlag('color=16m') ||
+		hasFlag('color=full') ||
+		hasFlag('color=truecolor')) {
+		return 3;
+	}
+
+	if (hasFlag('color=256')) {
+		return 2;
+	}
+
+	if (haveStream && !streamIsTTY && forceColor === undefined) {
+		return 0;
+	}
+
+	const min = forceColor || 0;
+
+	if (env.TERM === 'dumb') {
+		return min;
+	}
+
+	if (process.platform === 'win32') {
+		// Windows 10 build 10586 is the first Windows release that supports 256 colors.
+		// Windows 10 build 14931 is the first release that supports 16m/TrueColor.
+		const osRelease = os.release().split('.');
+		if (
+			Number(osRelease[0]) >= 10 &&
+			Number(osRelease[2]) >= 10586
+		) {
+			return Number(osRelease[2]) >= 14931 ? 3 : 2;
+		}
+
+		return 1;
+	}
+
+	if ('CI' in env) {
+		if (['TRAVIS', 'CIRCLECI', 'APPVEYOR', 'GITLAB_CI', 'GITHUB_ACTIONS', 'BUILDKITE'].some(sign => sign in env) || env.CI_NAME === 'codeship') {
+			return 1;
+		}
+
+		return min;
+	}
+
+	if ('TEAMCITY_VERSION' in env) {
+		return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
+	}
+
+	if (env.COLORTERM === 'truecolor') {
+		return 3;
+	}
+
+	if ('TERM_PROGRAM' in env) {
+		const version = parseInt((env.TERM_PROGRAM_VERSION || '').split('.')[0], 10);
+
+		switch (env.TERM_PROGRAM) {
+			case 'iTerm.app':
+				return version >= 3 ? 3 : 2;
+			case 'Apple_Terminal':
+				return 2;
+			// No default
+		}
+	}
+
+	if (/-256(color)?$/i.test(env.TERM)) {
+		return 2;
+	}
+
+	if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
+		return 1;
+	}
+
+	if ('COLORTERM' in env) {
+		return 1;
+	}
+
+	return min;
+}
+
+function getSupportLevel(stream) {
+	const level = supportsColor(stream, stream && stream.isTTY);
+	return translateLevel(level);
+}
+
+module.exports = {
+	supportsColor: getSupportLevel,
+	stdout: translateLevel(supportsColor(true, tty.isatty(1))),
+	stderr: translateLevel(supportsColor(true, tty.isatty(2)))
+};
 
 
 /***/ }),
@@ -11609,72 +11867,12 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /******/ 	})();
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-const {IncomingWebhook} = __nccwpck_require__(4443);
-
-(async () => {
-    const coreModule = await __nccwpck_require__.e(/* import() */ 421).then(__nccwpck_require__.bind(__nccwpck_require__, 6421));
-    const core = coreModule.default ?? coreModule;
-    const url = process.env.SLACK_WEBHOOK_URL;
-    const webhook = new IncomingWebhook(url);
-    const statusInput = core.getInput('status', {required: true});
-
-    let statusColor = 'good';
-
-    if (statusInput === 'cancelled') {
-        statusColor = 'warning';
-    } else if (statusInput === 'failure') {
-        statusColor = 'danger';
-    }
-
-    const githubRepo = process.env.GITHUB_REPOSITORY;
-    const githubSha = process.env.GITHUB_SHA || 'unknown';
-    const githubActor = process.env.GITHUB_ACTOR;
-    const githubRef = process.env.GITHUB_REF || 'unknown';
-    const githubRunId = process.env.GITHUB_RUN_ID;
-
-    const commitUrl = `https://github.com/${githubRepo}/commit/${githubSha}`;
-    const linkifiedGithubRepo = `<https://github.com/${githubRepo}|${githubRepo}>`;
-    const linkifiedCommitUrl = `<${commitUrl}|${githubSha.substring(0, 10)}>`;
-    const branchParts = githubRef.split('/');
-    const branch = branchParts[branchParts.length - 1];
-
-    const openLink = `<https://github.com/${githubRepo}/actions/runs/${githubRunId}/|view>`;
-
-    let actorLink = githubActor;
-
-    const githubActorToSlackId = {
-        ErisDS: 'U02563SGY',
-        'sam-lord': 'U017YUER0HL',
-        JoeeGrigg: 'U02LNNXJKGA',
-        aileen: 'U04D59TH6',
-        peterzimon: 'U7L3K6GM7',
-        allouis: 'UCCEPHM39',
-        vershwal: 'U05N8BNBAQ3',
-        mike182uk: 'U052YFMMJQL',
-        cmraible: 'U04ETKA5E3D',
-        minimaluminium: 'U019YHN4WSG',
-        '9larsons': 'U04HMKJDA79',
-        kevinansfield: 'U051KGJR2',
-        sagzy: 'U04RLV7E6F8',
-        EvanHahn: 'U0A7KLGCHEW',
-        troyciesco: 'U090DT54Y4B',
-        'rob-ghost': 'U09E99K63JN',
-        jonatansberg: 'U099U6NCFCN',
-    };
-
-    if (githubActorToSlackId[githubActor]) {
-        actorLink = `<@${githubActorToSlackId[githubActor]}>`;
-    }
-
-    await webhook.send({
-        attachments: [{
-            color: statusColor,
-            text: `Test ${statusInput} at ${linkifiedCommitUrl} on \`${branch}\` of ${linkifiedGithubRepo} by ${actorLink} - ${openLink}`,
-        }]
-    });
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(6136);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
