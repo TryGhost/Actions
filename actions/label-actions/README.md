@@ -7,11 +7,11 @@ Loosely inspired by [Label Actions](https://github.com/dessant/label-actions) by
 ## Develop
 
 1. `git clone` this repo & `cd` into it as usual
-2. Run `yarn` to install top-level dependencies.
+2. Run `pnpm install` to install top-level dependencies.
 
 ## Building
 
-- `yarn build` will compile `src/*` and dependencies into `dist/index.js`
+- `pnpm build` will compile `src/*` and dependencies into `dist/index.js`
 
 ## Publishing
 

@@ -30,26 +30,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - run: corepack enable
+
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         env:
           FORCE_COLOR: 0
         with:
           node-version: 22
-          cache: yarn
-          cache-dependency-path: ${{ matrix.action_path }}/yarn.lock
 
-      - run: yarn --prefer-offline --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
         working-directory: ${{ matrix.action_path }}
 
-      - run: yarn lint
+      - run: pnpm lint
         if: ${{ matrix.lint }}
         working-directory: ${{ matrix.action_path }}
 
-      - run: yarn test
+      - run: pnpm test
         if: ${{ matrix.test }}
         working-directory: ${{ matrix.action_path }}
 
-      - run: yarn build
+      - run: pnpm build
         working-directory: ${{ matrix.action_path }}
 
       - run: git diff --exit-code -- ${{ matrix.action_path }}/dist
