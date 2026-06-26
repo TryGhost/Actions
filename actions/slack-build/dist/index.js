@@ -73,16 +73,6 @@ async function getCore() {
     return coreModule.default ?? coreModule;
 }
 
-function getWebhookFactory(options = {}) {
-    if (options.webhookFactory) {
-        return options.webhookFactory;
-    }
-
-    const Webhook = options.IncomingWebhook || IncomingWebhook;
-
-    return url => new Webhook(url);
-}
-
 async function run(options = {}) {
     const env = options.env || process.env;
     const loadCore = options.getCore || getCore;
@@ -90,8 +80,8 @@ async function run(options = {}) {
     if (!env.SLACK_WEBHOOK_URL) {
         throw new Error('SLACK_WEBHOOK_URL is required');
     }
-    const webhookFactory = getWebhookFactory(options);
-    const webhook = webhookFactory(env.SLACK_WEBHOOK_URL);
+    const Webhook = options.IncomingWebhook || IncomingWebhook;
+    const webhook = new Webhook(env.SLACK_WEBHOOK_URL);
     const statusInput = core.getInput('status', {required: true});
 
     await webhook.send(buildSlackMessage(statusInput, env));
@@ -103,7 +93,6 @@ if (process.env.NODE_ENV !== 'testing') {
 
 module.exports = {
     buildSlackMessage,
-    getWebhookFactory,
     getStatusColor,
     run
 };
