@@ -2,7 +2,6 @@ const assert = require('assert/strict');
 
 const {
     buildSlackMessage,
-    getWebhookFactory,
     getStatusColor,
     run
 } = require('../index');
@@ -48,6 +47,25 @@ describe('slack-build', function () {
         );
     });
 
+    it('uses process.env as the default GitHub Actions environment', function () {
+        const originalEnv = {...process.env};
+
+        process.env.GITHUB_ACTOR = env.GITHUB_ACTOR;
+        process.env.GITHUB_REF = env.GITHUB_REF;
+        process.env.GITHUB_REPOSITORY = env.GITHUB_REPOSITORY;
+        process.env.GITHUB_RUN_ID = env.GITHUB_RUN_ID;
+        process.env.GITHUB_SHA = env.GITHUB_SHA;
+
+        try {
+            const message = buildSlackMessage('success');
+
+            assert.match(message.attachments[0].text, /TryGhost\/Actions/);
+            assert.match(message.attachments[0].text, /abcdef1234/);
+        } finally {
+            process.env = originalEnv;
+        }
+    });
+
     it('sends the requested status to the configured webhook', async function () {
         const sentMessages = [];
         const core = {
@@ -62,14 +80,14 @@ describe('slack-build', function () {
         await run({
             core,
             env,
-            webhookFactory(url) {
-                assert.equal(url, env.SLACK_WEBHOOK_URL);
+            IncomingWebhook: class TestWebhook {
+                constructor(url) {
+                    assert.equal(url, env.SLACK_WEBHOOK_URL);
+                }
 
-                return {
-                    async send(message) {
-                        sentMessages.push(message);
-                    }
-                };
+                async send(message) {
+                    sentMessages.push(message);
+                }
             }
         });
 
@@ -95,6 +113,22 @@ describe('slack-build', function () {
             }),
             /SLACK_WEBHOOK_URL is required/
         );
+    });
+
+    it('fails clearly through the default options path when the webhook URL is missing', async function () {
+        const originalWebhookUrl = process.env.SLACK_WEBHOOK_URL;
+
+        delete process.env.SLACK_WEBHOOK_URL;
+
+        try {
+            await assert.rejects(run(), /SLACK_WEBHOOK_URL is required/);
+        } finally {
+            if (originalWebhookUrl === undefined) {
+                delete process.env.SLACK_WEBHOOK_URL;
+            } else {
+                process.env.SLACK_WEBHOOK_URL = originalWebhookUrl;
+            }
+        }
     });
 
     it('loads core and creates a webhook when overrides are not supplied', async function () {
@@ -126,16 +160,24 @@ describe('slack-build', function () {
         assert.equal(sentMessages[0].attachments[0].color, 'danger');
     });
 
-    it('creates webhook instances through the default factory path', function () {
-        class TestWebhook {
-            constructor(url) {
-                this.url = url;
+    it('uses the default core loader path when a core object is supplied directly', async function () {
+        const sentMessages = [];
+
+        await run({
+            core: {
+                getInput() {
+                    return 'success';
+                }
+            },
+            env,
+            IncomingWebhook: class TestWebhook {
+                async send(message) {
+                    sentMessages.push(message);
+                }
             }
-        }
+        });
 
-        const webhookFactory = getWebhookFactory({IncomingWebhook: TestWebhook});
-        const webhook = webhookFactory(env.SLACK_WEBHOOK_URL);
-
-        assert.equal(webhook.url, env.SLACK_WEBHOOK_URL);
+        assert.equal(sentMessages.length, 1);
+        assert.equal(sentMessages[0].attachments[0].color, 'good');
     });
 });
