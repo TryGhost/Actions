@@ -78,6 +78,25 @@ describe('slack-build', function () {
         assert.match(sentMessages[0].attachments[0].text, /Test cancelled at/);
     });
 
+    it('fails clearly when the webhook URL is missing', async function () {
+        const core = {
+            getInput() {
+                return 'success';
+            }
+        };
+
+        await assert.rejects(
+            run({
+                core,
+                env: {
+                    ...env,
+                    SLACK_WEBHOOK_URL: ''
+                }
+            }),
+            /SLACK_WEBHOOK_URL is required/
+        );
+    });
+
     it('loads core and creates a webhook when overrides are not supplied', async function () {
         const sentMessages = [];
 
