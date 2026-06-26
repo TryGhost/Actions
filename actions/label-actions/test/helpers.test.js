@@ -1,3 +1,4 @@
+const sinon = require('sinon');
 require('./utils');
 
 const { setCoreForTests } = require('../src/actions-core');
