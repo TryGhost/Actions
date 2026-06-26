@@ -87,6 +87,9 @@ async function run(options = {}) {
     const env = options.env || process.env;
     const loadCore = options.getCore || getCore;
     const core = options.core || await loadCore();
+    if (!env.SLACK_WEBHOOK_URL) {
+        throw new Error('SLACK_WEBHOOK_URL is required');
+    }
     const webhookFactory = getWebhookFactory(options);
     const webhook = webhookFactory(env.SLACK_WEBHOOK_URL);
     const statusInput = core.getInput('status', {required: true});
