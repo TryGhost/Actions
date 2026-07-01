@@ -187,8 +187,8 @@ module.exports = class Helpers {
             lastComment && // we have a comment in the timeline events
             new Date(lastComment.created_at) > new Date(labelEvent.created_at) &&
             // that comment is newer than the label
-            lastComment.actor.type === 'Bot' && // the comment was by a bot
-            !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login) // the comment was not by the Core team triagers
+            (lastComment.actor.type !== 'Bot' || // any human reply means we're waiting on internal triage
+                !Helpers.CORE_TEAM_TRIAGERS.includes(lastComment.actor.login)) // non-triager bot replies should also pause auto-close
         );
     }
 

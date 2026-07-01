@@ -94,7 +94,7 @@ describe('Helpers', function () {
         helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.true();
     });
 
-    it('detects newer bot comments from non-triagers as pending on internal', function () {
+    it('detects newer comments from non-triagers as pending on internal', function () {
         const existingTimelineEvents = [
             {
                 event: 'commented',
@@ -116,7 +116,7 @@ describe('Helpers', function () {
         helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.true();
     });
 
-    it('does not mark human comments as pending on internal', function () {
+    it('detects newer human comments as pending on internal', function () {
         const existingTimelineEvents = [
             {
                 event: 'commented',
@@ -135,7 +135,29 @@ describe('Helpers', function () {
             },
         };
 
-        helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.false();
+        helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.true();
+    });
+
+    it('detects newer core team human comments as pending on internal', function () {
+        const existingTimelineEvents = [
+            {
+                event: 'commented',
+                created_at: '2026-03-18T00:00:00.000Z',
+                actor: {
+                    login: 'ErisDS',
+                    type: 'User',
+                },
+            },
+        ];
+
+        const labelEvent = {
+            created_at: '2026-03-17T00:00:00.000Z',
+            label: {
+                name: 'needs:info',
+            },
+        };
+
+        helpers.isPendingOnInternal(existingTimelineEvents, labelEvent).should.be.true();
     });
 
     it('checks whether dates are older than the requested number of weeks', function () {
