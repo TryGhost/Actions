@@ -128,8 +128,8 @@ jobs:
           }
           EOF
 
-  all-tests-pass:
-    name: All tests pass
+  required-checks-pass:
+    name: Required checks pass
     if: always()
     needs: [validate]
     runs-on: ubuntu-latest
