@@ -17,10 +17,10 @@
         "@actions/core": "3.0.1",
         "@slack/webhook": "7.0.9",
         "@vercel/ncc": "0.44.0",
-        "@vitest/coverage-v8": "4.1.10",
+        "@vitest/coverage-v8": "4.1.11",
         "oxfmt": "0.63.0",
         "oxlint": "1.78.0",
         "vite": "8.2.1",
-        "vitest": "4.1.10"
+        "vitest": "4.1.11"
     }
 }
