@@ -16,8 +16,8 @@ importers:
         version: 9.1.1
     devDependencies:
       '@vercel/ncc':
-        specifier: 0.44.0
-        version: 0.44.0
+        specifier: 0.45.0
+        version: 0.45.0
       '@vitest/coverage-v8':
         specifier: 4.1.11
         version: 4.1.11(vitest@4.1.11)
@@ -517,8 +517,8 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
-  '@vercel/ncc@0.44.0':
-    resolution: {integrity: sha512-pHyI+bZokSgIscTKFSmpNk5vZzmOrb9RW0Vu4SRyqUvkJ0kgg3PzaZLLDVTFXhbUiCqg0/Eu8L4fKtgViA92kg==}
+  '@vercel/ncc@0.45.0':
+    resolution: {integrity: sha512-8zPi1yO2mHpoKTD+e+Bf0ZT3e+sWHSOyGapm9s7b5R0gxJi3CiFTqmeQiMEyu6ejrz2s09M8JkEoUaTWjBJPQQ==}
     hasBin: true
 
   '@vitest/coverage-v8@4.1.11':
@@ -1276,7 +1276,7 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
-  '@vercel/ncc@0.44.0': {}
+  '@vercel/ncc@0.45.0': {}
 
   '@vitest/coverage-v8@4.1.11(vitest@4.1.11)':
     dependencies:
