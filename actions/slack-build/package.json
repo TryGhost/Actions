@@ -16,7 +16,7 @@
     "devDependencies": {
         "@actions/core": "3.0.1",
         "@slack/webhook": "7.0.9",
-        "@vercel/ncc": "0.44.0",
+        "@vercel/ncc": "0.45.0",
         "@vitest/coverage-v8": "4.1.11",
         "oxfmt": "0.66.0",
         "oxlint": "1.81.0",
