@@ -1,0 +1,75 @@
+name: Rebuild dist
+
+# Renovate updates package.json and the lockfile but cannot run `pnpm build`,
+# so any dependency that ends up inside an ncc bundle leaves the committed
+# dist/ stale and fails the `git diff --exit-code` check in repo-ci.yml.
+# Rebuild the bundles and push them back onto Renovate's branch.
+#
+# The push uses a GitHub App token on purpose: pushes made with GITHUB_TOKEN do
+# not trigger further workflow runs, so repo-ci.yml would never re-run against
+# the rebuilt commit and the PR would stay blocked.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rebuild-dist-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    name: Rebuild dist
+    # Renovate's branches live in this repository. Never hand a token to a PR
+    # from a fork.
+    if: >-
+      github.event.pull_request.user.login == 'renovate[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FORCE_COLOR: 1
+    steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        id: app-token
+        with:
+          app-id: ${{ secrets.TRYGHOST_RENOVATE_APP_ID }}
+          private-key: ${{ secrets.TRYGHOST_RENOVATE_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        env:
+          FORCE_COLOR: 0
+        with:
+          node-version: 22
+
+      - name: Rebuild bundles
+        run: |
+          for action in actions/*/; do
+            [ -f "${action}package.json" ] || continue
+            echo "::group::${action}"
+            (cd "$action" && pnpm install --frozen-lockfile && pnpm build)
+            echo "::endgroup::"
+          done
+
+      - name: Commit and push if the bundles changed
+        run: |
+          if [ -z "$(git status --porcelain -- actions/*/dist)" ]; then
+            echo "Bundles are already up to date."
+            exit 0
+          fi
+
+          git config user.name 'renovate[bot]'
+          git config user.email '29139614+renovate[bot]@users.noreply.github.com'
+          git add -- actions/*/dist
+          git commit -m 'Rebuild dist bundles'
+          git push

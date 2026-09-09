@@ -11,7 +11,7 @@
         "lint": "oxlint --quiet && oxfmt --check .",
         "lint:fix": "oxlint --fix && oxfmt .",
         "format": "oxfmt .",
-        "build": "ncc build"
+        "build": "rm -rf dist && ncc build"
     },
     "devDependencies": {
         "@actions/core": "3.0.1",
