@@ -13,7 +13,7 @@ async function getCore() {
     }
 
     if (!corePromise) {
-        corePromise = Promise.all(/* import() */[__nccwpck_require__.e(540), __nccwpck_require__.e(70)]).then(__nccwpck_require__.bind(__nccwpck_require__, 3070)).then((core) => core.default ?? core);
+        corePromise = Promise.all(/* import() */[__nccwpck_require__.e(74), __nccwpck_require__.e(70)]).then(__nccwpck_require__.bind(__nccwpck_require__, 3070)).then((core) => core.default ?? core);
     }
 
     return corePromise;
@@ -44,7 +44,7 @@ async function getGitHub() {
     }
 
     if (!githubPromise) {
-        githubPromise = Promise.all(/* import() */[__nccwpck_require__.e(540), __nccwpck_require__.e(444)]).then(__nccwpck_require__.bind(__nccwpck_require__, 2444)).then((github) => github.default ?? github);
+        githubPromise = Promise.all(/* import() */[__nccwpck_require__.e(74), __nccwpck_require__.e(419)]).then(__nccwpck_require__.bind(__nccwpck_require__, 6419)).then((github) => github.default ?? github);
     }
 
     return githubPromise;
