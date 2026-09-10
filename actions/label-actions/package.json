@@ -19,13 +19,13 @@
   },
   "devDependencies": {
     "@vercel/ncc": "0.45.0",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "5.0.0",
     "oxfmt": "0.67.0",
     "oxlint": "1.82.0",
     "should": "13.2.3",
     "sinon": "22.1.0",
     "vite": "8.2.2",
-    "vitest": "4.1.11"
+    "vitest": "5.0.0"
   },
   "dependencies": {
     "@actions/core": "3.0.1",
