@@ -1,10 +1,10 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 8572:
+/***/ 6315:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const { IncomingWebhook } = __nccwpck_require__(63);
+const { IncomingWebhook } = __nccwpck_require__(1454);
 
 function getStatusColor(statusInput) {
     if (statusInput === 'cancelled') {
@@ -70,7 +70,7 @@ function buildSlackMessage(statusInput, env = process.env) {
 }
 
 async function getCore() {
-    const coreModule = await __nccwpck_require__.e(/* import() */ 77).then(__nccwpck_require__.bind(__nccwpck_require__, 77));
+    const coreModule = await __nccwpck_require__.e(/* import() */ 70).then(__nccwpck_require__.bind(__nccwpck_require__, 3070));
 
     return coreModule.default ?? coreModule;
 }
@@ -102,7 +102,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 4298:
+/***/ 9351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -142,9 +142,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IncomingWebhook = void 0;
-const p_retry_1 = __importStar(__nccwpck_require__(8602));
-const errors_1 = __nccwpck_require__(9736);
-const instrument_1 = __nccwpck_require__(4662);
+const p_retry_1 = __importStar(__nccwpck_require__(4917));
+const errors_1 = __nccwpck_require__(4611);
+const instrument_1 = __nccwpck_require__(6213);
 /**
  * A client for Slack's Incoming Webhooks
  */
@@ -247,7 +247,7 @@ exports.IncomingWebhook = IncomingWebhook;
 
 /***/ }),
 
-/***/ 2016:
+/***/ 9395:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -287,9 +287,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WebhookTrigger = void 0;
-const p_retry_1 = __importStar(__nccwpck_require__(8602));
-const errors_1 = __nccwpck_require__(9736);
-const instrument_1 = __nccwpck_require__(4662);
+const p_retry_1 = __importStar(__nccwpck_require__(4917));
+const errors_1 = __nccwpck_require__(4611);
+const instrument_1 = __nccwpck_require__(6213);
 /**
  * A client for Slack's Workflow Builder webhook triggers
  * @see {@link https://slack.com/help/articles/360041352714-Build-a-workflow--Create-a-workflow-that-starts-outside-of-Slack}
@@ -383,7 +383,7 @@ exports.WebhookTrigger = WebhookTrigger;
 
 /***/ }),
 
-/***/ 9736:
+/***/ 4611:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -451,7 +451,7 @@ exports.WebhookTriggerHTTPError = WebhookTriggerHTTPError;
 
 /***/ }),
 
-/***/ 63:
+/***/ 1454:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -462,26 +462,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WebhookTrigger = exports.retryPolicies = exports.addAppMetadata = exports.IncomingWebhook = exports.WebhookTriggerRequestError = exports.WebhookTriggerHTTPError = exports.SlackWebhookError = exports.IncomingWebhookRequestError = exports.IncomingWebhookHTTPError = exports.ErrorCode = void 0;
-var errors_1 = __nccwpck_require__(9736);
+var errors_1 = __nccwpck_require__(4611);
 Object.defineProperty(exports, "ErrorCode", ({ enumerable: true, get: function () { return errors_1.ErrorCode; } }));
 Object.defineProperty(exports, "IncomingWebhookHTTPError", ({ enumerable: true, get: function () { return errors_1.IncomingWebhookHTTPError; } }));
 Object.defineProperty(exports, "IncomingWebhookRequestError", ({ enumerable: true, get: function () { return errors_1.IncomingWebhookRequestError; } }));
 Object.defineProperty(exports, "SlackWebhookError", ({ enumerable: true, get: function () { return errors_1.SlackWebhookError; } }));
 Object.defineProperty(exports, "WebhookTriggerHTTPError", ({ enumerable: true, get: function () { return errors_1.WebhookTriggerHTTPError; } }));
 Object.defineProperty(exports, "WebhookTriggerRequestError", ({ enumerable: true, get: function () { return errors_1.WebhookTriggerRequestError; } }));
-var IncomingWebhook_1 = __nccwpck_require__(4298);
+var IncomingWebhook_1 = __nccwpck_require__(9351);
 Object.defineProperty(exports, "IncomingWebhook", ({ enumerable: true, get: function () { return IncomingWebhook_1.IncomingWebhook; } }));
-var instrument_1 = __nccwpck_require__(4662);
+var instrument_1 = __nccwpck_require__(6213);
 Object.defineProperty(exports, "addAppMetadata", ({ enumerable: true, get: function () { return instrument_1.addAppMetadata; } }));
-var retry_policies_1 = __nccwpck_require__(216);
+var retry_policies_1 = __nccwpck_require__(3147);
 Object.defineProperty(exports, "retryPolicies", ({ enumerable: true, get: function () { return __importDefault(retry_policies_1).default; } }));
-var WebhookTrigger_1 = __nccwpck_require__(2016);
+var WebhookTrigger_1 = __nccwpck_require__(9395);
 Object.defineProperty(exports, "WebhookTrigger", ({ enumerable: true, get: function () { return WebhookTrigger_1.WebhookTrigger; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 4662:
+/***/ 6213:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -556,7 +556,7 @@ function getUserAgent() {
 
 /***/ }),
 
-/***/ 216:
+/***/ 3147:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -597,12 +597,12 @@ exports["default"] = policies;
 
 /***/ }),
 
-/***/ 8602:
+/***/ 4917:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
-const retry = __nccwpck_require__(3945);
+const retry = __nccwpck_require__(5236);
 
 const networkErrorMsgs = [
 	'Failed to fetch', // Chrome
@@ -690,17 +690,17 @@ module.exports.AbortError = AbortError;
 
 /***/ }),
 
-/***/ 3945:
+/***/ 5236:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = __nccwpck_require__(7159);
+module.exports = __nccwpck_require__(9354);
 
 /***/ }),
 
-/***/ 7159:
+/***/ 9354:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var RetryOperation = __nccwpck_require__(7297);
+var RetryOperation = __nccwpck_require__(332);
 
 exports.operation = function(options) {
   var timeouts = exports.timeouts(options);
@@ -804,7 +804,7 @@ exports.wrap = function(obj, options, methods) {
 
 /***/ }),
 
-/***/ 7297:
+/***/ 332:
 /***/ ((module) => {
 
 function RetryOperation(timeouts, options) {
@@ -1297,6 +1297,9 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"8.
 /******/ 	__nccwpck_require__.m = __webpack_modules__;
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/asset-relocator-loader */
+/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
+/******/ 	
 /******/ 	/* webpack/runtime/create fake namespace object */
 /******/ 	(() => {
 /******/ 		var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
@@ -1377,10 +1380,6 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"8.
 /******/ 		};
 /******/ 	})();
 /******/ 	
-/******/ 	/* webpack/runtime/compat */
-/******/ 	
-/******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/ 	
 /******/ 	/* webpack/runtime/require chunk loading */
 /******/ 	(() => {
 /******/ 		// no baseURI
@@ -1428,7 +1427,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"8.
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(8572);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(6315);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
