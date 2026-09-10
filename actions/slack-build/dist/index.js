@@ -4,7 +4,7 @@
 /***/ 8572:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const { IncomingWebhook } = __nccwpck_require__(7003);
+const { IncomingWebhook } = __nccwpck_require__(9624);
 
 function getStatusColor(statusInput) {
     if (statusInput === 'cancelled') {
@@ -102,19 +102,53 @@ module.exports = {
 
 /***/ }),
 
-/***/ 422:
+/***/ 5805:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IncomingWebhook = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(1000));
-const errors_1 = __nccwpck_require__(1812);
-const instrument_1 = __nccwpck_require__(1162);
+const p_retry_1 = __importStar(__nccwpck_require__(8602));
+const errors_1 = __nccwpck_require__(8905);
+const instrument_1 = __nccwpck_require__(7919);
 /**
  * A client for Slack's Incoming Webhooks
  */
@@ -122,11 +156,13 @@ class IncomingWebhook {
     constructor(url, defaults = {
         timeout: 0,
     }) {
+        var _a;
         if (url === undefined) {
             throw new Error('Incoming webhook URL is required');
         }
         this.url = url;
         this.defaults = defaults;
+        this.retryConfig = (_a = defaults.retryConfig) !== null && _a !== void 0 ? _a : { retries: 0 };
         this.axios = axios_1.default.create({
             baseURL: url,
             httpAgent: defaults.agent,
@@ -138,7 +174,9 @@ class IncomingWebhook {
                 'User-Agent': (0, instrument_1.getUserAgent)(),
             },
         });
+        // Strip transport-only options so they do not leak into the posted payload.
         this.defaults.agent = undefined;
+        this.defaults.retryConfig = undefined;
     }
     /**
      * Send a notification to a conversation
@@ -153,21 +191,26 @@ class IncomingWebhook {
         else {
             payload = Object.assign(payload, message);
         }
-        try {
-            const response = await this.axios.post(this.url, payload);
-            return this.buildResult(response);
-            // biome-ignore lint/suspicious/noExplicitAny: errors can be anything
-        }
-        catch (error) {
-            // Wrap errors in this packages own error types (abstract the implementation details' types)
-            if (error.response !== undefined) {
-                throw (0, errors_1.httpErrorWithOriginal)(error);
+        return (0, p_retry_1.default)(async () => {
+            try {
+                const response = await this.axios.post(this.url, payload);
+                return this.buildResult(response);
+                // biome-ignore lint/suspicious/noExplicitAny: errors can be anything
             }
-            if (error.request !== undefined) {
-                throw (0, errors_1.requestErrorWithOriginal)(error);
+            catch (error) {
+                // Wrap errors in this packages own error types (abstract the implementation details' types)
+                if (error.response !== undefined) {
+                    const status = error.response.status;
+                    const wrapped = (0, errors_1.httpErrorWithOriginal)(error);
+                    throw status >= 500 ? wrapped : new p_retry_1.AbortError(wrapped);
+                }
+                if (error.request !== undefined) {
+                    // No response received (network/timeout): retryable.
+                    throw (0, errors_1.requestErrorWithOriginal)(error);
+                }
+                throw new p_retry_1.AbortError(error);
             }
-            throw error;
-        }
+        }, this.retryConfig);
     }
     /**
      * Processes an HTTP response into an IncomingWebhookResult.
@@ -183,7 +226,114 @@ exports.IncomingWebhook = IncomingWebhook;
 
 /***/ }),
 
-/***/ 1812:
+/***/ 4577:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WebhookTrigger = void 0;
+const axios_1 = __importDefault(__nccwpck_require__(1000));
+const p_retry_1 = __importStar(__nccwpck_require__(8602));
+const errors_1 = __nccwpck_require__(8905);
+const instrument_1 = __nccwpck_require__(7919);
+/**
+ * A client for Slack's Workflow Builder webhook triggers
+ * @see {@link https://slack.com/help/articles/360041352714-Build-a-workflow--Create-a-workflow-that-starts-outside-of-Slack}
+ */
+class WebhookTrigger {
+    constructor(url, defaults = {
+        timeout: 0,
+    }) {
+        var _a;
+        if (!url) {
+            throw new Error('Webhook trigger URL is required');
+        }
+        this.url = url;
+        this.defaults = defaults;
+        this.retryConfig = (_a = defaults.retryConfig) !== null && _a !== void 0 ? _a : { retries: 0 };
+        this.axios = axios_1.default.create({
+            baseURL: url,
+            httpAgent: defaults.agent,
+            httpsAgent: defaults.agent,
+            maxRedirects: 0,
+            proxy: false,
+            timeout: defaults.timeout,
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': (0, instrument_1.getUserAgent)(),
+            },
+        });
+        this.defaults.agent = undefined;
+    }
+    /**
+     * Send a payload to the webhook trigger
+     * @param payload - arbitrary key-value data to send to the trigger
+     */
+    async send(payload = {}) {
+        return (0, p_retry_1.default)(async () => {
+            try {
+                const response = await this.axios.post(this.url, payload);
+                return response.data;
+                // biome-ignore lint/suspicious/noExplicitAny: errors can be anything
+            }
+            catch (error) {
+                if (error.response !== undefined) {
+                    const status = error.response.status;
+                    const wrapped = (0, errors_1.httpErrorWithOriginal)(error);
+                    throw status >= 500 ? wrapped : new p_retry_1.AbortError(wrapped);
+                }
+                if (error.request !== undefined) {
+                    // No response received (network/timeout): retryable.
+                    throw (0, errors_1.requestErrorWithOriginal)(error);
+                }
+                throw new p_retry_1.AbortError(error);
+            }
+        }, this.retryConfig);
+    }
+}
+exports.WebhookTrigger = WebhookTrigger;
+//# sourceMappingURL=WebhookTrigger.js.map
+
+/***/ }),
+
+/***/ 8905:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -231,23 +381,32 @@ function httpErrorWithOriginal(original) {
 
 /***/ }),
 
-/***/ 7003:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 9624:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
 /// <reference lib="es2017" />
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.IncomingWebhook = exports.ErrorCode = void 0;
-var errors_1 = __nccwpck_require__(1812);
+exports.WebhookTrigger = exports.retryPolicies = exports.addAppMetadata = exports.IncomingWebhook = exports.ErrorCode = void 0;
+var errors_1 = __nccwpck_require__(8905);
 Object.defineProperty(exports, "ErrorCode", ({ enumerable: true, get: function () { return errors_1.ErrorCode; } }));
-var IncomingWebhook_1 = __nccwpck_require__(422);
+var IncomingWebhook_1 = __nccwpck_require__(5805);
 Object.defineProperty(exports, "IncomingWebhook", ({ enumerable: true, get: function () { return IncomingWebhook_1.IncomingWebhook; } }));
+var instrument_1 = __nccwpck_require__(7919);
+Object.defineProperty(exports, "addAppMetadata", ({ enumerable: true, get: function () { return instrument_1.addAppMetadata; } }));
+var retry_policies_1 = __nccwpck_require__(5713);
+Object.defineProperty(exports, "retryPolicies", ({ enumerable: true, get: function () { return __importDefault(retry_policies_1).default; } }));
+var WebhookTrigger_1 = __nccwpck_require__(4577);
+Object.defineProperty(exports, "WebhookTrigger", ({ enumerable: true, get: function () { return WebhookTrigger_1.WebhookTrigger; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 1162:
+/***/ 7919:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -289,7 +448,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.addAppMetadata = addAppMetadata;
 exports.getUserAgent = getUserAgent;
 const os = __importStar(__nccwpck_require__(8161));
-const packageJson = __nccwpck_require__(1856);
+const packageJson = __nccwpck_require__(2777);
 /**
  * Replaces occurrences of '/' with ':' in a string, since '/' is meaningful inside User-Agent strings as a separator.
  */
@@ -319,6 +478,47 @@ function getUserAgent() {
     return (appIdentifier.length > 0 ? `${appIdentifier} ` : '') + baseUserAgent;
 }
 //# sourceMappingURL=instrument.js.map
+
+/***/ }),
+
+/***/ 5713:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.rapidRetryPolicy = exports.fiveRetriesInFiveMinutes = exports.tenRetriesInAboutThirtyMinutes = void 0;
+/**
+ * The default retry policy. Retry up to 10 times, over the span of about 30 minutes. It's not exact because
+ * randomization has been added to prevent a stampeding herd problem (if all instances in your application are retrying
+ * a request at the exact same intervals, they are more likely to cause failures for each other).
+ */
+exports.tenRetriesInAboutThirtyMinutes = {
+    retries: 10,
+    factor: 1.96821,
+    randomize: true,
+};
+/**
+ * Short & sweet, five retries in five minutes and then bail.
+ */
+exports.fiveRetriesInFiveMinutes = {
+    retries: 5,
+    factor: 3.86,
+};
+/**
+ * This policy is just to keep the tests running fast.
+ */
+exports.rapidRetryPolicy = {
+    minTimeout: 0,
+    maxTimeout: 1,
+};
+const policies = {
+    tenRetriesInAboutThirtyMinutes: exports.tenRetriesInAboutThirtyMinutes,
+    fiveRetriesInFiveMinutes: exports.fiveRetriesInFiveMinutes,
+    rapidRetryPolicy: exports.rapidRetryPolicy,
+};
+exports["default"] = policies;
+//# sourceMappingURL=retry-policies.js.map
 
 /***/ }),
 
@@ -5211,6 +5411,382 @@ function plural(ms, msAbs, n, name) {
   var isPlural = msAbs >= n * 1.5;
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
+
+
+/***/ }),
+
+/***/ 8602:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+const retry = __nccwpck_require__(3945);
+
+const networkErrorMsgs = [
+	'Failed to fetch', // Chrome
+	'NetworkError when attempting to fetch resource.', // Firefox
+	'The Internet connection appears to be offline.', // Safari
+	'Network request failed' // `cross-fetch`
+];
+
+class AbortError extends Error {
+	constructor(message) {
+		super();
+
+		if (message instanceof Error) {
+			this.originalError = message;
+			({message} = message);
+		} else {
+			this.originalError = new Error(message);
+			this.originalError.stack = this.stack;
+		}
+
+		this.name = 'AbortError';
+		this.message = message;
+	}
+}
+
+const decorateErrorWithCounts = (error, attemptNumber, options) => {
+	// Minus 1 from attemptNumber because the first attempt does not count as a retry
+	const retriesLeft = options.retries - (attemptNumber - 1);
+
+	error.attemptNumber = attemptNumber;
+	error.retriesLeft = retriesLeft;
+	return error;
+};
+
+const isNetworkError = errorMessage => networkErrorMsgs.includes(errorMessage);
+
+const pRetry = (input, options) => new Promise((resolve, reject) => {
+	options = {
+		onFailedAttempt: () => {},
+		retries: 10,
+		...options
+	};
+
+	const operation = retry.operation(options);
+
+	operation.attempt(async attemptNumber => {
+		try {
+			resolve(await input(attemptNumber));
+		} catch (error) {
+			if (!(error instanceof Error)) {
+				reject(new TypeError(`Non-error was thrown: "${error}". You should only throw errors.`));
+				return;
+			}
+
+			if (error instanceof AbortError) {
+				operation.stop();
+				reject(error.originalError);
+			} else if (error instanceof TypeError && !isNetworkError(error.message)) {
+				operation.stop();
+				reject(error);
+			} else {
+				decorateErrorWithCounts(error, attemptNumber, options);
+
+				try {
+					await options.onFailedAttempt(error);
+				} catch (error) {
+					reject(error);
+					return;
+				}
+
+				if (!operation.retry(error)) {
+					reject(operation.mainError());
+				}
+			}
+		}
+	});
+});
+
+module.exports = pRetry;
+// TODO: remove this in the next major version
+module.exports["default"] = pRetry;
+
+module.exports.AbortError = AbortError;
+
+
+/***/ }),
+
+/***/ 3945:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+module.exports = __nccwpck_require__(7159);
+
+/***/ }),
+
+/***/ 7159:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+var RetryOperation = __nccwpck_require__(7297);
+
+exports.operation = function(options) {
+  var timeouts = exports.timeouts(options);
+  return new RetryOperation(timeouts, {
+      forever: options && (options.forever || options.retries === Infinity),
+      unref: options && options.unref,
+      maxRetryTime: options && options.maxRetryTime
+  });
+};
+
+exports.timeouts = function(options) {
+  if (options instanceof Array) {
+    return [].concat(options);
+  }
+
+  var opts = {
+    retries: 10,
+    factor: 2,
+    minTimeout: 1 * 1000,
+    maxTimeout: Infinity,
+    randomize: false
+  };
+  for (var key in options) {
+    opts[key] = options[key];
+  }
+
+  if (opts.minTimeout > opts.maxTimeout) {
+    throw new Error('minTimeout is greater than maxTimeout');
+  }
+
+  var timeouts = [];
+  for (var i = 0; i < opts.retries; i++) {
+    timeouts.push(this.createTimeout(i, opts));
+  }
+
+  if (options && options.forever && !timeouts.length) {
+    timeouts.push(this.createTimeout(i, opts));
+  }
+
+  // sort the array numerically ascending
+  timeouts.sort(function(a,b) {
+    return a - b;
+  });
+
+  return timeouts;
+};
+
+exports.createTimeout = function(attempt, opts) {
+  var random = (opts.randomize)
+    ? (Math.random() + 1)
+    : 1;
+
+  var timeout = Math.round(random * Math.max(opts.minTimeout, 1) * Math.pow(opts.factor, attempt));
+  timeout = Math.min(timeout, opts.maxTimeout);
+
+  return timeout;
+};
+
+exports.wrap = function(obj, options, methods) {
+  if (options instanceof Array) {
+    methods = options;
+    options = null;
+  }
+
+  if (!methods) {
+    methods = [];
+    for (var key in obj) {
+      if (typeof obj[key] === 'function') {
+        methods.push(key);
+      }
+    }
+  }
+
+  for (var i = 0; i < methods.length; i++) {
+    var method   = methods[i];
+    var original = obj[method];
+
+    obj[method] = function retryWrapper(original) {
+      var op       = exports.operation(options);
+      var args     = Array.prototype.slice.call(arguments, 1);
+      var callback = args.pop();
+
+      args.push(function(err) {
+        if (op.retry(err)) {
+          return;
+        }
+        if (err) {
+          arguments[0] = op.mainError();
+        }
+        callback.apply(this, arguments);
+      });
+
+      op.attempt(function() {
+        original.apply(obj, args);
+      });
+    }.bind(obj, original);
+    obj[method].options = options;
+  }
+};
+
+
+/***/ }),
+
+/***/ 7297:
+/***/ ((module) => {
+
+function RetryOperation(timeouts, options) {
+  // Compatibility for the old (timeouts, retryForever) signature
+  if (typeof options === 'boolean') {
+    options = { forever: options };
+  }
+
+  this._originalTimeouts = JSON.parse(JSON.stringify(timeouts));
+  this._timeouts = timeouts;
+  this._options = options || {};
+  this._maxRetryTime = options && options.maxRetryTime || Infinity;
+  this._fn = null;
+  this._errors = [];
+  this._attempts = 1;
+  this._operationTimeout = null;
+  this._operationTimeoutCb = null;
+  this._timeout = null;
+  this._operationStart = null;
+  this._timer = null;
+
+  if (this._options.forever) {
+    this._cachedTimeouts = this._timeouts.slice(0);
+  }
+}
+module.exports = RetryOperation;
+
+RetryOperation.prototype.reset = function() {
+  this._attempts = 1;
+  this._timeouts = this._originalTimeouts.slice(0);
+}
+
+RetryOperation.prototype.stop = function() {
+  if (this._timeout) {
+    clearTimeout(this._timeout);
+  }
+  if (this._timer) {
+    clearTimeout(this._timer);
+  }
+
+  this._timeouts       = [];
+  this._cachedTimeouts = null;
+};
+
+RetryOperation.prototype.retry = function(err) {
+  if (this._timeout) {
+    clearTimeout(this._timeout);
+  }
+
+  if (!err) {
+    return false;
+  }
+  var currentTime = new Date().getTime();
+  if (err && currentTime - this._operationStart >= this._maxRetryTime) {
+    this._errors.push(err);
+    this._errors.unshift(new Error('RetryOperation timeout occurred'));
+    return false;
+  }
+
+  this._errors.push(err);
+
+  var timeout = this._timeouts.shift();
+  if (timeout === undefined) {
+    if (this._cachedTimeouts) {
+      // retry forever, only keep last error
+      this._errors.splice(0, this._errors.length - 1);
+      timeout = this._cachedTimeouts.slice(-1);
+    } else {
+      return false;
+    }
+  }
+
+  var self = this;
+  this._timer = setTimeout(function() {
+    self._attempts++;
+
+    if (self._operationTimeoutCb) {
+      self._timeout = setTimeout(function() {
+        self._operationTimeoutCb(self._attempts);
+      }, self._operationTimeout);
+
+      if (self._options.unref) {
+          self._timeout.unref();
+      }
+    }
+
+    self._fn(self._attempts);
+  }, timeout);
+
+  if (this._options.unref) {
+      this._timer.unref();
+  }
+
+  return true;
+};
+
+RetryOperation.prototype.attempt = function(fn, timeoutOps) {
+  this._fn = fn;
+
+  if (timeoutOps) {
+    if (timeoutOps.timeout) {
+      this._operationTimeout = timeoutOps.timeout;
+    }
+    if (timeoutOps.cb) {
+      this._operationTimeoutCb = timeoutOps.cb;
+    }
+  }
+
+  var self = this;
+  if (this._operationTimeoutCb) {
+    this._timeout = setTimeout(function() {
+      self._operationTimeoutCb();
+    }, self._operationTimeout);
+  }
+
+  this._operationStart = new Date().getTime();
+
+  this._fn(this._attempts);
+};
+
+RetryOperation.prototype.try = function(fn) {
+  console.log('Using RetryOperation.try() is deprecated');
+  this.attempt(fn);
+};
+
+RetryOperation.prototype.start = function(fn) {
+  console.log('Using RetryOperation.start() is deprecated');
+  this.attempt(fn);
+};
+
+RetryOperation.prototype.start = RetryOperation.prototype.try;
+
+RetryOperation.prototype.errors = function() {
+  return this._errors;
+};
+
+RetryOperation.prototype.attempts = function() {
+  return this._attempts;
+};
+
+RetryOperation.prototype.mainError = function() {
+  if (this._errors.length === 0) {
+    return null;
+  }
+
+  var counts = {};
+  var mainError = null;
+  var mainErrorCount = 0;
+
+  for (var i = 0; i < this._errors.length; i++) {
+    var error = this._errors[i];
+    var message = error.message;
+    var count = (counts[message] || 0) + 1;
+
+    counts[message] = count;
+
+    if (count >= mainErrorCount) {
+      mainError = error;
+      mainErrorCount = count;
+    }
+  }
+
+  return mainError;
+};
 
 
 /***/ }),
@@ -11682,11 +12258,11 @@ module.exports = axios;
 
 /***/ }),
 
-/***/ 1856:
+/***/ 2777:
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"7.0.9","description":"Official library for using the Slack Platform\'s Incoming Webhooks","author":"Slack Technologies, LLC","license":"MIT","keywords":["slack","request","client","http","api","proxy"],"main":"dist/index.js","types":"./dist/index.d.ts","files":["dist/**/*"],"engines":{"node":">= 18","npm":">= 8.6.0"},"repository":{"type":"git","url":"git+https://github.com/slackapi/node-slack-sdk.git"},"homepage":"https://docs.slack.dev/tools/node-slack-sdk/webhook/","publishConfig":{"access":"public"},"bugs":{"url":"https://github.com/slackapi/node-slack-sdk/issues"},"scripts":{"build":"npm run build:clean && tsc","build:clean":"shx rm -rf ./dist","docs":"npx typedoc --plugin typedoc-plugin-markdown","prepack":"npm run build","test":"npm run test:unit","test:node18":"npm run build && node --test --test-reporter=spec --import tsx --test src/IncomingWebhook.test.ts","test:unit":"npm run build && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=lcov.info --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts"},"dependencies":{"@slack/types":"^2.20.1","@types/node":">=18","axios":"^1.15.0"},"devDependencies":{"nock":"^14.0.6"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"7.2.0","description":"Official library for using the Slack Platform\'s Incoming Webhooks","author":"Slack Technologies, LLC","license":"MIT","keywords":["slack","request","client","http","api","proxy"],"main":"dist/index.js","types":"./dist/index.d.ts","files":["dist/**/*"],"engines":{"node":">= 18","npm":">= 8.6.0"},"repository":{"type":"git","url":"git+https://github.com/slackapi/node-slack-sdk.git"},"homepage":"https://docs.slack.dev/tools/node-slack-sdk/webhook/","publishConfig":{"access":"public"},"bugs":{"url":"https://github.com/slackapi/node-slack-sdk/issues"},"scripts":{"build":"npm run build:clean && tsc","build:clean":"shx rm -rf ./dist","docs":"npx typedoc --plugin typedoc-plugin-markdown","prepack":"npm run build","test":"npm run build && node --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts src/WebhookTrigger.test.ts src/instrument.test.ts src/retry-policies.test.ts","test:coverage":"npm run build && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=lcov.info --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts src/WebhookTrigger.test.ts src/instrument.test.ts src/retry-policies.test.ts"},"dependencies":{"@slack/types":"^2.20.1","@types/node":">=18","@types/retry":"0.12.0","axios":"^1.16.0","p-retry":"^4.6.2","retry":"^0.13.1"},"devDependencies":{"nock":"^14.0.6"}}');
 
 /***/ }),
 
