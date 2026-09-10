@@ -437,7 +437,7 @@ const { parseMIMEType, serializeAMimeType } = __webpack_require__(4883)
 __webpack_unused_export__ = parseMIMEType
 __webpack_unused_export__ = serializeAMimeType
 
-const { CloseEvent, ErrorEvent, MessageEvent } = __webpack_require__(7441)
+const { CloseEvent, ErrorEvent, MessageEvent } = __webpack_require__(2203)
 /* unused reexport */ __webpack_require__(7799).WebSocket
 __webpack_unused_export__ = CloseEvent
 __webpack_unused_export__ = ErrorEvent
@@ -14311,7 +14311,7 @@ const { makeRequest } = __webpack_require__(6454)
 const { webidl } = __webpack_require__(9090)
 const { EventSourceStream } = __webpack_require__(2892)
 const { parseMIMEType } = __webpack_require__(4883)
-const { createFastMessageEvent } = __webpack_require__(7441)
+const { createFastMessageEvent } = __webpack_require__(2203)
 const { isNetworkError } = __webpack_require__(2536)
 const { delay } = __webpack_require__(5872)
 const { kEnumerableProperty } = __webpack_require__(4457)
@@ -25398,7 +25398,7 @@ const {
 } = __webpack_require__(7193)
 const { fireEvent, failWebsocketConnection, isClosing, isClosed, isEstablished, parseExtensions } = __webpack_require__(5122)
 const { channels } = __webpack_require__(3677)
-const { CloseEvent } = __webpack_require__(7441)
+const { CloseEvent } = __webpack_require__(2203)
 const { makeRequest } = __webpack_require__(6454)
 const { fetching } = __webpack_require__(831)
 const { Headers, getHeadersList } = __webpack_require__(5057)
@@ -25835,7 +25835,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 7441:
+/***/ 2203:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -26905,7 +26905,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 4352:
+/***/ 8323:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -27045,7 +27045,7 @@ module.exports = {
 
 const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = __webpack_require__(7193)
 const { states, opcodes } = __webpack_require__(541)
-const { ErrorEvent, createFastMessageEvent } = __webpack_require__(7441)
+const { ErrorEvent, createFastMessageEvent } = __webpack_require__(2203)
 const { isUtf8 } = __webpack_require__(4573)
 const { collectASequenceOfCodePointsFast, removeHTTPWhitespace } = __webpack_require__(4883)
 
@@ -27398,8 +27398,8 @@ const { ByteParser } = __webpack_require__(8359)
 const { kEnumerableProperty, isBlobLike } = __webpack_require__(4457)
 const { getGlobalDispatcher } = __webpack_require__(9098)
 const { types } = __webpack_require__(7975)
-const { ErrorEvent, CloseEvent } = __webpack_require__(7441)
-const { SendQueue } = __webpack_require__(4352)
+const { ErrorEvent, CloseEvent } = __webpack_require__(2203)
+const { SendQueue } = __webpack_require__(8323)
 
 // https://websockets.spec.whatwg.org/#interface-definition
 class WebSocket extends EventTarget {
