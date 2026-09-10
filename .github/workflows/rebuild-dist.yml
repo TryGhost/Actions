@@ -29,20 +29,18 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Pushes the rebuilt bundles onto Renovate's branch.
     env:
       FORCE_COLOR: 1
     steps:
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        id: app-token
-        with:
-          app-id: ${{ secrets.TRYGHOST_RENOVATE_APP_ID }}
-          private-key: ${{ secrets.TRYGHOST_RENOVATE_APP_PRIVATE_KEY }}
-
+      # This repository is public, so reading it needs no token. Keep the
+      # checkout credential-less: `pnpm build` runs ncc, which Renovate keeps
+      # up to date, and a writable token left in .git/config would be readable
+      # by any dependency that executes during install or build.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - run: corepack enable
 
@@ -61,15 +59,38 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Commit and push if the bundles changed
+      - name: Check whether the bundles changed
+        id: check
         run: |
           if [ -z "$(git status --porcelain -- actions/*/dist)" ]; then
-            echo "Bundles are already up to date."
-            exit 0
+            echo 'Bundles are already up to date.'
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            git status --short -- actions/*/dist
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
           fi
 
+      # Minted only once there is something to push, so the writable token
+      # never exists while dependency code is running.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        id: app-token
+        if: steps.check.outputs.changed == 'true'
+        with:
+          app-id: ${{ secrets.TRYGHOST_RENOVATE_APP_ID }}
+          private-key: ${{ secrets.TRYGHOST_RENOVATE_APP_PRIVATE_KEY }}
+          # Without this the token inherits every permission the Renovate app
+          # holds on the installation. Pushing a commit needs only one.
+          permission-contents: write
+
+      - name: Commit and push the rebuilt bundles
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
           git config user.name 'renovate[bot]'
           git config user.email '29139614+renovate[bot]@users.noreply.github.com'
           git add -- actions/*/dist
           git commit -m 'Rebuild dist bundles'
-          git push
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" "HEAD:${BRANCH}"
