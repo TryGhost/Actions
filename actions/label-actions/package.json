@@ -20,7 +20,7 @@
   "devDependencies": {
     "@vercel/ncc": "0.45.0",
     "@vitest/coverage-v8": "5.0.1",
-    "oxfmt": "0.68.0",
+    "oxfmt": "0.70.0",
     "oxlint": "1.83.0",
     "should": "13.2.3",
     "sinon": "22.1.0",
