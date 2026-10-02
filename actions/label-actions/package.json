@@ -5,7 +5,7 @@
   "author": "Ghost Foundation",
   "license": "MIT",
   "main": "src/index.js",
-  "packageManager": "pnpm@10.34.5",
+  "packageManager": "pnpm@10.34.6",
   "scripts": {
     "build": "rm -rf dist && ncc build src/index.js -o dist",
     "dev": "echo \"Implement me!\"",
