@@ -58,7 +58,7 @@ const http = __importStar(__webpack_require__(8611));
 const https = __importStar(__webpack_require__(5692));
 const pm = __importStar(__webpack_require__(568));
 const tunnel = __importStar(__webpack_require__(7013));
-const undici_1 = __webpack_require__(6438);
+const undici_1 = __webpack_require__(9162);
 var HttpCodes;
 (function (HttpCodes) {
     HttpCodes[HttpCodes["OK"] = 200] = "OK";
@@ -917,8 +917,8 @@ class Context {
 //# sourceMappingURL=context.js.map
 // EXTERNAL MODULE: ./node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js
 var lib = __webpack_require__(2504);
-// EXTERNAL MODULE: ./node_modules/.pnpm/undici@6.28.1/node_modules/undici/index.js
-var undici = __webpack_require__(6438);
+// EXTERNAL MODULE: ./node_modules/.pnpm/undici@6.29.0/node_modules/undici/index.js
+var undici = __webpack_require__(9162);
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/internal/utils.js
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
