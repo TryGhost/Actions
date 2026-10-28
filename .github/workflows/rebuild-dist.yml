@@ -48,7 +48,7 @@ jobs:
         env:
           FORCE_COLOR: 0
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Rebuild bundles
         run: |
