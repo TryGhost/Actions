@@ -36,12 +36,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
 
-      - run: |
-          if [ -f lerna.json ]; then
-            yarn global add lerna@^4
-          fi
-
-      - run: yarn --prefer-offline --frozen-lockfile
+      - run: yarn --prefer-offline --frozen-lockfile --ignore-scripts
       - run: yarn test
 
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
