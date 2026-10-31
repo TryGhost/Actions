@@ -5,22 +5,22 @@
     "repository": "https://github.com/daniellockyer/action-slack-build",
     "author": "Daniel Lockyer <hi@daniellockyer.com>",
     "license": "MIT",
-    "packageManager": "pnpm@10.34.5",
+    "packageManager": "pnpm@10.34.9",
     "scripts": {
         "test": "NODE_ENV=testing vitest run --coverage",
         "lint": "oxlint --quiet && oxfmt --check .",
         "lint:fix": "oxlint --fix && oxfmt .",
         "format": "oxfmt .",
-        "build": "ncc build"
+        "build": "rm -rf dist && ncc build"
     },
     "devDependencies": {
         "@actions/core": "3.0.1",
-        "@slack/webhook": "7.0.9",
-        "@vercel/ncc": "0.44.0",
-        "@vitest/coverage-v8": "4.1.10",
-        "oxfmt": "0.61.0",
-        "oxlint": "1.76.0",
-        "vite": "8.2.0",
-        "vitest": "4.1.10"
+        "@slack/webhook": "8.0.2",
+        "@vercel/ncc": "0.45.0",
+        "@vitest/coverage-v8": "5.0.5",
+        "oxfmt": "0.75.0",
+        "oxlint": "1.90.0",
+        "vite": "8.3.5",
+        "vitest": "5.0.5"
     }
 }
