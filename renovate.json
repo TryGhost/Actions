@@ -5,11 +5,11 @@
   ],
   "packageRules": [
     {
-      "description": "Keep pnpm on 10.x while these actions target the GitHub Actions node20 runtime; pnpm 11 requires Node 22.13 or newer.",
+      "description": "Keep the pnpm toolchain on the reviewed 12.x release line; pnpm 12 supports the Node 20 action runtime.",
       "matchPackageNames": [
         "pnpm"
       ],
-      "allowedVersions": "<11"
+      "allowedVersions": "<13"
     }
   ]
 }
