@@ -3,6 +3,21 @@
   "extends": [
     "local>TryGhost/renovate-config"
   ],
+  "lockFileMaintenance": {
+    "schedule": [
+      "* * * * 6"
+    ],
+    "automergeSchedule": [
+      "* * * * 6"
+    ],
+    "platformAutomerge": false
+  },
+  "vulnerabilityAlerts": {
+    "automergeSchedule": [
+      "at any time"
+    ],
+    "platformAutomerge": true
+  },
   "packageRules": [
     {
       "description": "Keep the pnpm toolchain on the reviewed 12.x release line; pnpm 12 supports the Node 20 action runtime.",
@@ -10,6 +25,19 @@
         "pnpm"
       ],
       "allowedVersions": "<13"
+    },
+    {
+      "description": "Every merge here gives consumers a new digest to pick up. Create and merge our own updates on Saturday only, so consumers' Sunday digest update sees one commit, not one per merge. Renovate merges itself so a late Saturday PR can't land on Sunday.",
+      "matchPackageNames": [
+        "*"
+      ],
+      "schedule": [
+        "* * * * 6"
+      ],
+      "automergeSchedule": [
+        "* * * * 6"
+      ],
+      "platformAutomerge": false
     }
   ]
 }
