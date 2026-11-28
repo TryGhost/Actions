@@ -44,7 +44,7 @@ async function getGitHub() {
     }
 
     if (!githubPromise) {
-        githubPromise = Promise.all(/* import() */[__nccwpck_require__.e(521), __nccwpck_require__.e(437)]).then(__nccwpck_require__.bind(__nccwpck_require__, 4437)).then((github) => github.default ?? github);
+        githubPromise = Promise.all(/* import() */[__nccwpck_require__.e(521), __nccwpck_require__.e(128)]).then(__nccwpck_require__.bind(__nccwpck_require__, 4128)).then((github) => github.default ?? github);
     }
 
     return githubPromise;
