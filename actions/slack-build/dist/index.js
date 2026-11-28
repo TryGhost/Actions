@@ -4,7 +4,7 @@
 /***/ 6315:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const { IncomingWebhook } = __nccwpck_require__(1454);
+const { IncomingWebhook } = __nccwpck_require__(2681);
 
 function getStatusColor(statusInput) {
     if (statusInput === 'cancelled') {
@@ -102,7 +102,112 @@ module.exports = {
 
 /***/ }),
 
-/***/ 9351:
+/***/ 6449:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConsoleLogger = exports.LogLevel = void 0;
+/**
+ * Severity levels for log entries
+ */
+var LogLevel;
+(function (LogLevel) {
+    LogLevel["ERROR"] = "error";
+    LogLevel["WARN"] = "warn";
+    LogLevel["INFO"] = "info";
+    LogLevel["DEBUG"] = "debug";
+})(LogLevel || (exports.LogLevel = LogLevel = {}));
+/**
+ * Default logger which logs to stdout and stderr
+ */
+class ConsoleLogger {
+    /** Setting for level */
+    level;
+    /** Name */
+    name;
+    /** Map of labels for each log level */
+    static labels = (() => {
+        const entries = Object.entries(LogLevel);
+        const map = entries.map(([key, value]) => [value, `[${key}] `]);
+        return new Map(map);
+    })();
+    /** Map of severity as comparable numbers for each log level */
+    static severity = {
+        [LogLevel.ERROR]: 400,
+        [LogLevel.WARN]: 300,
+        [LogLevel.INFO]: 200,
+        [LogLevel.DEBUG]: 100,
+    };
+    constructor() {
+        this.level = LogLevel.INFO;
+        this.name = '';
+    }
+    getLevel() {
+        return this.level;
+    }
+    /**
+     * Sets the instance's log level so that only messages which are equal or more severe are output to the console.
+     */
+    setLevel(level) {
+        this.level = level;
+    }
+    /**
+     * Set the instance's name, which will appear on each log line before the message.
+     */
+    setName(name) {
+        this.name = name;
+    }
+    /**
+     * Log a debug message
+     */
+    // biome-ignore lint/suspicious/noExplicitAny: can log anything
+    debug(...msg) {
+        if (ConsoleLogger.isMoreOrEqualSevere(LogLevel.DEBUG, this.level)) {
+            console.debug(ConsoleLogger.labels.get(LogLevel.DEBUG), this.name, ...msg);
+        }
+    }
+    /**
+     * Log an info message
+     */
+    // biome-ignore lint/suspicious/noExplicitAny: can log anything
+    info(...msg) {
+        if (ConsoleLogger.isMoreOrEqualSevere(LogLevel.INFO, this.level)) {
+            console.info(ConsoleLogger.labels.get(LogLevel.INFO), this.name, ...msg);
+        }
+    }
+    /**
+     * Log a warning message
+     */
+    // biome-ignore lint/suspicious/noExplicitAny: can log anything
+    warn(...msg) {
+        if (ConsoleLogger.isMoreOrEqualSevere(LogLevel.WARN, this.level)) {
+            console.warn(ConsoleLogger.labels.get(LogLevel.WARN), this.name, ...msg);
+        }
+    }
+    /**
+     * Log an error message
+     */
+    // biome-ignore lint/suspicious/noExplicitAny: can log anything
+    error(...msg) {
+        if (ConsoleLogger.isMoreOrEqualSevere(LogLevel.ERROR, this.level)) {
+            console.error(ConsoleLogger.labels.get(LogLevel.ERROR), this.name, ...msg);
+        }
+    }
+    /**
+     * Helper to compare two log levels and determine if a is equal or more severe than b
+     */
+    static isMoreOrEqualSevere(a, b) {
+        return ConsoleLogger.severity[a] >= ConsoleLogger.severity[b];
+    }
+}
+exports.ConsoleLogger = ConsoleLogger;
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 3704:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -143,8 +248,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IncomingWebhook = void 0;
 const p_retry_1 = __importStar(__nccwpck_require__(4917));
-const errors_1 = __nccwpck_require__(4611);
-const instrument_1 = __nccwpck_require__(6213);
+const errors_1 = __nccwpck_require__(4270);
+const instrument_1 = __nccwpck_require__(6896);
+const logger_1 = __nccwpck_require__(1737);
 /**
  * A client for Slack's Incoming Webhooks
  */
@@ -173,6 +279,7 @@ class IncomingWebhook {
      * Retry policy applied to each send. Defaults to no retries.
      */
     retryConfig;
+    logger;
     constructor(url, defaults = {
         timeout: 0,
     }) {
@@ -186,9 +293,15 @@ class IncomingWebhook {
         this.headers = {
             'User-Agent': (0, instrument_1.getUserAgent)(),
         };
-        // Remove transport options so they don't leak into payloads
-        const { fetch: _fetch, timeout: _timeout, retryConfig: _retryConfig, ...messageDefaults } = defaults;
-        this.defaults = messageDefaults;
+        this.logger = defaults.logger ?? (0, logger_1.getLogger)('IncomingWebhook', defaults.logLevel ?? logger_1.LogLevel.INFO);
+        if (defaults.logger !== undefined && defaults.logLevel !== undefined) {
+            this.logger.warn('The logLevel given to IncomingWebhook was ignored as you also gave logger');
+        }
+        if (url.includes('/triggers/')) {
+            this.logger.warn('This URL looks like a webhook trigger (contains "/triggers/"). ' +
+                'Consider using WebhookTrigger instead of IncomingWebhook.');
+        }
+        this.defaults = defaults;
     }
     /**
      * Send a notification to a conversation
@@ -202,16 +315,18 @@ class IncomingWebhook {
         else {
             payload = Object.assign(payload, message);
         }
+        // Remove transport and logging options so they don't leak into payloads
+        const { fetch: fetchFn = this.fetchFn, timeout = this.timeout, retryConfig = this.retryConfig, logger: _logger, logLevel: _logLevel, ...messagePayload } = payload;
         return (0, p_retry_1.default)(async () => {
-            const signal = this.timeout > 0 ? AbortSignal.timeout(this.timeout) : undefined;
+            const signal = timeout > 0 ? AbortSignal.timeout(timeout) : undefined;
             try {
-                const response = await this.fetchFn(this.url, {
+                const response = await fetchFn(this.url, {
                     method: 'POST',
                     headers: {
                         ...this.headers,
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(messagePayload),
                     redirect: 'error',
                     signal,
                 });
@@ -231,7 +346,7 @@ class IncomingWebhook {
                 // No response received (network/timeout): retryable.
                 throw new errors_1.IncomingWebhookRequestError(error instanceof Error ? error : new Error(String(error)));
             }
-        }, this.retryConfig);
+        }, retryConfig);
     }
     /**
      * Processes an HTTP response into an IncomingWebhookResult.
@@ -247,7 +362,7 @@ exports.IncomingWebhook = IncomingWebhook;
 
 /***/ }),
 
-/***/ 9395:
+/***/ 5142:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -288,8 +403,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WebhookTrigger = void 0;
 const p_retry_1 = __importStar(__nccwpck_require__(4917));
-const errors_1 = __nccwpck_require__(4611);
-const instrument_1 = __nccwpck_require__(6213);
+const errors_1 = __nccwpck_require__(4270);
+const instrument_1 = __nccwpck_require__(6896);
+const logger_1 = __nccwpck_require__(1737);
 /**
  * A client for Slack's Workflow Builder webhook triggers
  * @see {@link https://slack.com/help/articles/360041352714-Build-a-workflow--Create-a-workflow-that-starts-outside-of-Slack}
@@ -315,6 +431,7 @@ class WebhookTrigger {
      * Retry policy applied to each send. Defaults to no retries.
      */
     retryConfig;
+    logger;
     constructor(url, defaults = {
         timeout: 0,
     }) {
@@ -328,6 +445,14 @@ class WebhookTrigger {
         this.headers = {
             'User-Agent': (0, instrument_1.getUserAgent)(),
         };
+        this.logger = defaults.logger ?? (0, logger_1.getLogger)('WebhookTrigger', defaults.logLevel ?? logger_1.LogLevel.INFO);
+        if (defaults.logger !== undefined && defaults.logLevel !== undefined) {
+            this.logger.warn('The logLevel given to WebhookTrigger was ignored as you also gave logger');
+        }
+        if (url.includes('/services/')) {
+            this.logger.warn('This URL looks like an incoming webhook (contains "/services/"). ' +
+                'Consider using IncomingWebhook instead of WebhookTrigger.');
+        }
     }
     /**
      * Send a payload to the webhook trigger
@@ -383,7 +508,7 @@ exports.WebhookTrigger = WebhookTrigger;
 
 /***/ }),
 
-/***/ 4611:
+/***/ 4270:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -451,7 +576,7 @@ exports.WebhookTriggerHTTPError = WebhookTriggerHTTPError;
 
 /***/ }),
 
-/***/ 1454:
+/***/ 2681:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -461,27 +586,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WebhookTrigger = exports.retryPolicies = exports.addAppMetadata = exports.IncomingWebhook = exports.WebhookTriggerRequestError = exports.WebhookTriggerHTTPError = exports.SlackWebhookError = exports.IncomingWebhookRequestError = exports.IncomingWebhookHTTPError = exports.ErrorCode = void 0;
-var errors_1 = __nccwpck_require__(4611);
+exports.WebhookTrigger = exports.retryPolicies = exports.LogLevel = exports.addAppMetadata = exports.IncomingWebhook = exports.WebhookTriggerRequestError = exports.WebhookTriggerHTTPError = exports.SlackWebhookError = exports.IncomingWebhookRequestError = exports.IncomingWebhookHTTPError = exports.ErrorCode = void 0;
+var errors_1 = __nccwpck_require__(4270);
 Object.defineProperty(exports, "ErrorCode", ({ enumerable: true, get: function () { return errors_1.ErrorCode; } }));
 Object.defineProperty(exports, "IncomingWebhookHTTPError", ({ enumerable: true, get: function () { return errors_1.IncomingWebhookHTTPError; } }));
 Object.defineProperty(exports, "IncomingWebhookRequestError", ({ enumerable: true, get: function () { return errors_1.IncomingWebhookRequestError; } }));
 Object.defineProperty(exports, "SlackWebhookError", ({ enumerable: true, get: function () { return errors_1.SlackWebhookError; } }));
 Object.defineProperty(exports, "WebhookTriggerHTTPError", ({ enumerable: true, get: function () { return errors_1.WebhookTriggerHTTPError; } }));
 Object.defineProperty(exports, "WebhookTriggerRequestError", ({ enumerable: true, get: function () { return errors_1.WebhookTriggerRequestError; } }));
-var IncomingWebhook_1 = __nccwpck_require__(9351);
+var IncomingWebhook_1 = __nccwpck_require__(3704);
 Object.defineProperty(exports, "IncomingWebhook", ({ enumerable: true, get: function () { return IncomingWebhook_1.IncomingWebhook; } }));
-var instrument_1 = __nccwpck_require__(6213);
+var instrument_1 = __nccwpck_require__(6896);
 Object.defineProperty(exports, "addAppMetadata", ({ enumerable: true, get: function () { return instrument_1.addAppMetadata; } }));
-var retry_policies_1 = __nccwpck_require__(3147);
+var logger_1 = __nccwpck_require__(1737);
+Object.defineProperty(exports, "LogLevel", ({ enumerable: true, get: function () { return logger_1.LogLevel; } }));
+var retry_policies_1 = __nccwpck_require__(1982);
 Object.defineProperty(exports, "retryPolicies", ({ enumerable: true, get: function () { return __importDefault(retry_policies_1).default; } }));
-var WebhookTrigger_1 = __nccwpck_require__(9395);
+var WebhookTrigger_1 = __nccwpck_require__(5142);
 Object.defineProperty(exports, "WebhookTrigger", ({ enumerable: true, get: function () { return WebhookTrigger_1.WebhookTrigger; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 6213:
+/***/ 6896:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -523,7 +650,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.addAppMetadata = addAppMetadata;
 exports.getUserAgent = getUserAgent;
 const os = __importStar(__nccwpck_require__(8161));
-const packageJson = __nccwpck_require__(1612);
+const packageJson = __nccwpck_require__(6657);
 /**
  * Replaces occurrences of '/' with ':' in a string, since '/' is meaningful inside User-Agent strings as a separator.
  */
@@ -556,7 +683,43 @@ function getUserAgent() {
 
 /***/ }),
 
-/***/ 3147:
+/***/ 1737:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LogLevel = void 0;
+exports.getLogger = getLogger;
+const logger_1 = __nccwpck_require__(6449);
+var logger_2 = __nccwpck_require__(6449);
+Object.defineProperty(exports, "LogLevel", ({ enumerable: true, get: function () { return logger_2.LogLevel; } }));
+let instanceCount = 0;
+/**
+ * INTERNAL interface for getting or creating a named Logger.
+ */
+function getLogger(name, level, existingLogger) {
+    // Get a unique ID for the logger.
+    const instanceId = instanceCount;
+    instanceCount += 1;
+    // Set up the logger.
+    const logger = (() => {
+        if (existingLogger !== undefined) {
+            return existingLogger;
+        }
+        return new logger_1.ConsoleLogger();
+    })();
+    logger.setName(`webhook:${name}:${instanceId}`);
+    if (level !== undefined) {
+        logger.setLevel(level);
+    }
+    return logger;
+}
+//# sourceMappingURL=logger.js.map
+
+/***/ }),
+
+/***/ 1982:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1253,11 +1416,11 @@ module.exports = require("util");
 
 /***/ }),
 
-/***/ 1612:
+/***/ 6657:
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"8.0.2","description":"Official library for using the Slack Platform\'s Incoming Webhooks","author":"Slack Technologies, LLC","license":"MIT","keywords":["slack","request","client","http","api","proxy"],"main":"dist/index.js","types":"./dist/index.d.ts","files":["dist/**/*"],"engines":{"node":">= 20","npm":">=9.6.4"},"repository":{"type":"git","url":"git+https://github.com/slackapi/node-slack-sdk.git"},"homepage":"https://docs.slack.dev/tools/node-slack-sdk/webhook/","publishConfig":{"access":"public"},"bugs":{"url":"https://github.com/slackapi/node-slack-sdk/issues"},"scripts":{"build":"npm run build:clean && tsc","build:clean":"shx rm -rf ./dist","docs":"npx typedoc --plugin typedoc-plugin-markdown","prepack":"npm run build","test":"npm run build && node --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts src/WebhookTrigger.test.ts src/instrument.test.ts src/retry-policies.test.ts","test:coverage":"npm run build && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=lcov.info --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts src/WebhookTrigger.test.ts src/instrument.test.ts src/retry-policies.test.ts"},"dependencies":{"@slack/types":"^3.1.0","@types/node":">=20","@types/retry":"0.12.5","p-retry":"^4.6.2","retry":"^0.13.1"},"devDependencies":{"nock":"^14.0.17"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"@slack/webhook","version":"8.1.0","description":"Official library for using webhooks on the Slack Platform","author":"Slack Technologies, LLC","license":"MIT","keywords":["slack","request","client","http","api","proxy"],"main":"dist/index.js","types":"./dist/index.d.ts","files":["dist/**/*"],"engines":{"node":">= 20","npm":">=9.6.4"},"repository":{"type":"git","url":"git+https://github.com/slackapi/node-slack-sdk.git"},"homepage":"https://docs.slack.dev/tools/node-slack-sdk/webhook/","publishConfig":{"access":"public"},"bugs":{"url":"https://github.com/slackapi/node-slack-sdk/issues"},"scripts":{"build":"npm run build:clean && tsc","build:clean":"shx rm -rf ./dist","docs":"npx typedoc --plugin typedoc-plugin-markdown","prepack":"npm run build","test":"npm run build && node --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts src/WebhookTrigger.test.ts src/instrument.test.ts src/retry-policies.test.ts","test:coverage":"npm run build && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=lcov.info --test-reporter=junit --test-reporter-destination=test-results.xml --import tsx --test src/IncomingWebhook.test.ts src/WebhookTrigger.test.ts src/instrument.test.ts src/retry-policies.test.ts"},"dependencies":{"@slack/logger":"^5.0.0","@slack/types":"^3.3.1","@types/node":">=20","@types/retry":"0.12.5","p-retry":"^4.6.2","retry":"^0.13.1"},"devDependencies":{"nock":"^14.0.17"}}');
 
 /***/ })
 
