@@ -179,8 +179,8 @@ importers:
         specifier: 3.0.1
         version: 3.0.1
       '@slack/webhook':
-        specifier: 8.0.2
-        version: 8.0.2
+        specifier: 8.1.0
+        version: 8.1.0
       '@vercel/ncc':
         specifier: 0.45.0
         version: 0.45.0
@@ -612,12 +612,16 @@ packages:
   '@rolldown/pluginutils@1.1.1':
     resolution: {integrity: sha512-glFIJDvLNDtJhT9qrMFWLPbvS+skxgt4L0K8Ei2YtnhPysAJnsI7nyxSJxKj4ADeKX0OLjC4ntRkwpLOoS3rwA==}
 
+  '@slack/logger@5.0.0':
+    resolution: {integrity: sha512-VGXhmmgsAo9shdQYh4tFDndd+7nsgp0Y5h0UPDaUp8K359pBasI6YdkMqFW3mCOxLQkq09qj7o7cq6f3DuXcJQ==}
+    engines: {node: '>= 20', npm: '>=9.6.4'}
+
   '@slack/types@3.3.1':
     resolution: {integrity: sha512-F4JJd1SY5Nro1O6O4izMrBv0/IOpr+a8GGewr23tnP8zO1t9mWFLBjpNPv6nxuxhhw4JVRM9CPltBnLkZj7Ucw==}
     engines: {node: '>= 20', npm: '>=9.6.4'}
 
-  '@slack/webhook@8.0.2':
-    resolution: {integrity: sha512-gBPlV9W6zfP4qcijX47Ni5GznbZ8Q7oZYnCQMGkOGnEHPny+gR1xpjaUdafSwGNEVKjHtW39+A2Upzg1GPHyVg==}
+  '@slack/webhook@8.1.0':
+    resolution: {integrity: sha512-KyKEuxPvenjlJk5UIXr7rdzfw7KQAuCdW6uEU85iX8TCLW8XXtbdggF2xTifhScom8Ry+KV/XciKg2ciB+95MQ==}
     engines: {node: '>= 20', npm: '>=9.6.4'}
 
   '@tybys/wasm-util@0.10.5':
@@ -1225,10 +1229,15 @@ snapshots:
 
   '@rolldown/pluginutils@1.1.1': {}
 
+  '@slack/logger@5.0.0':
+    dependencies:
+      '@types/node': 26.6.7
+
   '@slack/types@3.3.1': {}
 
-  '@slack/webhook@8.0.2':
+  '@slack/webhook@8.1.0':
     dependencies:
+      '@slack/logger': 5.0.0
       '@slack/types': 3.3.1
       '@types/node': 26.6.7
       '@types/retry': 0.12.5
